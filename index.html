@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Los Pibes — Grilloliga</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#EAE2CC;
+  --bg2:#E2D5B8;
+  --card:#F7F1E1;
+  --card2:#EDE2C7;
+  --line:rgba(20,17,12,0.16);
+  --line-strong:rgba(20,17,12,0.40);
+  --text:#161310;
+  --text-dim:#57503F;
+  --text-dimmer:#8B8270;
+  --gold:#9C7A2E;
+  --gold-dim:#725A22;
+  --grass:#4A6B43;
+  --grass-dim:#375030;
+  --red:#B33B22;
+  --red-dim:#8A2C19;
+  --oscuro-bg:#171310;
+  --oscuro-text:#F0E7D2;
+  --claro-bg:#F7F1E1;
+  --claro-text:#161310;
+  --radius:5px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse 1100px 600px at 50% -8%, rgba(169,122,42,0.10), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(58,42,24,0.02) 0px, rgba(58,42,24,0.02) 1px, transparent 1px, transparent 3px),
+    linear-gradient(180deg, var(--bg2), var(--bg) 340px);
+  color:var(--text);
+  font-family:'Lora',Georgia,serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.stitch-line{
+  height:5px;
+  background:
+    linear-gradient(var(--text) 1px, transparent 1px) top / 100% 1px no-repeat,
+    linear-gradient(var(--text) 1px, transparent 1px) bottom / 100% 1px no-repeat;
+  opacity:0.85;
+}
+header.top{
+  position:sticky; top:0; z-index:50;
+  background:rgba(239,230,210,0.94);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 2px 10px rgba(43,32,19,0.06);
+}
+.top-inner{
+  max-width:980px; margin:0 auto; padding:16px 18px 0 18px;
+}
+.brand{
+  display:flex; align-items:baseline; gap:12px; margin-bottom:8px;
+}
+.brand .badge{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14px; letter-spacing:1px; font-weight:600;
+  background:transparent; color:var(--red);
+  border:1.5px solid var(--red);
+  padding:4px 10px; border-radius:3px;
+  transform:rotate(-3deg);
+}
+.brand h1{
+  font-family:'Playfair Display',Georgia,serif;
+  font-weight:900;
+  font-size:clamp(28px,7vw,40px);
+  letter-spacing:0.5px;
+  margin:0;
+  line-height:1;
+  color:var(--text);
+}
+.brand h1 span{color:var(--red);}
+.subtitle{
+  color:var(--text-dim); font-size:12.5px; margin:4px 0 14px 0;
+  font-style:italic; letter-spacing:0.3px;
+}
+nav.tabs{
+  display:flex; gap:2px; margin-top:2px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  border-top:1px solid var(--line);
+}
+nav.tabs::-webkit-scrollbar{display:none;}
+nav.tabs button{
+  flex:0 0 auto;
+  background:transparent; border:none; cursor:pointer;
+  color:var(--text-dim);
+  font-family:'Lora',serif; font-weight:600; font-size:12.5px;
+  letter-spacing:0.8px;
+  padding:12px 11px 12px 11px;
+  border-bottom:3px solid transparent;
+  transition:color .15s, border-color .15s;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+nav.tabs button.active{
+  color:var(--red);
+  border-bottom-color:var(--red);
+}
+nav.tabs button:hover{color:var(--text);}
+
+main{max-width:980px; margin:0 auto; padding:22px 14px 70px 14px;}
+.panel{display:none; animation:fadeIn .25s ease;}
+.panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+.section-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin:4px 0 16px 0; flex-wrap:wrap;
+  border-bottom:1px solid var(--line-strong);
+  padding-bottom:8px;
+}
+.section-head h2{
+  font-family:'Playfair Display',serif; font-weight:700;
+  font-size:23px; letter-spacing:0.2px; margin:0;
+  color:var(--text);
+}
+.pill-count{
+  font-size:10.5px; color:var(--text-dimmer); border:1px solid var(--line-strong);
+  font-family:'IBM Plex Mono',monospace;
+  padding:3px 9px; border-radius:20px;
+}
+
+/* search */
+.search-box{
+  width:100%; margin-bottom:14px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  display:flex; align-items:center; gap:8px; padding:9px 12px;
+}
+.search-box input{
+  background:transparent; border:none; outline:none; color:var(--text);
+  font-family:'Lora',serif; font-size:14px; width:100%;
+}
+.search-box input::placeholder{color:var(--text-dimmer);}
+.search-box svg{flex-shrink:0; opacity:0.5;}
+
+/* stats table */
+.table-wrap{
+  overflow-x:auto; border-radius:var(--radius); border:1px solid var(--line-strong);
+  background:var(--card);
+  -webkit-overflow-scrolling:touch;
+}
+table{border-collapse:collapse; width:100%; font-size:12.5px; font-family:'IBM Plex Mono',monospace;}
+thead th{
+  position:sticky; top:0;
+  background:var(--card2);
+  color:var(--text-dim);
+  font-weight:600; text-transform:uppercase; font-size:9.5px; letter-spacing:0.4px;
+  line-height:1.35;
+  padding:8px 7px; text-align:right; cursor:pointer; user-select:none;
+  border-bottom:1px solid var(--line-strong);
+  white-space:normal; max-width:64px;
+}
+thead th:hover{color:var(--red);}
+thead th.sorted{color:var(--red);}
+thead th:first-child, td:first-child{
+  text-align:left; position:sticky; left:0;
+  background:var(--card2);
+  z-index:2;
+}
+tbody th{ text-align:left; }
+tbody td{ text-align:right; padding:9px 7px; white-space:nowrap; border-bottom:1px solid var(--line); color:var(--text); }
+tbody td:first-child{
+  background:var(--card); font-weight:600; font-family:'Lora',serif;
+}
+tbody tr:hover td{background:rgba(169,122,42,0.08);}
+tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
+.sort-arrow{font-size:9px; margin-left:3px; opacity:0.7;}
+.rank-cell{color:var(--text-dimmer); font-variant-numeric:tabular-nums;}
+.debut-note{
+  color:var(--text-dimmer); font-size:11px; font-weight:400; text-align:left; max-width:220px;
+  white-space:normal; font-family:'Lora',serif;
+}
+
+/* rankings */
+.ranking-scroller{
+  position:relative; margin-bottom:16px;
+}
+.ranking-select-row{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+}
+.ranking-select-row::-webkit-scrollbar{display:none;}
+.ranking-scroller::before, .ranking-scroller::after{
+  content:''; position:absolute; top:0; bottom:6px; width:34px; pointer-events:none; z-index:2;
+}
+.ranking-scroller::before{ left:0; background:linear-gradient(90deg, var(--bg), transparent); }
+.ranking-scroller::after{ right:0; background:linear-gradient(270deg, var(--bg), transparent); }
+.scroll-arrow{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:30px; height:30px; border-radius:50%;
+  background:var(--card2); border:1px solid var(--line-strong); color:var(--text);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  z-index:3; transition:background .15s, opacity .15s, color .15s;
+}
+.scroll-arrow:hover{ background:var(--red); color:var(--claro-bg); border-color:var(--red); }
+.scroll-arrow.left{ left:-2px; }
+.scroll-arrow.right{ right:-2px; }
+.scroll-arrow.hidden{ display:none; }
+@media (max-width:600px){
+  .scroll-arrow{ width:26px; height:26px; }
+}
+.chip{
+  flex-shrink:0;
+  background:var(--card); border:1px solid var(--line); color:var(--text-dim);
+  font-size:11.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase;
+  font-family:'Lora',serif;
+  padding:9px 14px; border-radius:20px; cursor:pointer; white-space:nowrap;
+  transition:all .15s;
+}
+.chip.active{
+  background:var(--red); color:var(--claro-bg); border-color:var(--red);
+}
+.rank-list{
+  border:1px solid var(--line-strong); border-radius:var(--radius); overflow:hidden; background:var(--card);
+}
+.rank-row{
+  display:flex; align-items:center; gap:12px; padding:11px 14px;
+  border-bottom:1px solid var(--line);
+}
+.rank-row:last-child{border-bottom:none;}
+.rank-num{
+  font-family:'Playfair Display',serif; font-weight:700; font-size:17px; color:var(--text-dimmer);
+  width:28px; text-align:center; flex-shrink:0;
+}
+.rank-row.top1 .rank-num, .rank-row.top1 .rank-name{color:#9C7A22;}
+.rank-row.top2 .rank-num, .rank-row.top2 .rank-name{color:#6E6252;}
+.rank-row.top3 .rank-num, .rank-row.top3 .rank-name{color:#9C5A34;}
+.rank-row.top1{background:rgba(169,122,42,0.08);}
+.rank-row.top2{background:rgba(58,42,24,0.04);}
+.rank-row.top3{background:rgba(156,90,52,0.07);}
+.rank-name{flex:1; font-weight:600; font-size:14.5px;}
+.rank-extra{
+  display:flex; gap:14px; font-size:12px; color:var(--text-dim);
+  font-family:'IBM Plex Mono',monospace;
+  font-variant-numeric:tabular-nums;
+}
+.rank-extra b{color:var(--text); font-weight:700;}
+.rank-main-val{
+  font-family:'Playfair Display',serif; font-weight:700; font-size:19px; color:var(--grass);
+  min-width:46px; text-align:right;
+}
+
+/* partidos */
+.match-select-row{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:16px;
+  -webkit-overflow-scrolling:touch;
+}
+.match-select-row::-webkit-scrollbar{display:none;}
+.match-chip{
+  flex-shrink:0; width:52px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--card); border:1px solid var(--line);
+  border-radius:var(--radius); cursor:pointer; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px;
+  color:var(--text-dim);
+}
+.match-chip.active{background:var(--red); color:var(--claro-bg); border-color:var(--red);}
+
+.scoreboard{
+  border-radius:var(--radius); overflow:hidden; border:1px solid var(--line-strong);
+  background:var(--card);
+}
+.sb-title{
+  padding:14px 16px 10px 16px; text-align:center;
+  border-bottom:1px solid var(--line);
+}
+.sb-title .num{
+  font-family:'IBM Plex Mono',monospace; color:var(--red); font-size:12px; letter-spacing:2px; font-weight:600;
+}
+.sb-title .name{ font-size:14px; font-weight:700; margin-top:2px; font-family:'Lora',serif; }
+.sb-note{
+  font-size:11.5px; color:var(--text-dimmer); font-style:italic; padding:8px 16px 0 16px; text-align:center;
+}
+.sb-score{
+  display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; padding:18px 10px;
+}
+.sb-team{ text-align:center; }
+.sb-team .team-label{
+  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
+  padding:3px 10px; border-radius:3px; display:inline-block; margin-bottom:8px;
+  font-family:'Lora',serif;
+}
+.sb-team.oscuro .team-label{ background:var(--oscuro-bg); color:var(--oscuro-text); border:1px solid #3a2e1c;}
+.sb-team.claro .team-label{ background:var(--claro-bg); color:var(--claro-text); border:1px solid var(--line-strong);}
+.sb-team .team-score{
+  font-family:'Playfair Display',serif; font-weight:900; font-size:52px; line-height:1;
+}
+.sb-vs{ font-family:'Playfair Display',serif; font-style:italic; color:var(--text-dimmer); font-size:16px; padding:0 6px;}
+
+.sb-players{ display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line);}
+.sb-col{padding:12px 0;}
+.sb-col.oscuro{border-right:1px solid var(--line);}
+.sb-player-row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 14px; font-size:13px;
+}
+.sb-player-row .pname{font-weight:600; font-family:'Lora',serif;}
+.sb-player-row .pstats{
+  display:flex; gap:8px; color:var(--text-dim); font-size:11.5px;
+  font-family:'IBM Plex Mono',monospace;
+  font-variant-numeric:tabular-nums;
+}
+.sb-player-row .pstats .g{color:var(--grass); font-weight:700;}
+.sb-player-row .pstats .a{color:var(--gold); font-weight:700;}
+.no-scorers{color:var(--text-dimmer); font-size:12px; padding:6px 14px; font-style:italic;}
+
+.legend{
+  display:flex; gap:16px; justify-content:center; margin-top:10px; font-size:11px; color:var(--text-dimmer);
+}
+.legend span{display:flex; align-items:center; gap:5px;}
+.dot{width:7px; height:7px; border-radius:50%;}
+.dot.g{background:var(--grass);}
+.dot.a{background:var(--gold);}
+
+footer{
+  text-align:center; padding:28px 14px 14px 14px; color:var(--text-dimmer); font-size:11px;
+  font-family:'Lora',serif; font-style:italic; letter-spacing:0.2px;
+}
+
+/* ---------- DASHBOARD ---------- */
+.stat-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:10px;
+}
+.stat-card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 14px 12px 14px;
+  border-top:2px solid var(--line-strong);
+}
+.stat-card .icon{ font-size:18px; margin-bottom:6px; display:block; }
+.stat-card .value{
+  font-family:'Playfair Display',serif; font-weight:900; font-size:28px; line-height:1; color:var(--red);
+}
+.stat-card .label{
+  font-size:11px; color:var(--text-dim); margin-top:4px; letter-spacing:0.2px;
+}
+.stat-card .sublabel{
+  font-size:10.5px; color:var(--text-dimmer); margin-top:2px;
+}
+.stat-card.wide{ grid-column:span 2; }
+.stat-card .value.small{ font-size:16px; font-family:'Lora',serif; font-weight:700; color:var(--text); }
+
+.leader-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:10px;
+}
+.leader-card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:13px 14px; display:flex; align-items:center; gap:12px;
+  cursor:pointer; transition:border-color .15s, background .15s;
+}
+.leader-card:hover{ border-color:var(--gold-dim); background:var(--card2); }
+.leader-card .lc-icon{
+  font-size:22px; width:40px; height:40px; border-radius:8px;
+  background:rgba(169,122,42,0.12); display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.leader-card .lc-body{ flex:1; min-width:0; }
+.leader-card .lc-cat{
+  font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dimmer); font-weight:700;
+  font-family:'IBM Plex Mono',monospace;
+}
+.leader-card .lc-name{
+  font-size:14.5px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-family:'Lora',serif;
+}
+.leader-card .lc-val{
+  font-family:'Playfair Display',serif; font-weight:700; font-size:20px; color:var(--grass); flex-shrink:0;
+}
+
+/* ---------- PARTIDOS HISTORICOS ---------- */
+.hint-text{
+  color:var(--text-dimmer); font-size:12.5px; margin:-6px 0 14px 0; font-style:italic;
+}
+.historicos-list{ display:flex; flex-direction:column; gap:10px; }
+.historico-card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:13px 15px; cursor:pointer; transition:border-color .15s, background .15s;
+  display:flex; align-items:center; gap:14px;
+}
+.historico-card:hover{ border-color:var(--gold-dim); background:var(--card2); }
+.historico-card .hc-num{
+  font-family:'Playfair Display',serif; font-weight:700; font-size:22px; color:var(--red);
+  width:38px; text-align:center; flex-shrink:0;
+}
+.historico-card .hc-body{ flex:1; min-width:0; }
+.historico-card .hc-title{ font-weight:700; font-size:14px; margin-bottom:3px; font-family:'Lora',serif; }
+.historico-card .hc-note{ font-size:12.5px; color:var(--text-dim); font-style:italic; }
+.historico-card .hc-score{
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:18px; color:var(--text-dim); flex-shrink:0;
+}
+
+/* ---------- JUGADORES ---------- */
+.jugador-chip-row{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px;
+  -webkit-overflow-scrolling:touch;
+}
+.jugador-chip-row::-webkit-scrollbar{display:none;}
+.jugador-chip{
+  flex-shrink:0;
+  background:var(--card); border:1px solid var(--line); color:var(--text-dim);
+  font-size:12.5px; font-weight:700; font-family:'Lora',serif;
+  padding:8px 13px; border-radius:20px; cursor:pointer; white-space:nowrap;
+}
+.jugador-chip.active{ background:var(--red); color:var(--claro-bg); border-color:var(--red); }
+
+.jp-header{
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+}
+.jp-avatar{
+  width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg, var(--grass-dim), var(--card2));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display',serif; font-weight:700; font-size:20px; color:var(--claro-bg); flex-shrink:0;
+  border:1px solid var(--line-strong);
+}
+.jp-name{ font-family:'Playfair Display',serif; font-weight:900; font-size:26px; letter-spacing:0.2px; }
+.jp-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-top:3px; }
+.jp-badge{
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px;
+  font-family:'IBM Plex Mono',monospace;
+  background:rgba(169,122,42,0.15); color:var(--gold-dim); padding:2px 8px; border-radius:10px;
+}
+.jp-stat-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(90px,1fr)); gap:8px;
+  margin-bottom:20px;
+}
+.jp-stat{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:10px 10px; text-align:center;
+}
+.jp-stat .jv{ font-family:'Playfair Display',serif; font-weight:700; font-size:20px; color:var(--red); }
+.jp-stat .jl{ font-size:9.5px; color:var(--text-dimmer); text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
+
+.jp-matches-title{
+  font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim);
+  font-weight:700; margin:0 0 8px 4px; font-family:'IBM Plex Mono',monospace;
+}
+.jp-match-list{ display:flex; flex-direction:column; gap:6px; }
+.jp-match-row{
+  display:flex; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:9px 13px; cursor:pointer;
+}
+.jp-match-row:hover{ border-color:var(--gold-dim); }
+.jp-match-row .jm-num{
+  font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--text-dimmer); width:30px;
+}
+.jp-match-row .jm-result{
+  font-size:10px; font-weight:800; width:20px; height:20px; border-radius:4px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.jp-match-row .jm-result.win{ background:rgba(79,107,69,0.18); color:var(--grass); }
+.jp-match-row .jm-result.loss{ background:rgba(123,46,39,0.16); color:var(--red); }
+.jp-match-row .jm-result.draw{ background:rgba(169,122,42,0.18); color:var(--gold-dim); }
+.jp-match-row .jm-title{ flex:1; font-size:12.5px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Lora',serif; }
+.jp-match-row .jm-stats{ font-size:11.5px; color:var(--text-dim); flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+.jp-match-row .jm-stats .g{ color:var(--grass); font-weight:700; }
+.jp-match-row .jm-stats .a{ color:var(--gold); font-weight:700; }
+.jp-empty{ color:var(--text-dimmer); text-align:center; padding:30px 10px; font-size:13px; font-style:italic; }
+
+@media (max-width:600px){
+  .sb-team .team-score{font-size:40px;}
+  .rank-extra{display:none;}
+  table{font-size:11.5px;}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <span class="badge">2026</span>
+      <h1><span>GRILLOLIGA</span> ARGENTINA</h1>
+    </div>
+    <div class="subtitle" id="subtitle-text"></div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="inicio">Inicio</button>
+      <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
+      <button class="tab-btn" data-tab="rankings">Rankings</button>
+      <button class="tab-btn" data-tab="partidos">Partidos</button>
+      <button class="tab-btn" data-tab="historicos">Partidos Históricos</button>
+      <button class="tab-btn" data-tab="jugadores">Jugadores</button>
+    </nav>
+  </div>
+  <div class="stitch-line"></div>
+</header>
+
+<main>
+
+  <!-- INICIO / DASHBOARD -->
+  <section id="panel-inicio" class="panel active">
+    <div class="section-head">
+      <h2>Resumen del torneo</h2>
+    </div>
+    <div class="stat-grid" id="stat-grid"></div>
+
+    <div class="section-head" style="margin-top:26px;">
+      <h2>Partidos destacados</h2>
+    </div>
+    <div class="stat-grid" id="highlight-grid"></div>
+
+    <div class="section-head" style="margin-top:26px;">
+      <h2>Líderes</h2>
+    </div>
+    <div class="leader-grid" id="leader-grid"></div>
+  </section>
+
+  <!-- ESTADISTICAS -->
+  <section id="panel-estadisticas" class="panel">
+    <div class="section-head">
+      <h2>Estadísticas</h2>
+      <span class="pill-count" id="stats-count"></span>
+    </div>
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="stats-search" placeholder="Buscar jugador…">
+    </div>
+    <div class="table-wrap">
+      <table id="stats-table">
+        <thead><tr id="stats-head"></tr></thead>
+        <tbody id="stats-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RANKINGS -->
+  <section id="panel-rankings" class="panel">
+    <div class="section-head">
+      <h2>Rankings</h2>
+    </div>
+    <div class="ranking-scroller">
+      <div class="scroll-arrow left hidden" id="rank-arrow-left">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="ranking-select-row" id="ranking-chips"></div>
+      <div class="scroll-arrow right" id="rank-arrow-right">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div class="rank-list" id="ranking-list"></div>
+  </section>
+
+  <!-- PARTIDOS -->
+  <section id="panel-partidos" class="panel">
+    <div class="section-head">
+      <h2>Partidos</h2>
+      <span class="pill-count" id="match-count"></span>
+    </div>
+    <div class="match-select-row" id="match-chips"></div>
+    <div id="scoreboard-container"></div>
+  </section>
+
+  <!-- PARTIDOS HISTORICOS -->
+  <section id="panel-historicos" class="panel">
+    <div class="section-head">
+      <h2>Partidos Históricos</h2>
+      <span class="pill-count" id="historicos-count"></span>
+    </div>
+    <p class="hint-text">Partidos con algo especial: lesiones, situaciones puntuales o formatos distintos al habitual.</p>
+    <div class="historicos-list" id="historicos-list"></div>
+  </section>
+
+  <!-- JUGADORES -->
+  <section id="panel-jugadores" class="panel">
+    <div class="section-head">
+      <h2>Jugadores</h2>
+      <span class="pill-count" id="jugadores-count"></span>
+    </div>
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="jugador-search" placeholder="Buscar jugador…">
+    </div>
+    <div class="jugador-chip-row" id="jugador-chips"></div>
+    <div id="jugador-profile"></div>
+  </section>
+
+</main>
+
+<footer>Datos cargados desde la planilla de Los Pibes · Grilloliga 2026</footer>
+
+<script>
+const DATA = {"estadisticas": [{"N°": 1, "Jugador": "Chiappe", "PJ": 27, "PG": 16, "PE": 1, "PP": 10, "%PG": 59, "Goles": 23, "Ast": 28, "G+A": 51, "G/P": 0.85, "A/P": 1.04, "G+A/P": 1.89, "Hat-tricks": 1, "Máx Goles": 3, "Máx Ast": 3, "Goles Recibidos": 210, "Goles recibidos por partido": 7.78, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 2, "Jugador": "Pablo", "PJ": 27, "PG": 15, "PE": 0, "PP": 12, "%PG": 56, "Goles": 42, "Ast": 44, "G+A": 86, "G/P": 1.56, "A/P": 1.63, "G+A/P": 3.19, "Hat-tricks": 7, "Máx Goles": 5, "Máx Ast": 4, "Goles Recibidos": 222, "Goles recibidos por partido": 8.22, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 3, "Jugador": "Gutman", "PJ": 27, "PG": 14, "PE": 1, "PP": 12, "%PG": 52, "Goles": 41, "Ast": 23, "G+A": 64, "G/P": 1.52, "A/P": 0.85, "G+A/P": 2.37, "Hat-tricks": 5, "Máx Goles": 4, "Máx Ast": 3, "Goles Recibidos": 222, "Goles recibidos por partido": 8.22, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 4, "Jugador": "Leon", "PJ": 25, "PG": 14, "PE": 0, "PP": 11, "%PG": 56, "Goles": 70, "Ast": 31, "G+A": 101, "G/P": 2.8, "A/P": 1.24, "G+A/P": 4.04, "Hat-tricks": 13, "Máx Goles": 6, "Máx Ast": 4, "Goles Recibidos": 195, "Goles recibidos por partido": 7.8, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 5, "Jugador": "Mateo", "PJ": 25, "PG": 9, "PE": 1, "PP": 15, "%PG": 36, "Goles": 31, "Ast": 27, "G+A": 58, "G/P": 1.24, "A/P": 1.08, "G+A/P": 2.32, "Hat-tricks": 4, "Máx Goles": 4, "Máx Ast": 3, "Goles Recibidos": 217, "Goles recibidos por partido": 8.68, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 6, "Jugador": "Pedro", "PJ": 24, "PG": 13, "PE": 1, "PP": 10, "%PG": 54, "Goles": 31, "Ast": 32, "G+A": 63, "G/P": 1.29, "A/P": 1.33, "G+A/P": 2.63, "Hat-tricks": 4, "Máx Goles": 3, "Máx Ast": 4, "Goles Recibidos": 197, "Goles recibidos por partido": 8.21, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 7, "Jugador": "Pipe", "PJ": 23, "PG": 13, "PE": 1, "PP": 9, "%PG": 57, "Goles": 29, "Ast": 25, "G+A": 54, "G/P": 1.26, "A/P": 1.09, "G+A/P": 2.35, "Hat-tricks": 3, "Máx Goles": 4, "Máx Ast": 4, "Goles Recibidos": 179, "Goles recibidos por partido": 7.78, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 8, "Jugador": "Valen", "PJ": 22, "PG": 13, "PE": 1, "PP": 8, "%PG": 59, "Goles": 53, "Ast": 36, "G+A": 89, "G/P": 2.41, "A/P": 1.64, "G+A/P": 4.05, "Hat-tricks": 10, "Máx Goles": 5, "Máx Ast": 5, "Goles Recibidos": 166, "Goles recibidos por partido": 7.55, "Debut": "30 DE ENERO - LA EPICA DE GOATMAN"}, {"N°": 9, "Jugador": "Rafa", "PJ": 19, "PG": 7, "PE": 1, "PP": 11, "%PG": 37, "Goles": 22, "Ast": 16, "G+A": 38, "G/P": 1.16, "A/P": 0.84, "G+A/P": 2, "Hat-tricks": 2, "Máx Goles": 3, "Máx Ast": 5, "Goles Recibidos": 159, "Goles recibidos por partido": 8.37, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 10, "Jugador": "Kava", "PJ": 19, "PG": 6, "PE": 0, "PP": 13, "%PG": 32, "Goles": 6, "Ast": 5, "G+A": 11, "G/P": 0.32, "A/P": 0.26, "G+A/P": 0.58, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 2, "Goles Recibidos": 177, "Goles recibidos por partido": 9.32, "Debut": "5 DE MARZO LA VUELTA DE KAVA (SALE MAL)"}, {"N°": 11, "Jugador": "Pelu", "PJ": 15, "PG": 10, "PE": 0, "PP": 5, "%PG": 67, "Goles": 18, "Ast": 16, "G+A": 34, "G/P": 1.2, "A/P": 1.07, "G+A/P": 2.27, "Hat-tricks": 1, "Máx Goles": 4, "Máx Ast": 3, "Goles Recibidos": 123, "Goles recibidos por partido": 8.2, "Debut": "30 DE ENERO - LA EPICA DE GOATMAN"}, {"N°": 12, "Jugador": "Tiago", "PJ": 13, "PG": 3, "PE": 0, "PP": 10, "%PG": 23, "Goles": 8, "Ast": 12, "G+A": 20, "G/P": 0.62, "A/P": 0.92, "G+A/P": 1.54, "Hat-tricks": 1, "Máx Goles": 3, "Máx Ast": 3, "Goles Recibidos": 122, "Goles recibidos por partido": 9.38, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 13, "Jugador": "Lauti", "PJ": 11, "PG": 6, "PE": 0, "PP": 5, "%PG": 55, "Goles": 7, "Ast": 4, "G+A": 11, "G/P": 0.64, "A/P": 0.36, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 2, "Goles Recibidos": 87, "Goles recibidos por partido": 7.91, "Debut": "04/06/2026"}, {"N°": 14, "Jugador": "Ciro", "PJ": 10, "PG": 5, "PE": 1, "PP": 4, "%PG": 50, "Goles": 5, "Ast": 6, "G+A": 11, "G/P": 0.5, "A/P": 0.6, "G+A/P": 1.1, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 2, "Goles Recibidos": 81, "Goles recibidos por partido": 8.1, "Debut": "12 DE MARZO MATHEU LAHOZ AGREGÓ +35 MINUTOS"}, {"N°": 15, "Jugador": "Mecha", "PJ": 8, "PG": 4, "PE": 0, "PP": 4, "%PG": 50, "Goles": 9, "Ast": 15, "G+A": 24, "G/P": 1.13, "A/P": 1.88, "G+A/P": 3, "Hat-tricks": 1, "Máx Goles": 3, "Máx Ast": 4, "Goles Recibidos": 58, "Goles recibidos por partido": 7.25, "Debut": "30 DE ENERO - LA EPICA DE GOATMAN"}, {"N°": 16, "Jugador": "Ale Baez", "PJ": 6, "PG": 4, "PE": 1, "PP": 1, "%PG": 67, "Goles": 7, "Ast": 7, "G+A": 14, "G/P": 1.17, "A/P": 1.17, "G+A/P": 2.33, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 4, "Goles Recibidos": 38, "Goles recibidos por partido": 6.33, "Debut": "19 DE MARZO EMPATE POR ESCRITORIO"}, {"N°": 17, "Jugador": "Fabri", "PJ": 5, "PG": 3, "PE": 0, "PP": 2, "%PG": 60, "Goles": 12, "Ast": 2, "G+A": 14, "G/P": 2.4, "A/P": 0.4, "G+A/P": 2.8, "Hat-tricks": 1, "Máx Goles": 5, "Máx Ast": 1, "Goles Recibidos": 43, "Goles recibidos por partido": 8.6, "Debut": "26 DE MARZO PARTIDO DE MIERDA, NADA DESTACABLE"}, {"N°": 18, "Jugador": "Nahue Cuervo", "PJ": 4, "PG": 2, "PE": 1, "PP": 1, "%PG": 50, "Goles": 3, "Ast": 4, "G+A": 7, "G/P": 0.75, "A/P": 1, "G+A/P": 1.75, "Hat-tricks": 1, "Máx Goles": 3, "Máx Ast": 2, "Goles Recibidos": 24, "Goles recibidos por partido": 6, "Debut": "26 DE FEBRERO NOCHE DE FESTEJOS Y DEBUT DEL CRACK"}, {"N°": 19, "Jugador": "Pepe", "PJ": 2, "PG": 2, "PE": 0, "PP": 0, "%PG": 100, "Goles": 7, "Ast": 2, "G+A": 9, "G/P": 3.5, "A/P": 1, "G+A/P": 4.5, "Hat-tricks": 1, "Máx Goles": 5, "Máx Ast": 1, "Goles Recibidos": 11, "Goles recibidos por partido": 5.5, "Debut": "2 DE JUlIO PARTIDO HOMENAJE A PEPE"}, {"N°": 20, "Jugador": "Tomi", "PJ": 2, "PG": 2, "PE": 0, "PP": 0, "%PG": 100, "Goles": 4, "Ast": 0, "G+A": 4, "G/P": 2, "A/P": 0, "G+A/P": 2, "Hat-tricks": 1, "Máx Goles": 4, "Máx Ast": 0, "Goles Recibidos": 14, "Goles recibidos por partido": 7, "Debut": "19 DE FEBRERO - REGEN DE BECKHAM"}, {"N°": 21, "Jugador": "Tomas", "PJ": 2, "PG": 1, "PE": 0, "PP": 1, "%PG": 50, "Goles": 6, "Ast": 1, "G+A": 7, "G/P": 3, "A/P": 0.5, "G+A/P": 3.5, "Hat-tricks": 1, "Máx Goles": 4, "Máx Ast": 1, "Goles Recibidos": 16, "Goles recibidos por partido": 8, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 22, "Jugador": "Carne", "PJ": 2, "PG": 1, "PE": 1, "PP": 0, "%PG": 50, "Goles": 3, "Ast": 1, "G+A": 4, "G/P": 1.5, "A/P": 0.5, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 1, "Goles Recibidos": 13, "Goles recibidos por partido": 6.5, "Debut": "19 DE MARZO EMPATE POR ESCRITORIO"}, {"N°": 23, "Jugador": "Agus Chelsea", "PJ": 2, "PG": 1, "PE": 0, "PP": 1, "%PG": 50, "Goles": 1, "Ast": 1, "G+A": 2, "G/P": 0.5, "A/P": 0.5, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 1, "Goles Recibidos": 21, "Goles recibidos por partido": 10.5, "Debut": "21/05/2026"}, {"N°": 24, "Jugador": "Lauti Aguirre", "PJ": 2, "PG": 1, "PE": 0, "PP": 1, "%PG": 50, "Goles": 0, "Ast": 2, "G+A": 2, "G/P": 0, "A/P": 1, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 2, "Goles Recibidos": 17, "Goles recibidos por partido": 8.5, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 25, "Jugador": "Tobi", "PJ": 2, "PG": 0, "PE": 0, "PP": 2, "%PG": 0, "Goles": 4, "Ast": 1, "G+A": 5, "G/P": 2, "A/P": 0.5, "G+A/P": 2.5, "Hat-tricks": 1, "Máx Goles": 4, "Máx Ast": 1, "Goles Recibidos": 20, "Goles recibidos por partido": 10, "Debut": "26 DE FEBRERO NOCHE DE FESTEJOS Y DEBUT DEL CRACK"}, {"N°": 26, "Jugador": "Facu Barber", "PJ": 2, "PG": 0, "PE": 0, "PP": 2, "%PG": 0, "Goles": 2, "Ast": 1, "G+A": 3, "G/P": 1, "A/P": 0.5, "G+A/P": 1.5, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 1, "Goles Recibidos": 27, "Goles recibidos por partido": 13.5, "Debut": "16 DE ABRIL SE PICÓ EL PARTIDO, UN DIA VAN A MATAR A MALDINI"}, {"N°": 27, "Jugador": "Miriam", "PJ": 2, "PG": 0, "PE": 0, "PP": 2, "%PG": 0, "Goles": 0, "Ast": 2, "G+A": 2, "G/P": 0, "A/P": 1, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 2, "Goles Recibidos": 24, "Goles recibidos por partido": 12, "Debut": "6 DE FEBRERO - AMISTOSO DE PRETEMPORADA"}, {"N°": 28, "Jugador": "Tadeo", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "%PG": 100, "Goles": 4, "Ast": 1, "G+A": 5, "G/P": 4, "A/P": 1, "G+A/P": 5, "Hat-tricks": 1, "Máx Goles": 4, "Máx Ast": 1, "Goles Recibidos": 4, "Goles recibidos por partido": 4, "Debut": "30/04/2026"}, {"N°": 29, "Jugador": "Rulo Verde", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "%PG": 100, "Goles": 3, "Ast": 1, "G+A": 4, "G/P": 3, "A/P": 1, "G+A/P": 4, "Hat-tricks": 1, "Máx Goles": 3, "Máx Ast": 1, "Goles Recibidos": 8, "Goles recibidos por partido": 8, "Debut": "26 DE MARZO PARTIDO DE MIERDA, NADA DESTACABLE"}, {"N°": 30, "Jugador": "Axel Laspada", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "%PG": 100, "Goles": 3, "Ast": 0, "G+A": 3, "G/P": 3, "A/P": 0, "G+A/P": 3, "Hat-tricks": 1, "Máx Goles": 3, "Máx Ast": 0, "Goles Recibidos": 7, "Goles recibidos por partido": 7, "Debut": "21/05/2026"}, {"N°": 31, "Jugador": "Julito", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "%PG": 100, "Goles": 1, "Ast": 0, "G+A": 1, "G/P": 1, "A/P": 0, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 0, "Goles Recibidos": 5, "Goles recibidos por partido": 5, "Debut": "11/06/2026"}, {"N°": 32, "Jugador": "Facu Silva", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "%PG": 100, "Goles": 1, "Ast": 0, "G+A": 1, "G/P": 1, "A/P": 0, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 0, "Goles Recibidos": 5, "Goles recibidos por partido": 5, "Debut": "11/06/2026"}, {"N°": 33, "Jugador": "David Quinteros", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 2, "Ast": 0, "G+A": 2, "G/P": 2, "A/P": 0, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 0, "Goles Recibidos": 14, "Goles recibidos por partido": 14, "Debut": "6 DE FEBRERO - AMISTOSO DE PRETEMPORADA"}, {"N°": 34, "Jugador": "Maldinito", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 2, "Ast": 2, "G+A": 4, "G/P": 2, "A/P": 2, "G+A/P": 4, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 2, "Goles Recibidos": 11, "Goles recibidos por partido": 11, "Debut": "19 DE FEBRERO - REGEN DE BECKHAM"}, {"N°": 35, "Jugador": "Mati", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 2, "Ast": 0, "G+A": 2, "G/P": 2, "A/P": 0, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 0, "Goles Recibidos": 8, "Goles recibidos por partido": 8, "Debut": "26 DE FEBRERO NOCHE DE FESTEJOS Y DEBUT DEL CRACK"}, {"N°": 36, "Jugador": "Facu T", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 2, "Ast": 2, "G+A": 4, "G/P": 2, "A/P": 2, "G+A/P": 4, "Hat-tricks": 0, "Máx Goles": 2, "Máx Ast": 2, "Goles Recibidos": 12, "Goles recibidos por partido": 12, "Debut": "22 DE JUlIO FUTBOL CONSTITUCION"}, {"N°": 37, "Jugador": "Nahue", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 1, "Ast": 1, "G+A": 2, "G/P": 1, "A/P": 1, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 1, "Goles Recibidos": 9, "Goles recibidos por partido": 9, "Debut": "8 de ENERO - EL MULETAZO DE NAKATA"}, {"N°": 38, "Jugador": "Benja Modric", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 1, "Ast": 0, "G+A": 1, "G/P": 1, "A/P": 0, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 0, "Goles Recibidos": 14, "Goles recibidos por partido": 14, "Debut": "6 DE FEBRERO - AMISTOSO DE PRETEMPORADA"}, {"N°": 39, "Jugador": "Alejo", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 1, "Ast": 1, "G+A": 2, "G/P": 1, "A/P": 1, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 1, "Goles Recibidos": 8, "Goles recibidos por partido": 8, "Debut": "26 DE FEBRERO NOCHE DE FESTEJOS Y DEBUT DEL CRACK"}, {"N°": 40, "Jugador": "Pulga", "PJ": 1, "PG": 0, "PE": 1, "PP": 0, "%PG": 0, "Goles": 1, "Ast": 2, "G+A": 3, "G/P": 1, "A/P": 2, "G+A/P": 3, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 2, "Goles Recibidos": 6, "Goles recibidos por partido": 6, "Debut": "19 DE MARZO EMPATE POR ESCRITORIO"}, {"N°": 41, "Jugador": "Diego Bustos", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 1, "Ast": 0, "G+A": 1, "G/P": 1, "A/P": 0, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 0, "Goles Recibidos": 10, "Goles recibidos por partido": 10, "Debut": "29/05/2026"}, {"N°": 42, "Jugador": "Lauta", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 1, "Ast": 1, "G+A": 2, "G/P": 1, "A/P": 1, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 1, "Goles Recibidos": 10, "Goles recibidos por partido": 10, "Debut": "04/06/2026"}, {"N°": 43, "Jugador": "Alan Ciro", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 1, "Ast": 1, "G+A": 2, "G/P": 1, "A/P": 1, "G+A/P": 2, "Hat-tricks": 0, "Máx Goles": 1, "Máx Ast": 1, "Goles Recibidos": 9, "Goles recibidos por partido": 9, "Debut": "16 DE JUlIO LESION DE PELU"}, {"N°": 44, "Jugador": "Lolo", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 0, "G+A": 0, "G/P": 0, "A/P": 0, "G+A/P": 0, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 0, "Goles Recibidos": 14, "Goles recibidos por partido": 14, "Debut": "6 DE FEBRERO - AMISTOSO DE PRETEMPORADA"}, {"N°": 45, "Jugador": "Bauti", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 1, "G+A": 1, "G/P": 0, "A/P": 1, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 1, "Goles Recibidos": 11, "Goles recibidos por partido": 11, "Debut": "19 DE FEBRERO - REGEN DE BECKHAM"}, {"N°": 46, "Jugador": "Fabian", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 0, "G+A": 0, "G/P": 0, "A/P": 0, "G+A/P": 0, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 0, "Goles Recibidos": 11, "Goles recibidos por partido": 11, "Debut": "19 DE FEBRERO - REGEN DE BECKHAM"}, {"N°": 47, "Jugador": "Manu", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 0, "G+A": 0, "G/P": 0, "A/P": 0, "G+A/P": 0, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 0, "Goles Recibidos": 6, "Goles recibidos por partido": 6, "Debut": "07/05/2026"}, {"N°": 48, "Jugador": "Arbol", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 1, "G+A": 1, "G/P": 0, "A/P": 1, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 1, "Goles Recibidos": 10, "Goles recibidos por partido": 10, "Debut": "04/06/2026"}, {"N°": 49, "Jugador": "Marianito", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 0, "G+A": 0, "G/P": 0, "A/P": 0, "G+A/P": 0, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 0, "Goles Recibidos": 9, "Goles recibidos por partido": 9, "Debut": "16 DE JUlIO LESION DE PELU"}, {"N°": 50, "Jugador": "Dani T", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 1, "G+A": 1, "G/P": 0, "A/P": 1, "G+A/P": 1, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 1, "Goles Recibidos": 12, "Goles recibidos por partido": 12, "Debut": "22 DE JUlIO FUTBOL CONSTITUCION"}, {"N°": 51, "Jugador": "Tomi Sarya", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "%PG": 0, "Goles": 0, "Ast": 0, "G+A": 0, "G/P": 0, "A/P": 0, "G+A/P": 0, "Hat-tricks": 0, "Máx Goles": 0, "Máx Ast": 0, "Goles Recibidos": 12, "Goles recibidos por partido": 12, "Debut": "20 DE AGOSTO LESIÓN DE KAVA - TOBI CONTRA TODOS"}], "rankings": {"TABLA ANUAL GRILLOLIGA": {"headers": ["JUGADOR", "PJ", "PG", "PE", "PP", "PUNTOS"], "rows": [{"JUGADOR": "Chiappe", "PJ": 27, "PG": 16, "PE": 1, "PP": 10, "PUNTOS": 49}, {"JUGADOR": "Pablo", "PJ": 27, "PG": 15, "PE": 0, "PP": 12, "PUNTOS": 45}, {"JUGADOR": "Gutman", "PJ": 27, "PG": 14, "PE": 1, "PP": 12, "PUNTOS": 43}, {"JUGADOR": "Leon", "PJ": 25, "PG": 14, "PE": 0, "PP": 11, "PUNTOS": 42}, {"JUGADOR": "Pedro", "PJ": 24, "PG": 13, "PE": 1, "PP": 10, "PUNTOS": 40}, {"JUGADOR": "Pipe", "PJ": 23, "PG": 13, "PE": 1, "PP": 9, "PUNTOS": 40}, {"JUGADOR": "Valen", "PJ": 22, "PG": 13, "PE": 1, "PP": 8, "PUNTOS": 40}, {"JUGADOR": "Pelu", "PJ": 15, "PG": 10, "PE": 0, "PP": 5, "PUNTOS": 30}, {"JUGADOR": "Mateo", "PJ": 25, "PG": 9, "PE": 1, "PP": 15, "PUNTOS": 28}, {"JUGADOR": "Rafa", "PJ": 19, "PG": 7, "PE": 1, "PP": 11, "PUNTOS": 22}, {"JUGADOR": "Kava", "PJ": 19, "PG": 6, "PE": 0, "PP": 13, "PUNTOS": 18}, {"JUGADOR": "Lauti", "PJ": 11, "PG": 6, "PE": 0, "PP": 5, "PUNTOS": 18}, {"JUGADOR": "Ciro", "PJ": 10, "PG": 5, "PE": 1, "PP": 4, "PUNTOS": 16}, {"JUGADOR": "Ale Baez", "PJ": 6, "PG": 4, "PE": 1, "PP": 1, "PUNTOS": 13}, {"JUGADOR": "Mecha", "PJ": 8, "PG": 4, "PE": 0, "PP": 4, "PUNTOS": 12}, {"JUGADOR": "Tiago", "PJ": 13, "PG": 3, "PE": 0, "PP": 10, "PUNTOS": 9}, {"JUGADOR": "Fabri", "PJ": 5, "PG": 3, "PE": 0, "PP": 2, "PUNTOS": 9}, {"JUGADOR": "Nahue Cuervo", "PJ": 4, "PG": 2, "PE": 1, "PP": 1, "PUNTOS": 7}, {"JUGADOR": "Pepe", "PJ": 2, "PG": 2, "PE": 0, "PP": 0, "PUNTOS": 6}, {"JUGADOR": "Tomi", "PJ": 2, "PG": 2, "PE": 0, "PP": 0, "PUNTOS": 6}, {"JUGADOR": "Carne", "PJ": 2, "PG": 1, "PE": 1, "PP": 0, "PUNTOS": 4}, {"JUGADOR": "Tomas", "PJ": 2, "PG": 1, "PE": 0, "PP": 1, "PUNTOS": 3}, {"JUGADOR": "Agus Chelsea", "PJ": 2, "PG": 1, "PE": 0, "PP": 1, "PUNTOS": 3}, {"JUGADOR": "Lauti Aguirre", "PJ": 2, "PG": 1, "PE": 0, "PP": 1, "PUNTOS": 3}, {"JUGADOR": "Tadeo", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "PUNTOS": 3}, {"JUGADOR": "Rulo Verde", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "PUNTOS": 3}, {"JUGADOR": "Axel Laspada", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "PUNTOS": 3}, {"JUGADOR": "Julito", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "PUNTOS": 3}, {"JUGADOR": "Facu Silva", "PJ": 1, "PG": 1, "PE": 0, "PP": 0, "PUNTOS": 3}, {"JUGADOR": "Pulga", "PJ": 1, "PG": 0, "PE": 1, "PP": 0, "PUNTOS": 1}, {"JUGADOR": "Tobi", "PJ": 2, "PG": 0, "PE": 0, "PP": 2, "PUNTOS": 0}, {"JUGADOR": "Facu Barber", "PJ": 2, "PG": 0, "PE": 0, "PP": 2, "PUNTOS": 0}, {"JUGADOR": "Miriam", "PJ": 2, "PG": 0, "PE": 0, "PP": 2, "PUNTOS": 0}, {"JUGADOR": "David Quinteros", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Maldinito", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Mati", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Facu T", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Nahue", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Benja Modric", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Alejo", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Diego Bustos", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Lauta", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Alan Ciro", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Lolo", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Bauti", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Fabian", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Manu", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Arbol", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Marianito", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Dani T", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}, {"JUGADOR": "Tomi Sarya", "PJ": 1, "PG": 0, "PE": 0, "PP": 1, "PUNTOS": 0}]}, "GOLEADORES": {"headers": ["JUGADOR", "GOLES"], "rows": [{"JUGADOR": "Leon", "GOLES": 70}, {"JUGADOR": "Valen", "GOLES": 53}, {"JUGADOR": "Pablo", "GOLES": 42}, {"JUGADOR": "Gutman", "GOLES": 41}, {"JUGADOR": "Mateo", "GOLES": 31}, {"JUGADOR": "Pedro", "GOLES": 31}, {"JUGADOR": "Pipe", "GOLES": 29}, {"JUGADOR": "Chiappe", "GOLES": 23}, {"JUGADOR": "Rafa", "GOLES": 22}, {"JUGADOR": "Pelu", "GOLES": 18}, {"JUGADOR": "Fabri", "GOLES": 12}, {"JUGADOR": "Mecha", "GOLES": 9}, {"JUGADOR": "Tiago", "GOLES": 8}, {"JUGADOR": "Lauti", "GOLES": 7}, {"JUGADOR": "Ale Baez", "GOLES": 7}, {"JUGADOR": "Pepe", "GOLES": 7}, {"JUGADOR": "Kava", "GOLES": 6}, {"JUGADOR": "Tomas", "GOLES": 6}, {"JUGADOR": "Ciro", "GOLES": 5}, {"JUGADOR": "Tomi", "GOLES": 4}, {"JUGADOR": "Tobi", "GOLES": 4}, {"JUGADOR": "Tadeo", "GOLES": 4}, {"JUGADOR": "Nahue Cuervo", "GOLES": 3}, {"JUGADOR": "Carne", "GOLES": 3}, {"JUGADOR": "Rulo Verde", "GOLES": 3}, {"JUGADOR": "Axel Laspada", "GOLES": 3}, {"JUGADOR": "Facu Barber", "GOLES": 2}, {"JUGADOR": "David Quinteros", "GOLES": 2}, {"JUGADOR": "Maldinito", "GOLES": 2}, {"JUGADOR": "Mati", "GOLES": 2}, {"JUGADOR": "Facu T", "GOLES": 2}, {"JUGADOR": "Agus Chelsea", "GOLES": 1}, {"JUGADOR": "Julito", "GOLES": 1}, {"JUGADOR": "Facu Silva", "GOLES": 1}, {"JUGADOR": "Nahue", "GOLES": 1}, {"JUGADOR": "Benja Modric", "GOLES": 1}, {"JUGADOR": "Alejo", "GOLES": 1}, {"JUGADOR": "Pulga", "GOLES": 1}, {"JUGADOR": "Diego Bustos", "GOLES": 1}, {"JUGADOR": "Lauta", "GOLES": 1}, {"JUGADOR": "Alan Ciro", "GOLES": 1}, {"JUGADOR": "Lauti Aguirre", "GOLES": 0}, {"JUGADOR": "Miriam", "GOLES": 0}, {"JUGADOR": "Lolo", "GOLES": 0}, {"JUGADOR": "Bauti", "GOLES": 0}, {"JUGADOR": "Fabian", "GOLES": 0}, {"JUGADOR": "Manu", "GOLES": 0}, {"JUGADOR": "Arbol", "GOLES": 0}, {"JUGADOR": "Marianito", "GOLES": 0}, {"JUGADOR": "Dani T", "GOLES": 0}, {"JUGADOR": "Tomi Sarya", "GOLES": 0}]}, "ASISTIDORES": {"headers": ["JUGADOR", "ASISTENCIAS"], "rows": [{"JUGADOR": "Pablo", "ASISTENCIAS": 44}, {"JUGADOR": "Valen", "ASISTENCIAS": 36}, {"JUGADOR": "Pedro", "ASISTENCIAS": 32}, {"JUGADOR": "Leon", "ASISTENCIAS": 31}, {"JUGADOR": "Chiappe", "ASISTENCIAS": 28}, {"JUGADOR": "Mateo", "ASISTENCIAS": 27}, {"JUGADOR": "Pipe", "ASISTENCIAS": 25}, {"JUGADOR": "Gutman", "ASISTENCIAS": 23}, {"JUGADOR": "Rafa", "ASISTENCIAS": 16}, {"JUGADOR": "Pelu", "ASISTENCIAS": 16}, {"JUGADOR": "Mecha", "ASISTENCIAS": 15}, {"JUGADOR": "Tiago", "ASISTENCIAS": 12}, {"JUGADOR": "Ale Baez", "ASISTENCIAS": 7}, {"JUGADOR": "Ciro", "ASISTENCIAS": 6}, {"JUGADOR": "Kava", "ASISTENCIAS": 5}, {"JUGADOR": "Lauti", "ASISTENCIAS": 4}, {"JUGADOR": "Nahue Cuervo", "ASISTENCIAS": 4}, {"JUGADOR": "Fabri", "ASISTENCIAS": 2}, {"JUGADOR": "Pepe", "ASISTENCIAS": 2}, {"JUGADOR": "Lauti Aguirre", "ASISTENCIAS": 2}, {"JUGADOR": "Miriam", "ASISTENCIAS": 2}, {"JUGADOR": "Maldinito", "ASISTENCIAS": 2}, {"JUGADOR": "Facu T", "ASISTENCIAS": 2}, {"JUGADOR": "Pulga", "ASISTENCIAS": 2}, {"JUGADOR": "Tomas", "ASISTENCIAS": 1}, {"JUGADOR": "Carne", "ASISTENCIAS": 1}, {"JUGADOR": "Agus Chelsea", "ASISTENCIAS": 1}, {"JUGADOR": "Tobi", "ASISTENCIAS": 1}, {"JUGADOR": "Facu Barber", "ASISTENCIAS": 1}, {"JUGADOR": "Tadeo", "ASISTENCIAS": 1}, {"JUGADOR": "Rulo Verde", "ASISTENCIAS": 1}, {"JUGADOR": "Nahue", "ASISTENCIAS": 1}, {"JUGADOR": "Alejo", "ASISTENCIAS": 1}, {"JUGADOR": "Lauta", "ASISTENCIAS": 1}, {"JUGADOR": "Alan Ciro", "ASISTENCIAS": 1}, {"JUGADOR": "Bauti", "ASISTENCIAS": 1}, {"JUGADOR": "Arbol", "ASISTENCIAS": 1}, {"JUGADOR": "Dani T", "ASISTENCIAS": 1}, {"JUGADOR": "Tomi", "ASISTENCIAS": 0}, {"JUGADOR": "Axel Laspada", "ASISTENCIAS": 0}, {"JUGADOR": "Julito", "ASISTENCIAS": 0}, {"JUGADOR": "Facu Silva", "ASISTENCIAS": 0}, {"JUGADOR": "David Quinteros", "ASISTENCIAS": 0}, {"JUGADOR": "Mati", "ASISTENCIAS": 0}, {"JUGADOR": "Benja Modric", "ASISTENCIAS": 0}, {"JUGADOR": "Diego Bustos", "ASISTENCIAS": 0}, {"JUGADOR": "Lolo", "ASISTENCIAS": 0}, {"JUGADOR": "Fabian", "ASISTENCIAS": 0}, {"JUGADOR": "Manu", "ASISTENCIAS": 0}, {"JUGADOR": "Marianito", "ASISTENCIAS": 0}, {"JUGADOR": "Tomi Sarya", "ASISTENCIAS": 0}]}, "GOLES + ASISTENCIAS": {"headers": ["JUGADOR", "G+A"], "rows": [{"JUGADOR": "Leon", "G+A": 101}, {"JUGADOR": "Valen", "G+A": 89}, {"JUGADOR": "Pablo", "G+A": 86}, {"JUGADOR": "Gutman", "G+A": 64}, {"JUGADOR": "Pedro", "G+A": 63}, {"JUGADOR": "Mateo", "G+A": 58}, {"JUGADOR": "Pipe", "G+A": 54}, {"JUGADOR": "Chiappe", "G+A": 51}, {"JUGADOR": "Rafa", "G+A": 38}, {"JUGADOR": "Pelu", "G+A": 34}, {"JUGADOR": "Mecha", "G+A": 24}, {"JUGADOR": "Tiago", "G+A": 20}, {"JUGADOR": "Ale Baez", "G+A": 14}, {"JUGADOR": "Fabri", "G+A": 14}, {"JUGADOR": "Kava", "G+A": 11}, {"JUGADOR": "Lauti", "G+A": 11}, {"JUGADOR": "Ciro", "G+A": 11}, {"JUGADOR": "Pepe", "G+A": 9}, {"JUGADOR": "Nahue Cuervo", "G+A": 7}, {"JUGADOR": "Tomas", "G+A": 7}, {"JUGADOR": "Tobi", "G+A": 5}, {"JUGADOR": "Tadeo", "G+A": 5}, {"JUGADOR": "Tomi", "G+A": 4}, {"JUGADOR": "Carne", "G+A": 4}, {"JUGADOR": "Rulo Verde", "G+A": 4}, {"JUGADOR": "Maldinito", "G+A": 4}, {"JUGADOR": "Facu T", "G+A": 4}, {"JUGADOR": "Facu Barber", "G+A": 3}, {"JUGADOR": "Axel Laspada", "G+A": 3}, {"JUGADOR": "Pulga", "G+A": 3}, {"JUGADOR": "Agus Chelsea", "G+A": 2}, {"JUGADOR": "Lauti Aguirre", "G+A": 2}, {"JUGADOR": "Miriam", "G+A": 2}, {"JUGADOR": "David Quinteros", "G+A": 2}, {"JUGADOR": "Mati", "G+A": 2}, {"JUGADOR": "Nahue", "G+A": 2}, {"JUGADOR": "Alejo", "G+A": 2}, {"JUGADOR": "Lauta", "G+A": 2}, {"JUGADOR": "Alan Ciro", "G+A": 2}, {"JUGADOR": "Julito", "G+A": 1}, {"JUGADOR": "Facu Silva", "G+A": 1}, {"JUGADOR": "Benja Modric", "G+A": 1}, {"JUGADOR": "Diego Bustos", "G+A": 1}, {"JUGADOR": "Bauti", "G+A": 1}, {"JUGADOR": "Arbol", "G+A": 1}, {"JUGADOR": "Dani T", "G+A": 1}, {"JUGADOR": "Lolo", "G+A": 0}, {"JUGADOR": "Fabian", "G+A": 0}, {"JUGADOR": "Manu", "G+A": 0}, {"JUGADOR": "Marianito", "G+A": 0}, {"JUGADOR": "Tomi Sarya", "G+A": 0}]}, "GOLES POR PARTIDO": {"headers": ["JUGADOR", "PROMEDIO"], "rows": [{"JUGADOR": "Leon", "PROMEDIO": 2.8}, {"JUGADOR": "Valen", "PROMEDIO": 2.41}, {"JUGADOR": "Pablo", "PROMEDIO": 1.56}, {"JUGADOR": "Gutman", "PROMEDIO": 1.52}, {"JUGADOR": "Pedro", "PROMEDIO": 1.29}, {"JUGADOR": "Pipe", "PROMEDIO": 1.26}, {"JUGADOR": "Mateo", "PROMEDIO": 1.24}, {"JUGADOR": "Pelu", "PROMEDIO": 1.2}, {"JUGADOR": "Rafa", "PROMEDIO": 1.16}, {"JUGADOR": "Chiappe", "PROMEDIO": 0.85}, {"JUGADOR": "Lauti", "PROMEDIO": 0.64}, {"JUGADOR": "Tiago", "PROMEDIO": 0.62}, {"JUGADOR": "Ciro", "PROMEDIO": 0.5}, {"JUGADOR": "Kava", "PROMEDIO": 0.32}]}, "PORCENTAJE DE VICTORIAS": {"headers": ["JUGADOR", "PROMEDIO"], "rows": [{"JUGADOR": "Pelu", "PROMEDIO": 67}, {"JUGADOR": "Chiappe", "PROMEDIO": 59}, {"JUGADOR": "Valen", "PROMEDIO": 59}, {"JUGADOR": "Pipe", "PROMEDIO": 57}, {"JUGADOR": "Pablo", "PROMEDIO": 56}, {"JUGADOR": "Leon", "PROMEDIO": 56}, {"JUGADOR": "Lauti", "PROMEDIO": 55}, {"JUGADOR": "Pedro", "PROMEDIO": 54}, {"JUGADOR": "Gutman", "PROMEDIO": 52}, {"JUGADOR": "Ciro", "PROMEDIO": 50}, {"JUGADOR": "Rafa", "PROMEDIO": 37}, {"JUGADOR": "Mateo", "PROMEDIO": 36}, {"JUGADOR": "Kava", "PROMEDIO": 32}, {"JUGADOR": "Tiago", "PROMEDIO": 23}]}, "MENOS GOLES RECIBIDOS POR PARTIDO": {"headers": ["JUGADOR", "PROMEDIO"], "rows": [{"JUGADOR": "Valen", "PROMEDIO": 7.55}, {"JUGADOR": "Chiappe", "PROMEDIO": 7.78}, {"JUGADOR": "Pipe", "PROMEDIO": 7.78}, {"JUGADOR": "Leon", "PROMEDIO": 7.8}, {"JUGADOR": "Lauti", "PROMEDIO": 7.91}, {"JUGADOR": "Ciro", "PROMEDIO": 8.1}, {"JUGADOR": "Pelu", "PROMEDIO": 8.2}, {"JUGADOR": "Pedro", "PROMEDIO": 8.21}, {"JUGADOR": "Pablo", "PROMEDIO": 8.22}, {"JUGADOR": "Gutman", "PROMEDIO": 8.22}, {"JUGADOR": "Rafa", "PROMEDIO": 8.37}, {"JUGADOR": "Mateo", "PROMEDIO": 8.68}, {"JUGADOR": "Kava", "PROMEDIO": 9.32}, {"JUGADOR": "Tiago", "PROMEDIO": 9.38}]}}, "partidos": [{"numero": 1, "titulo": "8 de ENERO - EL MULETAZO DE NAKATA", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 9, "jugadores": [{"jugador": "Mateo", "goles": 1, "asistencias": 1}, {"jugador": "Chiappe", "goles": 2, "asistencias": 1}, {"jugador": "Pablo", "goles": 0, "asistencias": 4}, {"jugador": "Pipe", "goles": 1, "asistencias": 1}, {"jugador": "Pedro", "goles": 3, "asistencias": 1}, {"jugador": "Gutman", "goles": 2, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Rafa", "goles": 1, "asistencias": 1}, {"jugador": "Tiago", "goles": 0, "asistencias": 1}, {"jugador": "Nahue", "goles": 1, "asistencias": 1}, {"jugador": "Lauti Aguirre", "goles": 0, "asistencias": 2}, {"jugador": "Tomas", "goles": 2, "asistencias": 1}, {"jugador": "Leon", "goles": 3, "asistencias": 0}]}}, {"numero": 2, "titulo": "30 DE ENERO - LA EPICA DE GOATMAN", "nota": "Valen lesion a los 5min y 1 gol en contra.", "oscuro": {"nombre": "OSCURO", "goles": 11, "jugadores": [{"jugador": "Mateo", "goles": 1, "asistencias": 3}, {"jugador": "Tomas", "goles": 4, "asistencias": 0}, {"jugador": "Pelu", "goles": 0, "asistencias": 1}, {"jugador": "Pipe", "goles": 0, "asistencias": 2}, {"jugador": "Leon", "goles": 1, "asistencias": 1}, {"jugador": "Gutman", "goles": 4, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Chiappe", "goles": 0, "asistencias": 1}, {"jugador": "Pablo", "goles": 2, "asistencias": 1}, {"jugador": "Mecha", "goles": 2, "asistencias": 1}, {"jugador": "Pedro", "goles": 1, "asistencias": 2}, {"jugador": "Valen", "goles": 2, "asistencias": 0}, {"jugador": "Tiago", "goles": 0, "asistencias": 0}]}}, {"numero": 3, "titulo": "6 DE FEBRERO - AMISTOSO DE PRETEMPORADA", "nota": "Hubo un gol en contra a favor del equipo claro.", "oscuro": {"nombre": "OSCURO", "goles": 7, "jugadores": [{"jugador": "Miriam", "goles": 0, "asistencias": 2}, {"jugador": "Benja Modric", "goles": 1, "asistencias": 0}, {"jugador": "David Quinteros", "goles": 2, "asistencias": 0}, {"jugador": "Mateo", "goles": 3, "asistencias": 2}, {"jugador": "Tiago", "goles": 1, "asistencias": 0}, {"jugador": "Lolo", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 14, "jugadores": [{"jugador": "Pablo", "goles": 2, "asistencias": 3}, {"jugador": "Chiappe", "goles": 2, "asistencias": 0}, {"jugador": "Mecha", "goles": 1, "asistencias": 3}, {"jugador": "Leon", "goles": 5, "asistencias": 1}, {"jugador": "Gutman", "goles": 1, "asistencias": 1}, {"jugador": "Rafa", "goles": 2, "asistencias": 1}]}}, {"numero": 4, "titulo": "19 DE FEBRERO - REGEN DE BECKHAM", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 10, "jugadores": [{"jugador": "Mecha", "goles": 2, "asistencias": 1}, {"jugador": "Pablo", "goles": 2, "asistencias": 2}, {"jugador": "Maldinito", "goles": 2, "asistencias": 2}, {"jugador": "Bauti", "goles": 0, "asistencias": 1}, {"jugador": "Fabian", "goles": 0, "asistencias": 0}, {"jugador": "Gutman", "goles": 3, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 11, "jugadores": [{"jugador": "Mateo", "goles": 4, "asistencias": 2}, {"jugador": "Rafa", "goles": 1, "asistencias": 1}, {"jugador": "Tomi", "goles": 4, "asistencias": 0}, {"jugador": "Pipe", "goles": 0, "asistencias": 1}, {"jugador": "Pelu", "goles": 0, "asistencias": 0}, {"jugador": "Pedro", "goles": 2, "asistencias": 3}]}}, {"numero": 5, "titulo": "26 DE FEBRERO NOCHE DE FESTEJOS Y DEBUT DEL CRACK", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 3, "jugadores": [{"jugador": "Chiappe", "goles": 0, "asistencias": 0}, {"jugador": "Pablo", "goles": 0, "asistencias": 1}, {"jugador": "Mecha", "goles": 0, "asistencias": 1}, {"jugador": "Alejo", "goles": 1, "asistencias": 1}, {"jugador": "Tobi", "goles": 0, "asistencias": 1}, {"jugador": "Mati", "goles": 2, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 8, "jugadores": [{"jugador": "Tiago", "goles": 3, "asistencias": 0}, {"jugador": "Rafa", "goles": 1, "asistencias": 0}, {"jugador": "Nahue Cuervo", "goles": 0, "asistencias": 1}, {"jugador": "Mateo", "goles": 1, "asistencias": 1}, {"jugador": "Valen", "goles": 1, "asistencias": 1}, {"jugador": "Leon", "goles": 2, "asistencias": 1}]}}, {"numero": 6, "titulo": "5 DE MARZO LA VUELTA DE KAVA (SALE MAL)", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 11, "jugadores": [{"jugador": "Nahue Cuervo", "goles": 3, "asistencias": 2}, {"jugador": "Leon", "goles": 4, "asistencias": 2}, {"jugador": "Pablo", "goles": 3, "asistencias": 2}, {"jugador": "Pipe", "goles": 1, "asistencias": 0}, {"jugador": "Lauti Aguirre", "goles": 0, "asistencias": 0}, {"jugador": "Rafa", "goles": 0, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 8, "jugadores": [{"jugador": "Mateo", "goles": 0, "asistencias": 0}, {"jugador": "Valen", "goles": 4, "asistencias": 2}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Chiappe", "goles": 3, "asistencias": 3}, {"jugador": "Tiago", "goles": 1, "asistencias": 1}, {"jugador": "Gutman", "goles": 0, "asistencias": 1}]}}, {"numero": 7, "titulo": "12 DE MARZO MATHEU LAHOZ AGREGÓ +35 MINUTOS", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 12, "jugadores": [{"jugador": "Leon", "goles": 3, "asistencias": 2}, {"jugador": "Ciro", "goles": 1, "asistencias": 0}, {"jugador": "Pedro", "goles": 2, "asistencias": 1}, {"jugador": "Rafa", "goles": 1, "asistencias": 5}, {"jugador": "Pipe", "goles": 3, "asistencias": 0}, {"jugador": "Mateo", "goles": 2, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 8, "jugadores": [{"jugador": "Gutman", "goles": 2, "asistencias": 3}, {"jugador": "Valen", "goles": 1, "asistencias": 2}, {"jugador": "Pablo", "goles": 2, "asistencias": 1}, {"jugador": "Chiappe", "goles": 1, "asistencias": 1}, {"jugador": "Pelu", "goles": 2, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 0}]}}, {"numero": 8, "titulo": "19 DE MARZO EMPATE POR ESCRITORIO", "nota": "Hubo un gol en contra a favor del equipo oscuro.", "oscuro": {"nombre": "OSCURO", "goles": 6, "jugadores": [{"jugador": "Pedro", "goles": 1, "asistencias": 0}, {"jugador": "Ciro", "goles": 1, "asistencias": 2}, {"jugador": "Carne", "goles": 2, "asistencias": 1}, {"jugador": "Ale Baez", "goles": 0, "asistencias": 0}, {"jugador": "Mateo", "goles": 0, "asistencias": 0}, {"jugador": "Rafa", "goles": 1, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 6, "jugadores": [{"jugador": "Gutman", "goles": 1, "asistencias": 1}, {"jugador": "Pipe", "goles": 2, "asistencias": 0}, {"jugador": "Pulga", "goles": 1, "asistencias": 2}, {"jugador": "Nahue Cuervo", "goles": 0, "asistencias": 0}, {"jugador": "Chiappe", "goles": 1, "asistencias": 1}, {"jugador": "Valen", "goles": 1, "asistencias": 1}]}}, {"numero": 9, "titulo": "26 DE MARZO PARTIDO DE MIERDA, NADA DESTACABLE", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 8, "jugadores": [{"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Valen", "goles": 3, "asistencias": 1}, {"jugador": "Rafa", "goles": 0, "asistencias": 1}, {"jugador": "Pipe", "goles": 1, "asistencias": 0}, {"jugador": "Mateo", "goles": 2, "asistencias": 1}, {"jugador": "Fabri", "goles": 2, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 12, "jugadores": [{"jugador": "Chiappe", "goles": 2, "asistencias": 2}, {"jugador": "Pablo", "goles": 1, "asistencias": 1}, {"jugador": "Gutman", "goles": 2, "asistencias": 2}, {"jugador": "Pelu", "goles": 2, "asistencias": 3}, {"jugador": "Rulo Verde", "goles": 3, "asistencias": 1}, {"jugador": "Ale Baez", "goles": 2, "asistencias": 1}]}}, {"numero": 10, "titulo": "9 DE ABRIL CASI REMONTAN, PECHEARON COMO SIEMPRE", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 7, "jugadores": [{"jugador": "Rafa", "goles": 1, "asistencias": 2}, {"jugador": "Pipe", "goles": 1, "asistencias": 2}, {"jugador": "Gutman", "goles": 1, "asistencias": 0}, {"jugador": "Ale Baez", "goles": 2, "asistencias": 0}, {"jugador": "Ciro", "goles": 0, "asistencias": 1}, {"jugador": "Leon", "goles": 2, "asistencias": 2}]}, "claro": {"nombre": "CLARO", "goles": 8, "jugadores": [{"jugador": "Pelu", "goles": 1, "asistencias": 3}, {"jugador": "Pedro", "goles": 3, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Valen", "goles": 3, "asistencias": 1}, {"jugador": "Chiappe", "goles": 0, "asistencias": 0}, {"jugador": "Pablo", "goles": 1, "asistencias": 2}]}}, {"numero": 11, "titulo": "16 DE ABRIL SE PICÓ EL PARTIDO, UN DIA VAN A MATAR A MALDINI", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 7, "jugadores": [{"jugador": "Valen", "goles": 3, "asistencias": 1}, {"jugador": "Mateo", "goles": 0, "asistencias": 3}, {"jugador": "Facu Barber", "goles": 1, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 2}, {"jugador": "Ciro", "goles": 1, "asistencias": 1}, {"jugador": "Pelu", "goles": 2, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 13, "jugadores": [{"jugador": "Gutman", "goles": 2, "asistencias": 1}, {"jugador": "Ale Baez", "goles": 1, "asistencias": 2}, {"jugador": "Chiappe", "goles": 0, "asistencias": 1}, {"jugador": "Pablo", "goles": 2, "asistencias": 2}, {"jugador": "Pedro", "goles": 2, "asistencias": 1}, {"jugador": "Leon", "goles": 6, "asistencias": 1}]}}, {"numero": 12, "titulo": "23 DE ABRIL", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 14, "jugadores": [{"jugador": "Rafa", "goles": 2, "asistencias": 1}, {"jugador": "Mateo", "goles": 3, "asistencias": 1}, {"jugador": "Valen", "goles": 5, "asistencias": 5}, {"jugador": "Kava", "goles": 1, "asistencias": 1}, {"jugador": "Pedro", "goles": 1, "asistencias": 1}, {"jugador": "Ale Baez", "goles": 2, "asistencias": 4}]}, "claro": {"nombre": "CLARO", "goles": 5, "jugadores": [{"jugador": "Leon", "goles": 2, "asistencias": 0}, {"jugador": "Chiappe", "goles": 1, "asistencias": 0}, {"jugador": "Pablo", "goles": 0, "asistencias": 1}, {"jugador": "Gutman", "goles": 1, "asistencias": 1}, {"jugador": "Pelu", "goles": 0, "asistencias": 1}, {"jugador": "Facu Barber", "goles": 1, "asistencias": 1}]}}, {"numero": 13, "titulo": "30 DE ABRIL", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 4, "jugadores": [{"jugador": "Leon", "goles": 0, "asistencias": 3}, {"jugador": "Mateo", "goles": 0, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Pablo", "goles": 1, "asistencias": 0}, {"jugador": "Rafa", "goles": 2, "asistencias": 0}, {"jugador": "Pedro", "goles": 1, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 9, "jugadores": [{"jugador": "Tadeo", "goles": 4, "asistencias": 1}, {"jugador": "Chiappe", "goles": 0, "asistencias": 1}, {"jugador": "Fabri", "goles": 2, "asistencias": 1}, {"jugador": "Valen", "goles": 1, "asistencias": 4}, {"jugador": "Gutman", "goles": 2, "asistencias": 0}, {"jugador": "Ale Baez", "goles": "AUSENTE", "asistencias": 0}]}}, {"numero": 14, "titulo": "7 DE MAYO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 3, "jugadores": [{"jugador": "Rafa", "goles": 0, "asistencias": 0}, {"jugador": "Manu", "goles": 0, "asistencias": 0}, {"jugador": "Mateo", "goles": 1, "asistencias": 0}, {"jugador": "Pipe", "goles": 2, "asistencias": 1}, {"jugador": "Kava", "goles": 0, "asistencias": 1}, {"jugador": "Pedro", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 6, "jugadores": [{"jugador": "Chiappe", "goles": 0, "asistencias": 1}, {"jugador": "Valen", "goles": 1, "asistencias": 0}, {"jugador": "Pablo", "goles": 0, "asistencias": 1}, {"jugador": "Pelu", "goles": 2, "asistencias": 1}, {"jugador": "Gutman", "goles": 1, "asistencias": 0}, {"jugador": "Leon", "goles": 2, "asistencias": 1}]}}, {"numero": 15, "titulo": "14 DE MAYO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 7, "jugadores": [{"jugador": "Rafa", "goles": 1, "asistencias": 0}, {"jugador": "Valen", "goles": 2, "asistencias": 0}, {"jugador": "Mateo", "goles": 3, "asistencias": 3}, {"jugador": "Chiappe", "goles": 1, "asistencias": 1}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Ciro", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 11, "jugadores": [{"jugador": "Pelu", "goles": 0, "asistencias": 3}, {"jugador": "Leon", "goles": 3, "asistencias": 0}, {"jugador": "Pablo", "goles": 2, "asistencias": 4}, {"jugador": "Pedro", "goles": 0, "asistencias": 1}, {"jugador": "Gutman", "goles": 2, "asistencias": 1}, {"jugador": "Pipe", "goles": 4, "asistencias": 0}]}}, {"numero": 16, "titulo": "21 DE MAYO", "nota": "Gol en contra que favorece a oscuro", "oscuro": {"nombre": "OSCURO", "goles": 11, "jugadores": [{"jugador": "Chiappe", "goles": 0, "asistencias": 0}, {"jugador": "Leon", "goles": 4, "asistencias": 3}, {"jugador": "Pablo", "goles": 3, "asistencias": 3}, {"jugador": "Mecha", "goles": 0, "asistencias": 0}, {"jugador": "Agus Chelsea", "goles": 0, "asistencias": 1}, {"jugador": "Axel Laspada", "goles": 3, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Kava", "goles": 1, "asistencias": 0}, {"jugador": "Ciro", "goles": 0, "asistencias": 0}, {"jugador": "Pedro", "goles": 2, "asistencias": 1}, {"jugador": "Pipe", "goles": 1, "asistencias": 2}, {"jugador": "Gutman", "goles": 1, "asistencias": 1}, {"jugador": "Mateo", "goles": 2, "asistencias": 2}]}}, {"numero": 17, "titulo": "29 DE MAYO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 2, "jugadores": [{"jugador": "Gutman", "goles": 0, "asistencias": 1}, {"jugador": "Valen", "goles": 1, "asistencias": 1}, {"jugador": "Mateo", "goles": 0, "asistencias": 0}, {"jugador": "Miriam", "goles": 0, "asistencias": 0}, {"jugador": "Pedro", "goles": 0, "asistencias": 0}, {"jugador": "Diego Bustos", "goles": 1, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 10, "jugadores": [{"jugador": "Rafa", "goles": 3, "asistencias": 1}, {"jugador": "Leon", "goles": 3, "asistencias": 0}, {"jugador": "Mecha", "goles": 0, "asistencias": 3}, {"jugador": "Pablo", "goles": 4, "asistencias": 2}, {"jugador": "Pipe", "goles": 0, "asistencias": 1}, {"jugador": "Chiappe", "goles": 0, "asistencias": 0}]}}, {"numero": 18, "titulo": "4 DE JUNIO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 6, "jugadores": [{"jugador": "Rafa", "goles": 1, "asistencias": 1}, {"jugador": "Leon", "goles": 2, "asistencias": 1}, {"jugador": "Gutman", "goles": 0, "asistencias": 0}, {"jugador": "Pipe", "goles": 2, "asistencias": 0}, {"jugador": "Arbol", "goles": 0, "asistencias": 1}, {"jugador": "Lauta", "goles": 1, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 10, "jugadores": [{"jugador": "Ciro", "goles": 1, "asistencias": 1}, {"jugador": "Pelu", "goles": 1, "asistencias": 1}, {"jugador": "Pablo", "goles": 4, "asistencias": 0}, {"jugador": "Pedro", "goles": 1, "asistencias": 3}, {"jugador": "Lauti", "goles": 1, "asistencias": 0}, {"jugador": "Chiappe", "goles": 2, "asistencias": 3}]}}, {"numero": 19, "titulo": "11 DE JUNIO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 8, "jugadores": [{"jugador": "Pablo", "goles": 5, "asistencias": 2}, {"jugador": "Chiappe", "goles": 0, "asistencias": 0}, {"jugador": "Julito", "goles": 1, "asistencias": 0}, {"jugador": "Pedro", "goles": 0, "asistencias": 3}, {"jugador": "Facu Silva", "goles": 1, "asistencias": 0}, {"jugador": "Pelu", "goles": 1, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 5, "jugadores": [{"jugador": "Mateo", "goles": 1, "asistencias": 0}, {"jugador": "Leon", "goles": 2, "asistencias": 0}, {"jugador": "Lauti", "goles": 0, "asistencias": 0}, {"jugador": "Rafa", "goles": 0, "asistencias": 0}, {"jugador": "Pipe", "goles": 2, "asistencias": 0}, {"jugador": "Tiago", "goles": 0, "asistencias": 2}]}}, {"numero": 20, "titulo": "18 DE JUNIO", "nota": "2 goles en contra favorecen a claro", "oscuro": {"nombre": "OSCURO", "goles": 6, "jugadores": [{"jugador": "Pablo", "goles": 0, "asistencias": 2}, {"jugador": "Mateo", "goles": 0, "asistencias": 0}, {"jugador": "Rafa", "goles": 3, "asistencias": 0}, {"jugador": "Pedro", "goles": 2, "asistencias": 2}, {"jugador": "Tiago", "goles": 0, "asistencias": 0}, {"jugador": "Kava", "goles": 1, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 12, "jugadores": [{"jugador": "Valen", "goles": 2, "asistencias": 4}, {"jugador": "Leon", "goles": 0, "asistencias": 2}, {"jugador": "Pipe", "goles": 1, "asistencias": 1}, {"jugador": "Gutman", "goles": 4, "asistencias": 0}, {"jugador": "Pelu", "goles": 2, "asistencias": 2}, {"jugador": "Lauti", "goles": 1, "asistencias": 0}]}}, {"numero": 21, "titulo": "25 DE JUNIO", "nota": "1 gol en contra favorece a oscuro", "oscuro": {"nombre": "OSCURO", "goles": 6, "jugadores": [{"jugador": "Chiappe", "goles": 0, "asistencias": 1}, {"jugador": "Mateo", "goles": 2, "asistencias": 1}, {"jugador": "Rafa", "goles": 2, "asistencias": 1}, {"jugador": "Pipe", "goles": 1, "asistencias": 1}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Pelu", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 12, "jugadores": [{"jugador": "Pablo", "goles": 3, "asistencias": 1}, {"jugador": "Valen", "goles": 2, "asistencias": 2}, {"jugador": "Pedro", "goles": 3, "asistencias": 4}, {"jugador": "Lauti", "goles": 0, "asistencias": 0}, {"jugador": "Tiago", "goles": 1, "asistencias": 2}, {"jugador": "Gutman", "goles": 3, "asistencias": 2}]}}, {"numero": 22, "titulo": "1 DE JULIO PARTIDO ESPECIAL EN CANCHA DE 8", "nota": "1 gol en contra favorece a oscuro", "oscuro": {"nombre": "OSCURO", "goles": 4, "jugadores": [{"jugador": "Leon", "goles": 0, "asistencias": 3}, {"jugador": "Pablo", "goles": 3, "asistencias": 0}, {"jugador": "Lauti", "goles": 0, "asistencias": 0}, {"jugador": "Pedro", "goles": 0, "asistencias": 0}, {"jugador": "Rafa", "goles": 0, "asistencias": 0}, {"jugador": "Gutman", "goles": 0, "asistencias": 0}, {"jugador": "Fabri", "goles": 1, "asistencias": 0}, {"jugador": "Tiago", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 13, "jugadores": [{"jugador": "Valen", "goles": 4, "asistencias": 3}, {"jugador": "Chiappe", "goles": 0, "asistencias": 2}, {"jugador": "Kava", "goles": 2, "asistencias": 0}, {"jugador": "Pipe", "goles": 0, "asistencias": 4}, {"jugador": "Ciro", "goles": 0, "asistencias": 0}, {"jugador": "Pelu", "goles": 4, "asistencias": 0}, {"jugador": "Mecha", "goles": 3, "asistencias": 2}, {"jugador": "Mateo", "goles": 0, "asistencias": 0}]}}, {"numero": 23, "titulo": "2 DE JUlIO PARTIDO HOMENAJE A PEPE", "nota": "1 gol en contra favorece a oscuro", "oscuro": {"nombre": "OSCURO", "goles": 14, "jugadores": [{"jugador": "Pipe", "goles": 0, "asistencias": 2}, {"jugador": "Lauti", "goles": 2, "asistencias": 1}, {"jugador": "Pepe", "goles": 5, "asistencias": 1}, {"jugador": "Valen", "goles": 4, "asistencias": 2}, {"jugador": "Gutman", "goles": 2, "asistencias": 1}, {"jugador": "Mateo", "goles": 1, "asistencias": 3}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Pablo", "goles": 2, "asistencias": 2}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Chiappe", "goles": 0, "asistencias": 2}, {"jugador": "Pedro", "goles": 0, "asistencias": 2}, {"jugador": "Leon", "goles": 4, "asistencias": 0}, {"jugador": "Agus Chelsea", "goles": 1, "asistencias": 0}]}}, {"numero": 24, "titulo": "16 DE JUlIO LESION DE PELU", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 9, "jugadores": [{"jugador": "Ciro", "goles": 1, "asistencias": 1}, {"jugador": "Pablo", "goles": 0, "asistencias": 2}, {"jugador": "Pipe", "goles": 0, "asistencias": 2}, {"jugador": "Carne", "goles": 1, "asistencias": 0}, {"jugador": "Leon", "goles": 6, "asistencias": 1}, {"jugador": "Gutman", "goles": 1, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Chiappe", "goles": 2, "asistencias": 2}, {"jugador": "Pedro", "goles": 3, "asistencias": 2}, {"jugador": "Alan Ciro", "goles": 1, "asistencias": 1}, {"jugador": "Tiago", "goles": 0, "asistencias": 2}, {"jugador": "Marianito", "goles": 0, "asistencias": 0}, {"jugador": "Pelu", "goles": 1, "asistencias": 0}]}}, {"numero": 25, "titulo": "22 DE JUlIO FUTBOL CONSTITUCION", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 12, "jugadores": [{"jugador": "Chiappe", "goles": 2, "asistencias": 2}, {"jugador": "Valen", "goles": 3, "asistencias": 2}, {"jugador": "Fabri", "goles": 5, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Lauti", "goles": 0, "asistencias": 0}, {"jugador": "Pedro", "goles": 2, "asistencias": 2}]}, "claro": {"nombre": "CLARO", "goles": 10, "jugadores": [{"jugador": "Facu T", "goles": 2, "asistencias": 2}, {"jugador": "Leon", "goles": 2, "asistencias": 4}, {"jugador": "Gutman", "goles": 3, "asistencias": 1}, {"jugador": "Pipe", "goles": 2, "asistencias": 1}, {"jugador": "Tiago", "goles": 1, "asistencias": 1}, {"jugador": "Dani T", "goles": 0, "asistencias": 1}]}}, {"numero": 26, "titulo": "29 DE JUlIO VICTORIA DE DORADO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 7, "jugadores": [{"jugador": "Leon", "goles": 3, "asistencias": 2}, {"jugador": "Mecha", "goles": 1, "asistencias": 4}, {"jugador": "Pablo", "goles": 0, "asistencias": 1}, {"jugador": "Mateo", "goles": 1, "asistencias": 0}, {"jugador": "Gutman", "goles": 2, "asistencias": 0}, {"jugador": "Lauti", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 8, "jugadores": [{"jugador": "Chiappe", "goles": 2, "asistencias": 0}, {"jugador": "Pipe", "goles": 3, "asistencias": 1}, {"jugador": "Tiago", "goles": 1, "asistencias": 3}, {"jugador": "Valen", "goles": 2, "asistencias": 2}, {"jugador": "Ciro", "goles": 0, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 0}]}}, {"numero": 27, "titulo": "6 DE AGOSTO EL TRIDENTE DE LANUS SE PASEA POR BOEDO", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 4, "jugadores": [{"jugador": "Pablo", "goles": 0, "asistencias": 1}, {"jugador": "Leon", "goles": 1, "asistencias": 1}, {"jugador": "Mateo", "goles": 1, "asistencias": 0}, {"jugador": "Kava", "goles": 1, "asistencias": 0}, {"jugador": "Chiappe", "goles": 1, "asistencias": 0}, {"jugador": "Tiago", "goles": 0, "asistencias": 0}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Pepe", "goles": 2, "asistencias": 1}, {"jugador": "Valen", "goles": 2, "asistencias": 0}, {"jugador": "Fabri", "goles": 2, "asistencias": 0}, {"jugador": "Lauti", "goles": 1, "asistencias": 0}, {"jugador": "Pedro", "goles": 0, "asistencias": 1}, {"jugador": "Gutman", "goles": 0, "asistencias": 3}]}}, {"numero": 28, "titulo": "13 DE AGOSTO LA VUELTA DEL MAGO A APANOVI", "nota": null, "oscuro": {"nombre": "OSCURO", "goles": 4, "jugadores": [{"jugador": "Nahue Cuervo", "goles": 0, "asistencias": 1}, {"jugador": "Valen", "goles": 3, "asistencias": 0}, {"jugador": "Pedro", "goles": 1, "asistencias": 1}, {"jugador": "Pipe", "goles": 0, "asistencias": 0}, {"jugador": "Kava", "goles": 0, "asistencias": 0}, {"jugador": "Lauti", "goles": 0, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Chiappe", "goles": 0, "asistencias": 0}, {"jugador": "Leon", "goles": 5, "asistencias": 0}, {"jugador": "Pablo", "goles": 0, "asistencias": 3}, {"jugador": "Tomi", "goles": 0, "asistencias": 0}, {"jugador": "Gutman", "goles": 0, "asistencias": 0}, {"jugador": "Mateo", "goles": 2, "asistencias": 2}]}}, {"numero": 29, "titulo": "20 DE AGOSTO LESIÓN DE KAVA - TOBI CONTRA TODOS", "nota": "Lesion de Kava, y el partido termina 5 vs 5", "oscuro": {"nombre": "OSCURO", "goles": 12, "jugadores": [{"jugador": "Valen", "goles": 3, "asistencias": 2}, {"jugador": "Leon", "goles": 5, "asistencias": 0}, {"jugador": "Pedro", "goles": 1, "asistencias": 1}, {"jugador": "Pipe", "goles": 2, "asistencias": 3}, {"jugador": "Chiappe", "goles": 1, "asistencias": 3}, {"jugador": "Kava", "goles": 0, "asistencias": 1}]}, "claro": {"nombre": "CLARO", "goles": 7, "jugadores": [{"jugador": "Tomi Sarya", "goles": 0, "asistencias": 0}, {"jugador": "Tobi", "goles": 4, "asistencias": 0}, {"jugador": "Mateo", "goles": 0, "asistencias": 2}, {"jugador": "Pablo", "goles": 0, "asistencias": 0}, {"jugador": "Gutman", "goles": 1, "asistencias": 2}, {"jugador": "Lauti", "goles": 2, "asistencias": 2}]}}]};
+
+document.getElementById('subtitle-text').textContent = DATA.estadisticas.length + ' jugadores · ' + DATA.partidos.length + ' partidos jugados';
+
+/* ---------- TABS ---------- */
+const tabBtns = document.querySelectorAll('.tab-btn');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- ESTADISTICAS ---------- */
+const statHeaders = Object.keys(DATA.estadisticas[0]).filter(h => h !== 'N°');
+let statSortCol = 'G+A';
+let statSortDir = -1;
+let statSearch = '';
+
+const statHeaderLabels = {
+  'Goles Recibidos': 'Goles<br>Recibidos',
+  'Goles recibidos por partido': 'Recibidos<br>x Partido',
+  'Máx Goles': 'Máx<br>Goles',
+  'Máx Ast': 'Máx<br>Ast',
+  'Hat-tricks': 'Hat<br>tricks',
+  'G+A/P': 'G+A<br>x P',
+  'G/P': 'Goles<br>x P',
+  'A/P': 'Ast<br>x P'
+};
+
+function renderStatsHead(){
+  const tr = document.getElementById('stats-head');
+  tr.innerHTML = '';
+  const thName = document.createElement('th');
+  thName.textContent = 'Jugador';
+  thName.style.textAlign='left';
+  tr.appendChild(thName);
+  statHeaders.filter(h=>h!=='Jugador').forEach(h=>{
+    const th = document.createElement('th');
+    const label = statHeaderLabels[h] || h;
+    th.innerHTML = label;
+    if(h===statSortCol) th.classList.add('sorted');
+    th.addEventListener('click', ()=>{
+      if(statSortCol===h){ statSortDir *= -1; } else { statSortCol = h; statSortDir = -1; }
+      renderStatsHead();
+      renderStatsBody();
+    });
+    if(h===statSortCol){
+      th.innerHTML = label + '<span class="sort-arrow">'+(statSortDir===1?'▲':'▼')+'</span>';
+    }
+    tr.appendChild(th);
+  });
+}
+
+function renderStatsBody(){
+  const tbody = document.getElementById('stats-body');
+  tbody.innerHTML = '';
+  let rows = DATA.estadisticas.filter(r => r.Jugador.toLowerCase().includes(statSearch.toLowerCase()));
+  rows.sort((a,b)=>{
+    let va = a[statSortCol], vb = b[statSortCol];
+    if(typeof va === 'string') return va.localeCompare(vb) * statSortDir * -1;
+    return ((va||0) - (vb||0)) * statSortDir;
+  });
+  document.getElementById('stats-count').textContent = rows.length + ' jugadores';
+  rows.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    let cells = '<td>'+r.Jugador+'</td>';
+    statHeaders.filter(h=>h!=='Jugador').forEach(h=>{
+      let val = r[h];
+      if(h === 'Debut'){
+        cells += '<td class="debut-note">'+ (val||'') +'</td>';
+      } else {
+        cells += '<td>'+ (val===undefined||val===null? '—' : val) +'</td>';
+      }
+    });
+    tr.innerHTML = cells;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('stats-search').addEventListener('input', (e)=>{
+  statSearch = e.target.value;
+  renderStatsBody();
+});
+
+renderStatsHead();
+renderStatsBody();
+
+/* ---------- RANKINGS ---------- */
+const rankingKeys = Object.keys(DATA.rankings);
+let activeRanking = rankingKeys[0];
+
+const rankingIcons = {
+  'TABLA ANUAL GRILLOLIGA':'🏆',
+  'GOLEADORES':'⚽',
+  'ASISTIDORES':'🧠',
+  'GOLES + ASISTENCIAS':'🔥',
+  'GOLES POR PARTIDO':'📈',
+  'PORCENTAJE DE VICTORIAS':'✅',
+  'MENOS GOLES RECIBIDOS POR PARTIDO':'🧤'
+};
+
+function renderRankingChips(){
+  const row = document.getElementById('ranking-chips');
+  row.innerHTML = '';
+  rankingKeys.forEach(k=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (k===activeRanking ? ' active':'');
+    chip.textContent = (rankingIcons[k]||'') + ' ' + k;
+    chip.addEventListener('click', ()=>{
+      activeRanking = k;
+      renderRankingChips();
+      renderRankingList();
+    });
+    row.appendChild(chip);
+  });
+}
+
+function renderRankingList(){
+  const list = document.getElementById('ranking-list');
+  list.innerHTML = '';
+  const block = DATA.rankings[activeRanking];
+  const headers = block.headers;
+  const mainKey = headers[headers.length-1];
+  const nameKey = headers[0];
+
+  block.rows.forEach((row,i)=>{
+    const div = document.createElement('div');
+    let cls = 'rank-row';
+    if(i===0) cls += ' top1'; else if(i===1) cls += ' top2'; else if(i===2) cls += ' top3';
+    div.className = cls;
+
+    let medal = (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1));
+    let extraHtml = '';
+    if(headers.length > 2){
+      const midKeys = headers.slice(1, headers.length-1);
+      extraHtml = '<div class="rank-extra">' + midKeys.map(k=>'<span>'+k+' <b>'+(row[k]!==undefined?row[k]:'—')+'</b></span>').join('') + '</div>';
+    }
+
+    div.innerHTML = `
+      <div class="rank-num">${medal}</div>
+      <div class="rank-name">${row[nameKey]}</div>
+      ${extraHtml}
+      <div class="rank-main-val">${row[mainKey]!==undefined?row[mainKey]:'—'}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+renderRankingChips();
+renderRankingList();
+
+/* ---------- ranking chips scroll arrows ---------- */
+const rankRow = document.getElementById('ranking-chips');
+const arrowLeft = document.getElementById('rank-arrow-left');
+const arrowRight = document.getElementById('rank-arrow-right');
+
+function updateRankArrows(){
+  const maxScroll = rankRow.scrollWidth - rankRow.clientWidth;
+  arrowLeft.classList.toggle('hidden', rankRow.scrollLeft <= 4);
+  arrowRight.classList.toggle('hidden', rankRow.scrollLeft >= maxScroll - 4);
+}
+arrowLeft.addEventListener('click', ()=> rankRow.scrollBy({left:-180, behavior:'smooth'}) );
+arrowRight.addEventListener('click', ()=> rankRow.scrollBy({left:180, behavior:'smooth'}) );
+rankRow.addEventListener('scroll', updateRankArrows);
+window.addEventListener('resize', updateRankArrows);
+updateRankArrows();
+
+/* ---------- PARTIDOS ---------- */
+document.getElementById('match-count').textContent = DATA.partidos.length + ' partidos';
+let activeMatch = DATA.partidos.length; // latest by default
+
+function renderMatchChips(){
+  const row = document.getElementById('match-chips');
+  row.innerHTML = '';
+  DATA.partidos.forEach(p=>{
+    const chip = document.createElement('div');
+    chip.className = 'match-chip' + (p.numero===activeMatch?' active':'');
+    chip.textContent = '#'+p.numero;
+    chip.addEventListener('click', ()=>{
+      activeMatch = p.numero;
+      renderMatchChips();
+      renderScoreboard();
+    });
+    row.appendChild(chip);
+  });
+}
+
+function playerRow(p){
+  return `<div class="sb-player-row">
+    <span class="pname">${p.jugador}</span>
+    <span class="pstats"><span class="g">⚽${p.goles}</span><span class="a">🧠${p.asistencias}</span></span>
+  </div>`;
+}
+
+function renderScoreboard(){
+  const container = document.getElementById('scoreboard-container');
+  const match = DATA.partidos.find(p=>p.numero===activeMatch);
+  const oscuroWin = match.oscuro.goles > match.claro.goles;
+  const claroWin = match.claro.goles > match.oscuro.goles;
+
+  container.innerHTML = `
+    <div class="scoreboard">
+      <div class="sb-title">
+        <div class="num">PARTIDO #${match.numero}</div>
+        <div class="name">${match.titulo || ''}</div>
+      </div>
+      ${match.nota ? `<div class="sb-note">"${match.nota}"</div>` : ''}
+      <div class="sb-score">
+        <div class="sb-team oscuro">
+          <div class="team-label">Oscuro</div>
+          <div class="team-score" style="opacity:${claroWin?0.55:1}">${match.oscuro.goles}</div>
+        </div>
+        <div class="sb-vs">VS</div>
+        <div class="sb-team claro">
+          <div class="team-label">Claro</div>
+          <div class="team-score" style="opacity:${oscuroWin?0.55:1}">${match.claro.goles}</div>
+        </div>
+      </div>
+      <div class="sb-players">
+        <div class="sb-col oscuro">
+          ${match.oscuro.jugadores.length ? match.oscuro.jugadores.map(playerRow).join('') : '<div class="no-scorers">Sin datos</div>'}
+        </div>
+        <div class="sb-col claro">
+          ${match.claro.jugadores.length ? match.claro.jugadores.map(playerRow).join('') : '<div class="no-scorers">Sin datos</div>'}
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="dot g"></span>Goles</span>
+      <span><span class="dot a"></span>Asistencias</span>
+    </div>
+  `;
+}
+
+renderMatchChips();
+renderScoreboard();
+
+/* ---------- DASHBOARD / INICIO ---------- */
+function computeTournamentStats(){
+  const partidos = DATA.partidos;
+  const estadisticas = DATA.estadisticas;
+
+  const totalGoles = estadisticas.reduce((s,r)=> s + (r['Goles']||0), 0);
+  const totalAsist = estadisticas.reduce((s,r)=> s + (r['Ast']||0), 0);
+
+  let maxGoles = null, minGoles = null, maxDiff = null, minDiff = null, mejorActuacion = null;
+
+  partidos.forEach(p=>{
+    const combinado = p.oscuro.goles + p.claro.goles;
+    const dif = Math.abs(p.oscuro.goles - p.claro.goles);
+
+    if(maxGoles===null || combinado > maxGoles.combinado) maxGoles = {p, combinado};
+    if(minGoles===null || combinado < minGoles.combinado) minGoles = {p, combinado};
+    if(maxDiff===null || dif > maxDiff.dif) maxDiff = {p, dif};
+    if(minDiff===null || dif < minDiff.dif) minDiff = {p, dif};
+
+    [...p.oscuro.jugadores, ...p.claro.jugadores].forEach(j=>{
+      const ga = (j.goles||0) + (j.asistencias||0);
+      if(mejorActuacion===null || ga > mejorActuacion.ga){
+        mejorActuacion = {jugador:j.jugador, goles:j.goles, asistencias:j.asistencias, ga, numero:p.numero, titulo:p.titulo};
+      }
+    });
+  });
+
+  return {
+    partidosJugados: partidos.length,
+    jugadoresParticipantes: estadisticas.length,
+    totalGoles, totalAsist,
+    promedioGoles: (totalGoles / partidos.length).toFixed(1),
+    maxGoles, minGoles, maxDiff, minDiff, mejorActuacion
+  };
+}
+
+function renderStatGrid(){
+  const s = computeTournamentStats();
+  const grid = document.getElementById('stat-grid');
+  const cards = [
+    {icon:'📅', value:s.partidosJugados, label:'Partidos jugados'},
+    {icon:'👥', value:s.jugadoresParticipantes, label:'Jugadores participantes'},
+    {icon:'⚽', value:s.totalGoles, label:'Goles totales'},
+    {icon:'🧠', value:s.totalAsist, label:'Asistencias totales'},
+    {icon:'📊', value:s.promedioGoles, label:'Goles por partido (prom.)'},
+  ];
+  grid.innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <span class="icon">${c.icon}</span>
+      <div class="value">${c.value}</div>
+      <div class="label">${c.label}</div>
+    </div>
+  `).join('');
+}
+
+function renderHighlightGrid(){
+  const s = computeTournamentStats();
+  const grid = document.getElementById('highlight-grid');
+
+  const mg = s.maxGoles.p, mgv = s.maxGoles.combinado;
+  const mig = s.minGoles.p, migv = s.minGoles.combinado;
+  const mxd = s.maxDiff.p, mxdv = s.maxDiff.dif;
+  const mnd = s.minDiff.p, mndv = s.minDiff.dif;
+  const ma = s.mejorActuacion;
+
+  const cards = [
+    {icon:'🔥', value:mgv+' goles', label:'Partido con más goles', sub:'#'+mg.numero+' — '+(mg.titulo||'')+' ('+mg.oscuro.goles+'-'+mg.claro.goles+')'},
+    {icon:'🔒', value:migv+' goles', label:'Partido con menos goles', sub:'#'+mig.numero+' — '+(mig.titulo||'')+' ('+mig.oscuro.goles+'-'+mig.claro.goles+')'},
+    {icon:'📈', value:'+'+mxdv, label:'Mayor diferencia', sub:'#'+mxd.numero+' — '+(mxd.titulo||'')+' ('+mxd.oscuro.goles+'-'+mxd.claro.goles+')'},
+    {icon:'🤝', value:mndv===0?'Empate':'+'+mndv, label:'Menor diferencia', sub:'#'+mnd.numero+' — '+(mnd.titulo||'')+' ('+mnd.oscuro.goles+'-'+mnd.claro.goles+')'},
+    {icon:'🌟', value:ma.ga+' (⚽'+ma.goles+' 🧠'+ma.asistencias+')', label:'Mejor actuación individual', sub:ma.jugador+' — Partido #'+ma.numero},
+  ];
+
+  grid.innerHTML = cards.map(c => `
+    <div class="stat-card wide">
+      <span class="icon">${c.icon}</span>
+      <div class="value small">${c.value}</div>
+      <div class="label">${c.label}</div>
+      <div class="sublabel">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderLeaderGrid(){
+  const grid = document.getElementById('leader-grid');
+  const catLabels = {
+    'TABLA ANUAL GRILLOLIGA':'Puntero',
+    'GOLEADORES':'Goleador',
+    'ASISTIDORES':'Asistidor',
+    'GOLES + ASISTENCIAS':'G+A',
+    'GOLES POR PARTIDO':'Prom. de goles',
+    'PORCENTAJE DE VICTORIAS':'% de victorias',
+    'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida'
+  };
+  grid.innerHTML = rankingKeys.map(k=>{
+    const block = DATA.rankings[k];
+    const headers = block.headers;
+    const nameKey = headers[0];
+    const mainKey = headers[headers.length-1];
+    const leader = block.rows[0];
+    return `
+      <div class="leader-card" data-cat="${k}">
+        <div class="lc-icon">${rankingIcons[k]||'🏅'}</div>
+        <div class="lc-body">
+          <div class="lc-cat">${catLabels[k]||k}</div>
+          <div class="lc-name">${leader[nameKey]}</div>
+        </div>
+        <div class="lc-val">${leader[mainKey]}</div>
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.leader-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      document.querySelector('.tab-btn[data-tab="rankings"]').click();
+      activeRanking = card.dataset.cat;
+      renderRankingChips();
+      renderRankingList();
+    });
+  });
+}
+
+renderStatGrid();
+renderHighlightGrid();
+renderLeaderGrid();
+
+/* ---------- PARTIDOS HISTORICOS ---------- */
+const historicos = DATA.partidos.filter(p => p.nota);
+document.getElementById('historicos-count').textContent = historicos.length + ' partidos';
+
+function goToMatch(numero){
+  document.querySelector('.tab-btn[data-tab="partidos"]').click();
+  activeMatch = numero;
+  renderMatchChips();
+  renderScoreboard();
+}
+
+function renderHistoricos(){
+  const list = document.getElementById('historicos-list');
+  if(historicos.length === 0){
+    list.innerHTML = '<div class="jp-empty">Todavía no hay partidos marcados como especiales.</div>';
+    return;
+  }
+  list.innerHTML = historicos.map(p => `
+    <div class="historico-card" data-num="${p.numero}">
+      <div class="hc-num">#${p.numero}</div>
+      <div class="hc-body">
+        <div class="hc-title">${p.titulo || ''}</div>
+        <div class="hc-note">"${p.nota}"</div>
+      </div>
+      <div class="hc-score">${p.oscuro.goles}-${p.claro.goles}</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.historico-card').forEach(card=>{
+    card.addEventListener('click', ()=> goToMatch(parseInt(card.dataset.num)) );
+  });
+}
+renderHistoricos();
+
+/* ---------- JUGADORES ---------- */
+const jugadoresSorted = [...DATA.estadisticas].sort((a,b)=> a.Jugador.localeCompare(b.Jugador));
+document.getElementById('jugadores-count').textContent = jugadoresSorted.length + ' jugadores';
+let activeJugador = null;
+let jugadorSearch = '';
+
+function playerMatches(nombre){
+  const results = [];
+  DATA.partidos.forEach(p=>{
+    const enOscuro = p.oscuro.jugadores.find(j => j.jugador === nombre);
+    const enClaro = p.claro.jugadores.find(j => j.jugador === nombre);
+    const j = enOscuro || enClaro;
+    if(!j) return;
+    const equipo = enOscuro ? 'oscuro' : 'claro';
+    const propios = equipo==='oscuro' ? p.oscuro.goles : p.claro.goles;
+    const rival = equipo==='oscuro' ? p.claro.goles : p.oscuro.goles;
+    let resultado = propios > rival ? 'win' : (propios < rival ? 'loss' : 'draw');
+    results.push({numero:p.numero, titulo:p.titulo, equipo, resultado, goles:j.goles, asistencias:j.asistencias, marcador: p.oscuro.goles+'-'+p.claro.goles});
+  });
+  return results.sort((a,b)=> a.numero - b.numero);
+}
+
+function renderJugadorChips(){
+  const row = document.getElementById('jugador-chips');
+  const filtered = jugadoresSorted.filter(r => r.Jugador.toLowerCase().includes(jugadorSearch.toLowerCase()));
+  row.innerHTML = filtered.map(r => `<div class="jugador-chip ${r.Jugador===activeJugador?'active':''}" data-name="${r.Jugador}">${r.Jugador}</div>`).join('');
+  row.querySelectorAll('.jugador-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      activeJugador = chip.dataset.name;
+      renderJugadorChips();
+      renderJugadorProfile();
+    });
+  });
+}
+
+function renderJugadorProfile(){
+  const container = document.getElementById('jugador-profile');
+  if(!activeJugador){
+    container.innerHTML = '<div class="jp-empty">Elegí un jugador para ver su ficha.</div>';
+    return;
+  }
+  const r = DATA.estadisticas.find(x => x.Jugador === activeJugador);
+  if(!r){ container.innerHTML = '<div class="jp-empty">No se encontró el jugador.</div>'; return; }
+
+  const badges = [];
+  Object.entries(DATA.rankings).forEach(([cat, block])=>{
+    if(block.rows[0] && block.rows[0][block.headers[0]] === activeJugador){
+      const catLabels = {
+        'TABLA ANUAL GRILLOLIGA':'Puntero',
+        'GOLEADORES':'Goleador',
+        'ASISTIDORES':'Asistidor',
+        'GOLES + ASISTENCIAS':'G+A',
+        'GOLES POR PARTIDO':'Prom. de goles',
+        'PORCENTAJE DE VICTORIAS':'% de victorias',
+        'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida'
+      };
+      badges.push((rankingIcons[cat]||'🏅')+' '+(catLabels[cat]||cat));
+    }
+  });
+
+  const initials = activeJugador.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const statKeys = ['PJ','PG','PE','PP','%PG','Goles','Ast','G+A','G/P','A/P','Hat-tricks','Máx Goles','Máx Ast'].filter(k => r[k] !== undefined);
+
+  const matches = playerMatches(activeJugador);
+
+  container.innerHTML = `
+    <div class="jp-header">
+      <div class="jp-avatar">${initials}</div>
+      <div>
+        <div class="jp-name">${activeJugador}</div>
+        <div class="jp-badges">${badges.map(b=>'<span class="jp-badge">'+b+'</span>').join('')}</div>
+      </div>
+    </div>
+    <div class="jp-stat-grid">
+      ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${k}</div></div>`).join('')}
+    </div>
+    <div class="jp-matches-title">Partidos jugados (${matches.length})</div>
+    <div class="jp-match-list">
+      ${matches.length ? matches.map(m => `
+        <div class="jp-match-row" data-num="${m.numero}">
+          <div class="jm-num">#${m.numero}</div>
+          <div class="jm-result ${m.resultado}">${m.resultado==='win'?'G':m.resultado==='loss'?'P':'E'}</div>
+          <div class="jm-title">${m.titulo||''} (${m.marcador})</div>
+          <div class="jm-stats"><span class="g">⚽${m.goles}</span> <span class="a">🧠${m.asistencias}</span></div>
+        </div>
+      `).join('') : '<div class="jp-empty">No hay partidos registrados para este jugador.</div>'}
+    </div>
+  `;
+  container.querySelectorAll('.jp-match-row').forEach(row=>{
+    row.addEventListener('click', ()=> goToMatch(parseInt(row.dataset.num)) );
+  });
+}
+
+document.getElementById('jugador-search').addEventListener('input', (e)=>{
+  jugadorSearch = e.target.value;
+  renderJugadorChips();
+});
+
+// jugador por defecto: el líder de G+A
+activeJugador = DATA.rankings['GOLES + ASISTENCIAS'].rows[0][DATA.rankings['GOLES + ASISTENCIAS'].headers[0]];
+renderJugadorChips();
+renderJugadorProfile();
+</script>
+</body>
+</html>
