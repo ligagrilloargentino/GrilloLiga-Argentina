@@ -188,8 +188,10 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
   display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
   scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch;
+  cursor:grab; user-select:none;
 }
 .ranking-select-row::-webkit-scrollbar{display:none;}
+.ranking-select-row.dragging{ cursor:grabbing; scroll-behavior:auto; }
 .ranking-scroller::before, .ranking-scroller::after{
   content:''; position:absolute; top:0; bottom:6px; width:34px; pointer-events:none; z-index:2;
 }
@@ -469,7 +471,13 @@ footer{
 
 @media (max-width:600px){
   .sb-team .team-score{font-size:40px;}
-  .rank-extra{display:none;}
+  .rank-extra{
+    gap:8px 10px;
+    font-size:10.5px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:120px;
+  }
   table{font-size:11.5px;}
 }
 </style>
@@ -755,6 +763,40 @@ function updateRankArrows(){
 }
 arrowLeft.addEventListener('click', ()=> rankRow.scrollBy({left:-180, behavior:'smooth'}) );
 arrowRight.addEventListener('click', ()=> rankRow.scrollBy({left:180, behavior:'smooth'}) );
+
+/* Arrastrar con el mouse (click and drag) en desktop */
+(function enableDragScroll(el){
+  let isDown = false;
+  let startX = 0;
+  let startScroll = 0;
+  let moved = false;
+
+  el.addEventListener('mousedown', (e)=>{
+    isDown = true;
+    moved = false;
+    el.classList.add('dragging');
+    startX = e.pageX;
+    startScroll = el.scrollLeft;
+  });
+
+  window.addEventListener('mouseup', ()=>{
+    isDown = false;
+    el.classList.remove('dragging');
+  });
+
+  window.addEventListener('mousemove', (e)=>{
+    if(!isDown) return;
+    e.preventDefault();
+    const dx = e.pageX - startX;
+    if(Math.abs(dx) > 4) moved = true;
+    el.scrollLeft = startScroll - dx;
+  });
+
+  /* Evita que un click al soltar (tras arrastrar) dispare el cambio de ranking */
+  el.addEventListener('click', (e)=>{
+    if(moved){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+})(rankRow);
 rankRow.addEventListener('scroll', updateRankArrows);
 window.addEventListener('resize', updateRankArrows);
 updateRankArrows();
