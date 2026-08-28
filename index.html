@@ -1022,11 +1022,16 @@ const SILUETA_GENERICA = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="
 function jcAvatarHtml(nombre){
   const foto = FOTOS_JUGADORES[nombre];
   return foto
-    ? `<img src="${foto}" alt="${nombre}" loading="lazy" onerror="this.parentElement.innerHTML='${SILUETA_GENERICA.replace(/'/g,"\\'")}'">`
+    ? `<img class="jc-foto-img" data-nombre="${nombre}" src="${foto}" alt="${nombre}" loading="lazy">`
     : SILUETA_GENERICA;
 }
+function activarFallbackFotos(container){
+  container.querySelectorAll('img.jc-foto-img').forEach(img=>{
+    img.addEventListener('error', ()=>{ img.parentElement.innerHTML = SILUETA_GENERICA; }, { once:true });
+  });
+}
 
-const jugadoresSorted = [...DATA.estadisticas].sort((a,b)=> a.Jugador.localeCompare(b.Jugador));
+const jugadoresSorted = [...DATA.estadisticas].sort((a,b)=> b.PJ - a.PJ);
 document.getElementById('jugadores-count').textContent = jugadoresSorted.length + ' jugadores';
 let activeJugador = null;
 let jugadorSearch = '';
@@ -1061,6 +1066,7 @@ function renderJugadorChips(){
       </div>
     </div>
   `).join('');
+  activarFallbackFotos(row);
   row.querySelectorAll('.jugador-card').forEach(card=>{
     card.addEventListener('click', ()=>{
       activeJugador = card.dataset.name;
@@ -1121,6 +1127,7 @@ function renderJugadorProfile(){
       `).join('') : '<div class="jp-empty">No hay partidos registrados para este jugador.</div>'}
     </div>
   `;
+  activarFallbackFotos(container);
   container.querySelectorAll('.jp-match-row').forEach(row=>{
     row.addEventListener('click', ()=> goToMatch(parseInt(row.dataset.num)) );
   });
