@@ -188,10 +188,8 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
   display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
   scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch;
-  cursor:grab; user-select:none;
 }
 .ranking-select-row::-webkit-scrollbar{display:none;}
-.ranking-select-row.dragging{ cursor:grabbing; scroll-behavior:auto; }
 .ranking-scroller::before, .ranking-scroller::after{
   content:''; position:absolute; top:0; bottom:6px; width:34px; pointer-events:none; z-index:2;
 }
@@ -402,28 +400,49 @@ footer{
 
 /* ---------- JUGADORES ---------- */
 .jugador-chip-row{
-  display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px;
-  -webkit-overflow-scrolling:touch;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(108px, 1fr));
+  gap:10px; margin-bottom:20px;
 }
-.jugador-chip-row::-webkit-scrollbar{display:none;}
-.jugador-chip{
-  flex-shrink:0;
-  background:var(--card); border:1px solid var(--line); color:var(--text-dim);
-  font-size:12.5px; font-weight:700; font-family:'Lora',serif;
-  padding:8px 13px; border-radius:20px; cursor:pointer; white-space:nowrap;
+.jugador-card{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:10px 8px 9px; cursor:pointer; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  transition:border-color .15s, transform .1s;
 }
-.jugador-chip.active{ background:var(--red); color:var(--claro-bg); border-color:var(--red); }
+.jugador-card:hover{ transform:translateY(-2px); border-color:var(--grass-dim); }
+.jugador-card.active{ border-color:var(--red); background:linear-gradient(180deg, rgba(198,40,40,.10), var(--card)); }
+.jc-photo-wrap{
+  width:64px; height:64px; border-radius:50%; overflow:hidden;
+  background:linear-gradient(135deg, var(--grass-dim), var(--card2));
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  border:2px solid var(--line);
+}
+.jugador-card.active .jc-photo-wrap{ border-color:var(--red); }
+.jc-photo-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+.jc-photo-wrap svg{ width:34px; height:34px; opacity:.55; }
+.jc-name{
+  font-size:11.5px; font-weight:700; font-family:'Lora',serif; color:var(--text);
+  line-height:1.15; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.jc-stats{
+  display:flex; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--text-dim);
+}
+.jc-stats span{ display:flex; flex-direction:column; align-items:center; gap:1px; }
+.jc-stats b{ font-size:12px; color:var(--text); font-weight:700; }
 
 .jp-header{
   display:flex; align-items:center; gap:12px; margin-bottom:16px;
 }
 .jp-avatar{
-  width:52px; height:52px; border-radius:50%;
+  width:52px; height:52px; border-radius:50%; overflow:hidden;
   background:linear-gradient(135deg, var(--grass-dim), var(--card2));
   display:flex; align-items:center; justify-content:center;
   font-family:'Playfair Display',serif; font-weight:700; font-size:20px; color:var(--claro-bg); flex-shrink:0;
   border:1px solid var(--line-strong);
 }
+.jp-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+.jp-avatar svg{ width:26px; height:26px; opacity:.6; }
 .jp-name{ font-family:'Playfair Display',serif; font-weight:900; font-size:26px; letter-spacing:0.2px; }
 .jp-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-top:3px; }
 .jp-badge{
@@ -471,13 +490,7 @@ footer{
 
 @media (max-width:600px){
   .sb-team .team-score{font-size:40px;}
-  .rank-extra{
-    gap:8px 10px;
-    font-size:10.5px;
-    flex-wrap:wrap;
-    justify-content:flex-end;
-    max-width:120px;
-  }
+  .rank-extra{display:none;}
   table{font-size:11.5px;}
 }
 </style>
@@ -763,40 +776,6 @@ function updateRankArrows(){
 }
 arrowLeft.addEventListener('click', ()=> rankRow.scrollBy({left:-180, behavior:'smooth'}) );
 arrowRight.addEventListener('click', ()=> rankRow.scrollBy({left:180, behavior:'smooth'}) );
-
-/* Arrastrar con el mouse (click and drag) en desktop */
-(function enableDragScroll(el){
-  let isDown = false;
-  let startX = 0;
-  let startScroll = 0;
-  let moved = false;
-
-  el.addEventListener('mousedown', (e)=>{
-    isDown = true;
-    moved = false;
-    el.classList.add('dragging');
-    startX = e.pageX;
-    startScroll = el.scrollLeft;
-  });
-
-  window.addEventListener('mouseup', ()=>{
-    isDown = false;
-    el.classList.remove('dragging');
-  });
-
-  window.addEventListener('mousemove', (e)=>{
-    if(!isDown) return;
-    e.preventDefault();
-    const dx = e.pageX - startX;
-    if(Math.abs(dx) > 4) moved = true;
-    el.scrollLeft = startScroll - dx;
-  });
-
-  /* Evita que un click al soltar (tras arrastrar) dispare el cambio de ranking */
-  el.addEventListener('click', (e)=>{
-    if(moved){ e.stopPropagation(); e.preventDefault(); }
-  }, true);
-})(rankRow);
 rankRow.addEventListener('scroll', updateRankArrows);
 window.addEventListener('resize', updateRankArrows);
 updateRankArrows();
@@ -1031,6 +1010,22 @@ function renderHistoricos(){
 renderHistoricos();
 
 /* ---------- JUGADORES ---------- */
+const FOTOS_JUGADORES = {
+  'Gutman': 'https://lh3.googleusercontent.com/d/1t3DglqA3LGuluvLNBYE9bq2BZiJ7pZpJ=s400',
+  'Pipe': 'https://lh3.googleusercontent.com/d/1qtXvGcgUlypN--j4rj5uQZ5ML7AIFJV4=s400',
+  'Lauti': 'https://lh3.googleusercontent.com/d/1jZ7QdDwuyohjoOqDcSx8HS4PSjWG-fPO=s400',
+  'Tiago': 'https://lh3.googleusercontent.com/d/1T63g0hnajpy8YyNhkf0JWOyVM-kTwg4m=s400',
+  'Leon': 'https://lh3.googleusercontent.com/d/1CCF2CpWpApfkJlzYkqXNgww447UugDZK=s400',
+  'Chiappe': 'https://lh3.googleusercontent.com/d/1_M3tPE1IFQ5nUXKh2RmfUoADw2xnanwV=s400'
+};
+const SILUETA_GENERICA = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.5 0-10.4 1.7-10.4 5.2v2.2h20.8v-2.2c0-3.5-6.9-5.2-10.4-5.2z"/></svg>`;
+function jcAvatarHtml(nombre){
+  const foto = FOTOS_JUGADORES[nombre];
+  return foto
+    ? `<img src="${foto}" alt="${nombre}" loading="lazy" onerror="this.parentElement.innerHTML='${SILUETA_GENERICA.replace(/'/g,"\\'")}'">`
+    : SILUETA_GENERICA;
+}
+
 const jugadoresSorted = [...DATA.estadisticas].sort((a,b)=> a.Jugador.localeCompare(b.Jugador));
 document.getElementById('jugadores-count').textContent = jugadoresSorted.length + ' jugadores';
 let activeJugador = null;
@@ -1055,10 +1050,20 @@ function playerMatches(nombre){
 function renderJugadorChips(){
   const row = document.getElementById('jugador-chips');
   const filtered = jugadoresSorted.filter(r => r.Jugador.toLowerCase().includes(jugadorSearch.toLowerCase()));
-  row.innerHTML = filtered.map(r => `<div class="jugador-chip ${r.Jugador===activeJugador?'active':''}" data-name="${r.Jugador}">${r.Jugador}</div>`).join('');
-  row.querySelectorAll('.jugador-chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      activeJugador = chip.dataset.name;
+  row.innerHTML = filtered.map(r => `
+    <div class="jugador-card ${r.Jugador===activeJugador?'active':''}" data-name="${r.Jugador}">
+      <div class="jc-photo-wrap">${jcAvatarHtml(r.Jugador)}</div>
+      <div class="jc-name">${r.Jugador}</div>
+      <div class="jc-stats">
+        <span><b>${r.PJ}</b>PJ</span>
+        <span><b>${r.Goles}</b>Gol</span>
+        <span><b>${r.Ast}</b>Ast</span>
+      </div>
+    </div>
+  `).join('');
+  row.querySelectorAll('.jugador-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      activeJugador = card.dataset.name;
       renderJugadorChips();
       renderJugadorProfile();
     });
@@ -1090,14 +1095,12 @@ function renderJugadorProfile(){
     }
   });
 
-  const initials = activeJugador.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  const statKeys = ['PJ','PG','PE','PP','%PG','Goles','Ast','G+A','G/P','A/P','Hat-tricks','Máx Goles','Máx Ast'].filter(k => r[k] !== undefined);
-
   const matches = playerMatches(activeJugador);
+  const statKeys = ['PJ','PG','PE','PP','%PG','Goles','Ast','G+A','G/P','A/P','Hat-tricks','Máx Goles','Máx Ast'].filter(k => r[k] !== undefined);
 
   container.innerHTML = `
     <div class="jp-header">
-      <div class="jp-avatar">${initials}</div>
+      <div class="jp-avatar">${jcAvatarHtml(activeJugador)}</div>
       <div>
         <div class="jp-name">${activeJugador}</div>
         <div class="jp-badges">${badges.map(b=>'<span class="jp-badge">'+b+'</span>').join('')}</div>
