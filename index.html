@@ -612,7 +612,6 @@ footer{
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="jugador-search" placeholder="Buscar jugador…">
     </div>
-    <div class="jugador-chip-row" id="jugador-chips"></div>
     <div id="jugador-profile"></div>
     <div class="jugador-chip-row" id="jugador-chips-bottom"></div>
   </section>
@@ -1176,7 +1175,7 @@ function renderJugadorChips(){
     </div>
   `).join('');
 
-  ['jugador-chips', 'jugador-chips-bottom'].forEach(id=>{
+  ['jugador-chips-bottom'].forEach(id=>{
     const row = document.getElementById(id);
     row.innerHTML = html;
     activarFallbackFotos(row);
