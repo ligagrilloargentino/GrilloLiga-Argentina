@@ -188,8 +188,10 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
   display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
   scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch;
+  cursor:grab; user-select:none;
 }
 .ranking-select-row::-webkit-scrollbar{display:none;}
+.ranking-select-row.dragging{ cursor:grabbing; scroll-behavior:auto; }
 .ranking-scroller::before, .ranking-scroller::after{
   content:''; position:absolute; top:0; bottom:6px; width:34px; pointer-events:none; z-index:2;
 }
@@ -336,6 +338,8 @@ footer{
   padding:14px 14px 12px 14px;
   border-top:2px solid var(--line-strong);
 }
+.stat-card-clickable{ cursor:pointer; transition:transform .1s, border-color .15s; }
+.stat-card-clickable:hover{ transform:translateY(-2px); border-color:var(--grass-dim); }
 .stat-card .icon{ font-size:18px; margin-bottom:6px; display:block; }
 .stat-card .value{
   font-family:'Playfair Display',serif; font-weight:900; font-size:28px; line-height:1; color:var(--red);
@@ -490,7 +494,13 @@ footer{
 
 @media (max-width:600px){
   .sb-team .team-score{font-size:40px;}
-  .rank-extra{display:none;}
+  .rank-extra{
+    gap:8px 10px;
+    font-size:10.5px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:120px;
+  }
   table{font-size:11.5px;}
 }
 </style>
@@ -603,6 +613,7 @@ footer{
     </div>
     <div class="jugador-chip-row" id="jugador-chips"></div>
     <div id="jugador-profile"></div>
+    <div class="jugador-chip-row" id="jugador-chips-bottom"></div>
   </section>
 
 </main>
@@ -780,6 +791,39 @@ rankRow.addEventListener('scroll', updateRankArrows);
 window.addEventListener('resize', updateRankArrows);
 updateRankArrows();
 
+/* Arrastrar con el mouse (click and drag) en desktop */
+(function enableDragScroll(el){
+  let isDown = false;
+  let startX = 0;
+  let startScroll = 0;
+  let moved = false;
+
+  el.addEventListener('mousedown', (e)=>{
+    isDown = true;
+    moved = false;
+    el.classList.add('dragging');
+    startX = e.pageX;
+    startScroll = el.scrollLeft;
+  });
+
+  window.addEventListener('mouseup', ()=>{
+    isDown = false;
+    el.classList.remove('dragging');
+  });
+
+  window.addEventListener('mousemove', (e)=>{
+    if(!isDown) return;
+    e.preventDefault();
+    const dx = e.pageX - startX;
+    if(Math.abs(dx) > 4) moved = true;
+    el.scrollLeft = startScroll - dx;
+  });
+
+  el.addEventListener('click', (e)=>{
+    if(moved){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+})(rankRow);
+
 /* ---------- PARTIDOS ---------- */
 document.getElementById('match-count').textContent = DATA.partidos.length + ' partidos';
 let activeMatch = DATA.partidos.length; // latest by default
@@ -890,19 +934,24 @@ function renderStatGrid(){
   const s = computeTournamentStats();
   const grid = document.getElementById('stat-grid');
   const cards = [
-    {icon:'📅', value:s.partidosJugados, label:'Partidos jugados'},
-    {icon:'👥', value:s.jugadoresParticipantes, label:'Jugadores participantes'},
+    {icon:'📅', value:s.partidosJugados, label:'Partidos jugados', tab:'partidos'},
+    {icon:'👥', value:s.jugadoresParticipantes, label:'Jugadores participantes', tab:'jugadores'},
     {icon:'⚽', value:s.totalGoles, label:'Goles totales'},
     {icon:'🧠', value:s.totalAsist, label:'Asistencias totales'},
     {icon:'📊', value:s.promedioGoles, label:'Goles por partido (prom.)'},
   ];
   grid.innerHTML = cards.map(c => `
-    <div class="stat-card">
+    <div class="stat-card${c.tab ? ' stat-card-clickable' : ''}" ${c.tab ? `data-goto-tab="${c.tab}"` : ''}>
       <span class="icon">${c.icon}</span>
       <div class="value">${c.value}</div>
       <div class="label">${c.label}</div>
     </div>
   `).join('');
+  grid.querySelectorAll('[data-goto-tab]').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      document.querySelector(`.tab-btn[data-tab="${card.dataset.gotoTab}"]`).click();
+    });
+  });
 }
 
 function renderHighlightGrid(){
@@ -1016,7 +1065,13 @@ const FOTOS_JUGADORES = {
   'Lauti': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Lauti.jpg',
   'Tiago': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Tiago.jpg',
   'Leon': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Leon.jpg',
-  'Chiappe': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Chiappe.jpg'
+  'Chiappe': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Chiappe.jpg',
+  'Tadeo': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Tadeo.jpg',
+  'Pedro': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pedro.jpg',
+  'Valen': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Valen.jpg',
+  'Ciro': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Ciro.jpg',
+  'Pepe': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pepe.jpg',
+  'Fabri': 'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Fabri.jpg'
 };
 const SILUETA_GENERICA = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.5 0-10.4 1.7-10.4 5.2v2.2h20.8v-2.2c0-3.5-6.9-5.2-10.4-5.2z"/></svg>`;
 function jcAvatarHtml(nombre){
@@ -1053,9 +1108,8 @@ function playerMatches(nombre){
 }
 
 function renderJugadorChips(){
-  const row = document.getElementById('jugador-chips');
   const filtered = jugadoresSorted.filter(r => r.Jugador.toLowerCase().includes(jugadorSearch.toLowerCase()));
-  row.innerHTML = filtered.map(r => `
+  const html = filtered.map(r => `
     <div class="jugador-card ${r.Jugador===activeJugador?'active':''}" data-name="${r.Jugador}">
       <div class="jc-photo-wrap">${jcAvatarHtml(r.Jugador)}</div>
       <div class="jc-name">${r.Jugador}</div>
@@ -1066,12 +1120,18 @@ function renderJugadorChips(){
       </div>
     </div>
   `).join('');
-  activarFallbackFotos(row);
-  row.querySelectorAll('.jugador-card').forEach(card=>{
-    card.addEventListener('click', ()=>{
-      activeJugador = card.dataset.name;
-      renderJugadorChips();
-      renderJugadorProfile();
+
+  ['jugador-chips', 'jugador-chips-bottom'].forEach(id=>{
+    const row = document.getElementById(id);
+    row.innerHTML = html;
+    activarFallbackFotos(row);
+    row.querySelectorAll('.jugador-card').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        activeJugador = card.dataset.name;
+        renderJugadorChips();
+        renderJugadorProfile();
+        document.getElementById('jugador-profile').scrollIntoView({behavior:'smooth', block:'start'});
+      });
     });
   });
 }
