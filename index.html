@@ -29,6 +29,40 @@
   --claro-text:#161310;
   --radius:5px;
 }
+.auth-overlay{
+  position:fixed; inset:0; z-index:10000;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+}
+.auth-card{
+  background:var(--card); border:1px solid var(--line-strong); border-radius:var(--radius);
+  padding:28px 26px; width:100%; max-width:360px;
+}
+.auth-card h1{
+  font-family:'Playfair Display',serif; font-weight:900; font-size:22px; margin:0 0 4px;
+  color:var(--text);
+}
+.auth-card .auth-sub{ font-size:12.5px; color:var(--text-dim); margin-bottom:18px; }
+.auth-field{ margin-bottom:12px; }
+.auth-field label{ display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; color:var(--text-dim); margin-bottom:4px; }
+.auth-field input, .auth-field select{
+  width:100%; box-sizing:border-box; padding:9px 10px; border-radius:4px;
+  border:1px solid var(--line-strong); background:var(--claro-bg); color:var(--text);
+  font-family:'IBM Plex Mono',monospace; font-size:13px;
+}
+.auth-btn{
+  width:100%; padding:11px; border-radius:20px; border:1px solid var(--red);
+  background:var(--red); color:var(--claro-bg); font-weight:700; font-family:'Lora',serif;
+  cursor:pointer; font-size:14px; margin-top:6px;
+}
+.auth-btn:hover{ opacity:0.9; }
+.auth-btn.secundario{ background:transparent; color:var(--red); }
+.auth-switch{ text-align:center; margin-top:14px; font-size:12.5px; color:var(--text-dim); }
+.auth-switch a{ color:var(--red); cursor:pointer; font-weight:700; text-decoration:underline; }
+.auth-error{ background:rgba(179,59,34,0.12); border:1px solid var(--red); color:var(--red-dim); padding:8px 10px; border-radius:4px; font-size:12.5px; margin-bottom:12px; display:none; }
+.auth-error.show{ display:block; }
+.auth-olvido{ text-align:center; margin-top:10px; font-size:11.5px; color:var(--text-dimmer); cursor:pointer; text-decoration:underline; }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -508,6 +542,43 @@ footer{
 </head>
 <body>
 
+<div class="auth-overlay" id="auth-overlay" style="display:none;">
+  <div class="auth-card">
+
+    <div id="auth-login">
+      <h1>Grillo Liga</h1>
+      <div class="auth-sub">Iniciá sesión para entrar</div>
+      <div class="auth-error" id="login-error"></div>
+      <div class="auth-field"><label>Usuario</label><input type="text" id="login-username" autocomplete="username"></div>
+      <div class="auth-field"><label>Contraseña</label><input type="password" id="login-password" autocomplete="current-password"></div>
+      <button class="auth-btn" id="login-submit">Ingresar</button>
+      <div class="auth-switch">¿No tenés cuenta? <a id="ir-a-registro">Registrate</a></div>
+      <div class="auth-olvido" id="olvide-clave">¿Olvidaste tu contraseña?</div>
+    </div>
+
+    <div id="auth-registro" style="display:none;">
+      <h1>Crear cuenta</h1>
+      <div class="auth-sub">Elegí tu usuario y contraseña</div>
+      <div class="auth-error" id="registro-error"></div>
+      <div class="auth-field"><label>Usuario</label><input type="text" id="registro-username" autocomplete="username"></div>
+      <div class="auth-field"><label>Contraseña</label><input type="password" id="registro-password" autocomplete="new-password"></div>
+      <button class="auth-btn" id="registro-submit">Continuar</button>
+      <div class="auth-switch">¿Ya tenés cuenta? <a id="ir-a-login">Iniciá sesión</a></div>
+    </div>
+
+    <div id="auth-perfil" style="display:none;">
+      <h1>Completá tu perfil</h1>
+      <div class="auth-sub">Últimos datos antes de entrar</div>
+      <div class="auth-error" id="perfil-error"></div>
+      <div class="auth-field"><label>Nombre</label><input type="text" id="perfil-nombre"></div>
+      <div class="auth-field"><label>Fecha de nacimiento</label><input type="date" id="perfil-fecha"></div>
+      <div class="auth-field"><label>Jugador favorito</label><select id="perfil-jugador"><option value="">Elegí un jugador…</option></select></div>
+      <button class="auth-btn" id="perfil-submit">Entrar a Grillo Liga</button>
+    </div>
+
+  </div>
+</div>
+
 <header class="top">
   <div class="top-inner">
     <div class="brand">
@@ -515,6 +586,7 @@ footer{
       <h1><span>GRILLOLIGA</span> ARGENTINA</h1>
     </div>
     <div class="subtitle" id="subtitle-text"></div>
+    <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
     <nav class="tabs">
       <button class="tab-btn active" data-tab="inicio">Inicio</button>
       <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
@@ -675,20 +747,138 @@ async function cargarDatosDesdeSupabase(){
 const _cargaInicial = document.createElement('div');
 _cargaInicial.textContent = 'Cargando datos de Grillo Liga…';
 _cargaInicial.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg,#111);color:var(--text,#eee);font-family:sans-serif;font-size:15px;z-index:9999;';
-document.body.appendChild(_cargaInicial);
 
 let DATA, FOTOS_JUGADORES_REMOTAS;
 
-cargarDatosDesdeSupabase().then((d) => {
-  DATA = { estadisticas: d.estadisticas, rankings: d.rankings, partidos: d.partidos };
-  FOTOS_JUGADORES_REMOTAS = d.fotos;
-  _cargaInicial.remove();
-  iniciarApp();
-}).catch((err) => {
-  _cargaInicial.textContent = 'No se pudieron cargar los datos. Revisá tu conexión y volvé a intentar. (' + (err && err.message ? err.message : err) + ')';
+const DOMINIO_FALSO = '@grilloliga.app';
+function emailDesdeUsuario(u){ return u.trim().toLowerCase().replace(/\s+/g,'') + DOMINIO_FALSO; }
+
+const authOverlay = document.getElementById('auth-overlay');
+const vLogin = document.getElementById('auth-login');
+const vRegistro = document.getElementById('auth-registro');
+const vPerfil = document.getElementById('auth-perfil');
+
+function mostrarError(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function ocultarErrores(){
+  document.querySelectorAll('.auth-error').forEach(e => e.classList.remove('show'));
+}
+
+document.getElementById('ir-a-registro').addEventListener('click', ()=>{
+  ocultarErrores(); vLogin.style.display='none'; vRegistro.style.display='block';
+});
+document.getElementById('ir-a-login').addEventListener('click', ()=>{
+  ocultarErrores(); vRegistro.style.display='none'; vLogin.style.display='block';
+});
+document.getElementById('olvide-clave').addEventListener('click', ()=>{
+  ocultarErrores();
+  mostrarError('login-error', 'Uffa pa parece que olvidaste la contraseña, ponete en contacto con el grillo');
 });
 
+document.getElementById('login-submit').addEventListener('click', async ()=>{
+  ocultarErrores();
+  const usuario = document.getElementById('login-username').value.trim();
+  const clave = document.getElementById('login-password').value;
+  if(!usuario || !clave){ mostrarError('login-error', 'Completá usuario y contraseña.'); return; }
+  const { error } = await sbClient.auth.signInWithPassword({ email: emailDesdeUsuario(usuario), password: clave });
+  if(error){ mostrarError('login-error', 'Usuario o contraseña incorrectos.'); return; }
+  await despuesDeLoguearse();
+});
+
+document.getElementById('registro-submit').addEventListener('click', async ()=>{
+  ocultarErrores();
+  const usuario = document.getElementById('registro-username').value.trim();
+  const clave = document.getElementById('registro-password').value;
+  if(!usuario || usuario.length < 3){ mostrarError('registro-error', 'El usuario debe tener al menos 3 caracteres.'); return; }
+  if(!clave || clave.length < 6){ mostrarError('registro-error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+  const { error } = await sbClient.auth.signUp({ email: emailDesdeUsuario(usuario), password: clave });
+  if(error){
+    if(String(error.message).toLowerCase().includes('already')){
+      mostrarError('registro-error', 'Ese usuario ya existe, elegí otro.');
+    } else {
+      mostrarError('registro-error', 'No se pudo crear la cuenta: ' + error.message);
+    }
+    return;
+  }
+  vRegistro.style.display='none';
+  await mostrarPasoPerfil(usuario);
+});
+
+async function mostrarPasoPerfil(usernameElegido){
+  vPerfil.style.display='block';
+  vPerfil.dataset.username = usernameElegido;
+  const sel = document.getElementById('perfil-jugador');
+  if(sel.options.length <= 1){
+    const { data } = await sbClient.from('jugadores').select('nombre').order('nombre');
+    (data || []).forEach(j=>{
+      const op = document.createElement('option');
+      op.value = j.nombre; op.textContent = j.nombre;
+      sel.appendChild(op);
+    });
+  }
+}
+
+document.getElementById('perfil-submit').addEventListener('click', async ()=>{
+  ocultarErrores();
+  const nombre = document.getElementById('perfil-nombre').value.trim();
+  const fecha = document.getElementById('perfil-fecha').value;
+  const jugador = document.getElementById('perfil-jugador').value;
+  if(!nombre || !fecha || !jugador){ mostrarError('perfil-error', 'Completá todos los campos.'); return; }
+  const { data: { user } } = await sbClient.auth.getUser();
+  const { error } = await sbClient.from('perfiles_usuario').insert({
+    id: user.id,
+    username: vPerfil.dataset.username,
+    nombre, fecha_nacimiento: fecha, jugador_favorito: jugador
+  });
+  if(error){ mostrarError('perfil-error', 'No se pudo guardar el perfil: ' + error.message); return; }
+  await despuesDeLoguearse();
+});
+
+async function despuesDeLoguearse(){
+  authOverlay.style.display = 'none';
+  document.body.appendChild(_cargaInicial);
+  try {
+    const d = await cargarDatosDesdeSupabase();
+    DATA = { estadisticas: d.estadisticas, rankings: d.rankings, partidos: d.partidos };
+    FOTOS_JUGADORES_REMOTAS = d.fotos;
+    _cargaInicial.remove();
+    iniciarApp();
+  } catch(err){
+    _cargaInicial.textContent = 'No se pudieron cargar los datos. Revisá tu conexión y volvé a intentar. (' + (err && err.message ? err.message : err) + ')';
+  }
+}
+
+async function verificarSesion(){
+  const { data: { session } } = await sbClient.auth.getSession();
+  if(!session){
+    authOverlay.style.display='flex';
+    return;
+  }
+  // hay sesión: ver si ya tiene perfil completo
+  const { data: perfil } = await sbClient.from('perfiles_usuario').select('username').eq('id', session.user.id).maybeSingle();
+  if(!perfil){
+    authOverlay.style.display='flex';
+    const usuarioAdivinado = session.user.email.replace(DOMINIO_FALSO, '');
+    vLogin.style.display='none';
+    await mostrarPasoPerfil(usuarioAdivinado);
+    return;
+  }
+  await despuesDeLoguearse();
+}
+
+verificarSesion();
+
 function iniciarApp(){
+const _btnCerrarSesion = document.getElementById('cerrar-sesion-btn');
+_btnCerrarSesion.style.display = 'inline';
+_btnCerrarSesion.addEventListener('click', async ()=>{
+  await sbClient.auth.signOut();
+  location.reload();
+});
+
 
 document.getElementById('subtitle-text').textContent = DATA.estadisticas.length + ' jugadores · ' + DATA.partidos.length + ' partidos jugados';
 
