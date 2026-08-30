@@ -851,7 +851,15 @@ async function despuesDeLoguearse(){
   }
 }
 
+// INTERRUPTOR TEMPORAL: mientras terminamos de afinar el login, lo dejamos en pausa.
+// Cuando esté listo para activarse de nuevo, cambiar esta línea a: const LOGIN_REQUERIDO = true;
+const LOGIN_REQUERIDO = false;
+
 async function verificarSesion(){
+  if(!LOGIN_REQUERIDO){
+    await despuesDeLoguearse();
+    return;
+  }
   const { data: { session } } = await sbClient.auth.getSession();
   if(!session){
     authOverlay.style.display='flex';
@@ -873,7 +881,7 @@ verificarSesion();
 
 function iniciarApp(){
 const _btnCerrarSesion = document.getElementById('cerrar-sesion-btn');
-_btnCerrarSesion.style.display = 'inline';
+if(LOGIN_REQUERIDO) _btnCerrarSesion.style.display = 'inline';
 _btnCerrarSesion.addEventListener('click', async ()=>{
   await sbClient.auth.signOut();
   location.reload();
