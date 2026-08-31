@@ -70,6 +70,41 @@
 }
 .auth-eye svg{ width:18px; height:18px; display:block; }
 .auth-olvido{ text-align:center; margin-top:10px; font-size:11.5px; color:var(--text-dimmer); cursor:pointer; text-decoration:underline; }
+/* ---------- FORO ---------- */
+.foro-caja-nueva{ margin-bottom:20px; }
+.foro-caja-nueva textarea{
+  width:100%; box-sizing:border-box; min-height:70px; resize:vertical;
+  padding:10px; border-radius:6px; border:1px solid var(--line-strong);
+  background:var(--card); color:var(--text); font-family:'Lora',serif; font-size:13.5px;
+}
+.foro-caja-nueva button{
+  margin-top:8px; padding:8px 18px; border-radius:20px; border:1px solid var(--red);
+  background:var(--red); color:var(--claro-bg); font-weight:700; font-family:'Lora',serif;
+  cursor:pointer; font-size:12.5px;
+}
+.foro-msg{
+  background:var(--card); border:1px solid var(--line); border-radius:8px;
+  padding:11px 13px; margin-bottom:10px;
+}
+.foro-msg .fm-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
+.foro-msg .fm-user{ font-weight:700; font-family:'Lora',serif; color:var(--red); font-size:12.5px; }
+.foro-msg .fm-fecha{ font-size:10px; color:var(--text-dimmer); font-family:'IBM Plex Mono',monospace; }
+.foro-msg .fm-texto{ font-size:13px; color:var(--text); line-height:1.4; white-space:pre-wrap; }
+.foro-msg .fm-responder{ font-size:11px; color:var(--text-dimmer); cursor:pointer; text-decoration:underline; margin-top:6px; display:inline-block; }
+.foro-respuestas{ margin-left:22px; margin-top:8px; border-left:2px solid var(--line); padding-left:12px; }
+.foro-reply-box{ margin-top:8px; display:none; }
+.foro-reply-box textarea{
+  width:100%; box-sizing:border-box; min-height:50px; resize:vertical;
+  padding:8px; border-radius:6px; border:1px solid var(--line-strong);
+  background:var(--claro-bg); color:var(--text); font-family:'Lora',serif; font-size:12.5px;
+}
+.foro-reply-box button{
+  margin-top:6px; padding:6px 14px; border-radius:16px; border:1px solid var(--red);
+  background:transparent; color:var(--red); font-weight:700; font-family:'Lora',serif;
+  cursor:pointer; font-size:11.5px;
+}
+.foro-vacio{ font-size:12.5px; color:var(--text-dimmer); font-style:italic; }
+.foro-partido-titulo{ font-family:'Lora',serif; font-weight:700; font-size:13.5px; color:var(--text); margin:22px 0 10px; border-top:1px solid var(--line); padding-top:16px; }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -613,6 +648,7 @@ footer{
       <button class="tab-btn" data-tab="partidos">Partidos</button>
       <button class="tab-btn" data-tab="historicos">Partidos Históricos</button>
       <button class="tab-btn" data-tab="jugadores">Jugadores</button>
+      <button class="tab-btn" data-tab="foro">Foro general</button>
     </nav>
   </div>
   <div class="stitch-line"></div>
@@ -681,6 +717,8 @@ footer{
     </div>
     <div class="match-select-row" id="match-chips"></div>
     <div id="scoreboard-container"></div>
+    <div class="foro-partido-titulo">💬 Comentarios de este partido</div>
+    <div id="foro-partido-container"></div>
   </section>
 
   <!-- PARTIDOS HISTORICOS -->
@@ -705,6 +743,14 @@ footer{
     </div>
     <div id="jugador-profile"></div>
     <div class="jugador-chip-row" id="jugador-chips-bottom"></div>
+  </section>
+
+  <!-- FORO GENERAL -->
+  <section id="panel-foro" class="panel">
+    <div class="section-head">
+      <h2>Foro general</h2>
+    </div>
+    <div id="foro-general-container"></div>
   </section>
 
 </main>
@@ -1195,10 +1241,121 @@ function renderScoreboard(){
       <span><span class="dot a"></span>Asistencias</span>
     </div>
   `;
+  cargarYRenderizarComentarios('partido', match.numero, document.getElementById('foro-partido-container'));
 }
+
+/* ---------- FORO (general y por partido) ---------- */
+let usuarioActualUsername = null;
+
+async function obtenerUsernameActual(){
+  if(usuarioActualUsername) return usuarioActualUsername;
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return null;
+  usuarioActualUsername = user.email.replace(DOMINIO_FALSO, '');
+  return usuarioActualUsername;
+}
+
+function construirArbolComentarios(mensajes){
+  const porId = {};
+  mensajes.forEach(m => { porId[m.id] = { ...m, hijos: [] }; });
+  const raices = [];
+  mensajes.forEach(m => {
+    if(m.padre_id && porId[m.padre_id]){
+      porId[m.padre_id].hijos.push(porId[m.id]);
+    } else {
+      raices.push(porId[m.id]);
+    }
+  });
+  return raices;
+}
+
+function formatearFechaForo(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function renderNodoComentario(nodo, tipo, partidoId){
+  const respuestasHtml = nodo.hijos.length
+    ? `<div class="foro-respuestas">${nodo.hijos.map(h => renderNodoComentario(h, tipo, partidoId)).join('')}</div>`
+    : '';
+  return `
+    <div class="foro-msg" data-id="${nodo.id}">
+      <div class="fm-head">
+        <span class="fm-user">${nodo.username}</span>
+        <span class="fm-fecha">${formatearFechaForo(nodo.creado_en)}</span>
+      </div>
+      <div class="fm-texto">${nodo.contenido.replace(/</g,'&lt;')}</div>
+      <span class="fm-responder" data-id="${nodo.id}">Responder</span>
+      <div class="foro-reply-box" id="reply-box-${nodo.id}">
+        <textarea placeholder="Tu respuesta…"></textarea>
+        <button data-padre="${nodo.id}">Publicar respuesta</button>
+      </div>
+      ${respuestasHtml}
+    </div>
+  `;
+}
+
+async function cargarYRenderizarComentarios(tipo, partidoId, container){
+  container.innerHTML = '<div class="foro-vacio">Cargando comentarios…</div>';
+
+  let query = sbClient.from('foro_mensajes').select('*').eq('tipo', tipo).order('creado_en', {ascending:true});
+  query = tipo === 'partido' ? query.eq('partido_id', partidoId) : query.is('partido_id', null);
+  const { data, error } = await query;
+
+  if(error){ container.innerHTML = '<div class="foro-vacio">No se pudieron cargar los comentarios.</div>'; return; }
+
+  const arbol = construirArbolComentarios(data || []);
+
+  container.innerHTML = `
+    <div class="foro-caja-nueva">
+      <textarea id="foro-nuevo-texto-${tipo}-${partidoId||'gen'}" placeholder="Escribí un comentario…"></textarea>
+      <button id="foro-nuevo-btn-${tipo}-${partidoId||'gen'}">Publicar</button>
+    </div>
+    <div id="foro-lista-${tipo}-${partidoId||'gen'}">
+      ${arbol.length ? arbol.map(n => renderNodoComentario(n, tipo, partidoId)).join('') : '<div class="foro-vacio">Todavía no hay comentarios. ¡Sé el primero!</div>'}
+    </div>
+  `;
+
+  document.getElementById(`foro-nuevo-btn-${tipo}-${partidoId||'gen'}`).addEventListener('click', async ()=>{
+    const ta = document.getElementById(`foro-nuevo-texto-${tipo}-${partidoId||'gen'}`);
+    const texto = ta.value.trim();
+    if(!texto) return;
+    await publicarComentarioForo(tipo, partidoId, texto, null);
+    cargarYRenderizarComentarios(tipo, partidoId, container);
+  });
+
+  container.querySelectorAll('.fm-responder').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const box = document.getElementById('reply-box-' + el.dataset.id);
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    });
+  });
+
+  container.querySelectorAll('.foro-reply-box button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const box = btn.closest('.foro-reply-box');
+      const texto = box.querySelector('textarea').value.trim();
+      if(!texto) return;
+      await publicarComentarioForo(tipo, partidoId, texto, parseInt(btn.dataset.padre));
+      cargarYRenderizarComentarios(tipo, partidoId, container);
+    });
+  });
+}
+
+async function publicarComentarioForo(tipo, partidoId, contenido, padreId){
+  const username = await obtenerUsernameActual();
+  const { data: { user } } = await sbClient.auth.getUser();
+  await sbClient.from('foro_mensajes').insert({
+    tipo, partido_id: tipo === 'partido' ? partidoId : null,
+    usuario_id: user.id, username, padre_id: padreId, contenido
+  });
+}
+
 
 renderMatchChips();
 renderScoreboard();
+cargarYRenderizarComentarios('general', null, document.getElementById('foro-general-container'));
+
 
 /* ---------- DASHBOARD / INICIO ---------- */
 function computeTournamentStats(){
