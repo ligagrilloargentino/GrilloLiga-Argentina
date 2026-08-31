@@ -838,7 +838,7 @@ async function mostrarPasoPerfil(usernameElegido){
   vPerfil.dataset.username = usernameElegido;
   const sel = document.getElementById('perfil-jugador');
   if(sel.options.length <= 1){
-    const { data } = await sbClient.from('jugadores_publico').select('nombre').order('nombre');
+    const { data } = await sbClient.rpc('jugadores_publico_fn');
     (data || []).forEach(j=>{
       const op = document.createElement('option');
       op.value = j.nombre; op.textContent = j.nombre;
