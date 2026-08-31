@@ -604,6 +604,7 @@ footer{
       <h1><span>GRILLOLIGA</span> ARGENTINA</h1>
     </div>
     <div class="subtitle" id="subtitle-text"></div>
+    <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); margin-right:10px; display:none;"></span>
     <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
     <nav class="tabs">
       <button class="tab-btn active" data-tab="inicio">Inicio</button>
@@ -908,7 +909,17 @@ verificarSesion();
 
 function iniciarApp(){
 const _btnCerrarSesion = document.getElementById('cerrar-sesion-btn');
-if(LOGIN_REQUERIDO) _btnCerrarSesion.style.display = 'inline';
+const _labelUsuario = document.getElementById('usuario-actual-nombre');
+if(LOGIN_REQUERIDO){
+  _btnCerrarSesion.style.display = 'inline';
+  sbClient.auth.getUser().then(({data})=>{
+    if(data && data.user){
+      const usuario = data.user.email.replace(DOMINIO_FALSO, '');
+      _labelUsuario.textContent = usuario;
+      _labelUsuario.style.display = 'inline';
+    }
+  });
+}
 _btnCerrarSesion.addEventListener('click', async ()=>{
   await sbClient.auth.signOut();
   location.reload();
