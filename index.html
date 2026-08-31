@@ -141,6 +141,44 @@
 @media (max-width:600px){
   .stats-glosario ul{ columns:1; }
 }
+/* ---------- MINIJUEGOS ---------- */
+.mini-juegos-lista{ display:flex; flex-direction:column; gap:14px; }
+.mini-juego-card{
+  background:var(--card); border:1px solid var(--line); border-radius:8px;
+  padding:16px; cursor:pointer; transition:border-color .15s, transform .1s;
+}
+.mini-juego-card:hover{ border-color:var(--grass-dim); transform:translateY(-2px); }
+.mini-juego-card h3{ font-family:'Lora',serif; font-size:15px; margin:0 0 4px; color:var(--text); }
+.mini-juego-card p{ font-size:12px; color:var(--text-dim); margin:0; }
+.mini-juego-card.proximamente{ opacity:0.55; cursor:default; }
+.mini-juego-card.proximamente:hover{ transform:none; border-color:var(--line); }
+
+.rps-volver{ font-size:12px; color:var(--text-dimmer); cursor:pointer; text-decoration:underline; margin-bottom:16px; display:inline-block; }
+.rps-marcador{
+  display:flex; justify-content:center; gap:24px; margin-bottom:22px;
+  font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim);
+}
+.rps-marcador b{ display:block; font-family:'Playfair Display',serif; font-size:24px; color:var(--red); }
+.rps-arena{
+  display:flex; justify-content:center; align-items:center; gap:30px;
+  margin-bottom:22px; min-height:90px;
+}
+.rps-jugador, .rps-bot{
+  width:80px; height:80px; border-radius:50%; background:var(--card2);
+  border:2px solid var(--line-strong); display:flex; align-items:center; justify-content:center;
+  font-size:38px;
+}
+.rps-vs{ font-family:'Playfair Display',serif; font-weight:900; font-size:18px; color:var(--text-dimmer); }
+.rps-resultado{
+  text-align:center; font-family:'Lora',serif; font-size:14.5px; color:var(--text);
+  min-height:24px; margin-bottom:18px;
+}
+.rps-botones{ display:flex; justify-content:center; gap:12px; }
+.rps-botones button{
+  width:66px; height:66px; border-radius:50%; border:2px solid var(--line-strong);
+  background:var(--card); font-size:30px; cursor:pointer; transition:transform .1s, border-color .15s;
+}
+.rps-botones button:hover{ transform:scale(1.08); border-color:var(--red); }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -704,6 +742,7 @@ footer{
       <button class="tab-btn" data-tab="jugadores">Jugadores</button>
       <button class="tab-btn" data-tab="foro">Foro general</button>
       <button class="tab-btn" data-tab="grillobot">GrilloBOT</button>
+      <button class="tab-btn" data-tab="minijuegos">Minijuegos</button>
     </nav>
   </div>
   <div class="stitch-line"></div>
@@ -849,6 +888,60 @@ footer{
     <div class="bot-input-row">
       <input type="text" id="bot-input" placeholder="Escribí tu pregunta…">
       <button id="bot-enviar">Preguntar</button>
+    </div>
+  </section>
+
+  <!-- MINIJUEGOS -->
+  <section id="panel-minijuegos" class="panel">
+    <div class="section-head">
+      <h2>Minijuegos</h2>
+    </div>
+
+    <div class="mini-juegos-lista" id="mini-lista">
+      <div class="mini-juego-card" id="mini-card-rps">
+        <h3>✊✋✌️ Piedra, papel o tijera</h3>
+        <p>Retá al GrilloBOT a la vieja confiable.</p>
+      </div>
+      <div class="mini-juego-card proximamente">
+        <h3>🔤 Grillodle</h3>
+        <p>Próximamente…</p>
+      </div>
+      <div class="mini-juego-card proximamente">
+        <h3>🔮 Pronosticador de temporada</h3>
+        <p>Próximamente…</p>
+      </div>
+      <div class="mini-juego-card proximamente">
+        <h3>🥅 Penales</h3>
+        <p>Próximamente…</p>
+      </div>
+      <div class="mini-juego-card proximamente">
+        <h3>⚽ Metegol 2D</h3>
+        <p>Próximamente…</p>
+      </div>
+      <div class="mini-juego-card proximamente">
+        <h3>🗿 Head Soccer</h3>
+        <p>Próximamente…</p>
+      </div>
+    </div>
+
+    <div id="mini-rps" style="display:none;">
+      <span class="rps-volver" id="rps-volver">← Volver a Minijuegos</span>
+      <div class="rps-marcador">
+        <div>VOS<br><b id="rps-score-jugador">0</b></div>
+        <div>EMPATES<br><b id="rps-score-empate">0</b></div>
+        <div>GRILLOBOT<br><b id="rps-score-bot">0</b></div>
+      </div>
+      <div class="rps-arena">
+        <div class="rps-jugador" id="rps-icono-jugador">❔</div>
+        <div class="rps-vs">VS</div>
+        <div class="rps-bot" id="rps-icono-bot">🦗</div>
+      </div>
+      <div class="rps-resultado" id="rps-resultado">Elegí tu jugada</div>
+      <div class="rps-botones">
+        <button data-jugada="piedra">✊</button>
+        <button data-jugada="papel">✋</button>
+        <button data-jugada="tijera">✌️</button>
+      </div>
     </div>
   </section>
 
@@ -1690,6 +1783,86 @@ async function enviarPreguntaBot(){
 
 document.getElementById('bot-enviar').addEventListener('click', enviarPreguntaBot);
 document.getElementById('bot-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') enviarPreguntaBot(); });
+
+/* ---------- MINIJUEGO: PIEDRA, PAPEL O TIJERA ---------- */
+const RPS_ICONOS = { piedra:'✊', papel:'✋', tijera:'✌️' };
+const RPS_LINEAS_GANA_JUGADOR = [
+  '¡Uy, me ganaste! Suerte de novato.',
+  'Ehh, esta la dejo pasar... la próxima no.',
+  'Bien ahí, pero no te acostumbres.',
+  '¡Zarpado! Me la viste venir.'
+];
+const RPS_LINEAS_GANA_BOT = [
+  '¡Ja! El GrilloBOT nunca pierde... casi nunca.',
+  'Ahí te gané, ¿eh? Soy un genio.',
+  '¡Tomá! Eso es jugar al ajedrez, no a la tijerita.',
+  'GrilloBOT 1 - Vos 0. Bueno, no literal, pero ya sabés.'
+];
+const RPS_LINEAS_EMPATE = [
+  'Empate... qué aburrido, dale de nuevo.',
+  'Iguales otra vez, ¿nos leemos la mente o qué?',
+  'Ninguno se anima, jaja. Otra vuelta.'
+];
+
+let rpsScoreJugador = parseInt(localStorage.getItem('grilloliga_rps_jugador') || '0');
+let rpsScoreBot = parseInt(localStorage.getItem('grilloliga_rps_bot') || '0');
+let rpsScoreEmpate = parseInt(localStorage.getItem('grilloliga_rps_empate') || '0');
+
+function rpsActualizarMarcador(){
+  document.getElementById('rps-score-jugador').textContent = rpsScoreJugador;
+  document.getElementById('rps-score-bot').textContent = rpsScoreBot;
+  document.getElementById('rps-score-empate').textContent = rpsScoreEmpate;
+}
+rpsActualizarMarcador();
+
+function rpsElegirLinea(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function jugarRPS(jugadaJugador){
+  const opciones = ['piedra','papel','tijera'];
+  const jugadaBot = opciones[Math.floor(Math.random()*3)];
+
+  document.getElementById('rps-icono-jugador').textContent = RPS_ICONOS[jugadaJugador];
+  document.getElementById('rps-icono-bot').textContent = RPS_ICONOS[jugadaBot];
+
+  let resultado;
+  if(jugadaJugador === jugadaBot){
+    resultado = 'empate';
+    rpsScoreEmpate++;
+  } else if(
+    (jugadaJugador==='piedra' && jugadaBot==='tijera') ||
+    (jugadaJugador==='papel' && jugadaBot==='piedra') ||
+    (jugadaJugador==='tijera' && jugadaBot==='papel')
+  ){
+    resultado = 'jugador';
+    rpsScoreJugador++;
+  } else {
+    resultado = 'bot';
+    rpsScoreBot++;
+  }
+
+  localStorage.setItem('grilloliga_rps_jugador', rpsScoreJugador);
+  localStorage.setItem('grilloliga_rps_bot', rpsScoreBot);
+  localStorage.setItem('grilloliga_rps_empate', rpsScoreEmpate);
+  rpsActualizarMarcador();
+
+  const linea = resultado==='jugador' ? rpsElegirLinea(RPS_LINEAS_GANA_JUGADOR)
+              : resultado==='bot' ? rpsElegirLinea(RPS_LINEAS_GANA_BOT)
+              : rpsElegirLinea(RPS_LINEAS_EMPATE);
+  document.getElementById('rps-resultado').textContent = linea;
+}
+
+document.querySelectorAll('.rps-botones button').forEach(btn=>{
+  btn.addEventListener('click', ()=> jugarRPS(btn.dataset.jugada));
+});
+
+document.getElementById('mini-card-rps').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-rps').style.display = 'block';
+});
+document.getElementById('rps-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-rps').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
 
 
 renderMatchChips();
