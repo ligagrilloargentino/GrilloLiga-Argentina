@@ -1068,7 +1068,7 @@ tabBtns.forEach(btn=>{
 
 /* ---------- ESTADISTICAS ---------- */
 const statHeaders = Object.keys(DATA.estadisticas[0]).filter(h => h !== 'N°');
-let statSortCol = 'G+A';
+let statSortCol = 'PJ';
 let statSortDir = -1;
 let statSearch = '';
 
@@ -1940,8 +1940,7 @@ document.getElementById('jugador-search').addEventListener('input', (e)=>{
   renderJugadorChips();
 });
 
-// jugador por defecto: el líder de G+A
-activeJugador = DATA.rankings['GOLES + ASISTENCIAS'].rows[0][DATA.rankings['GOLES + ASISTENCIAS'].headers[0]];
+// Jugadores: arranca sin ninguno elegido, mostrando la grilla completa
 renderJugadorChips();
 renderJugadorProfile();
 } // fin de iniciarApp()
