@@ -125,6 +125,22 @@
   background:var(--red); color:var(--claro-bg); font-weight:700; font-family:'Lora',serif;
   cursor:pointer; font-size:13px;
 }
+/* ---------- GLOSARIO DE ESTADÍSTICAS ---------- */
+.stats-glosario{
+  margin-top:20px; background:var(--card2); border:1px solid var(--line);
+  border-radius:8px; padding:14px 16px;
+}
+.glosario-titulo{ font-family:'Lora',serif; font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; }
+.stats-glosario ul{ list-style:none; margin:0; padding:0; columns:2; column-gap:24px; }
+.stats-glosario li{ font-size:11.5px; color:var(--text-dim); margin-bottom:5px; break-inside:avoid; }
+.stats-glosario li b{ color:var(--text); }
+.glosario-nota{
+  margin-top:12px; padding-top:12px; border-top:1px solid var(--line);
+  font-size:11px; color:var(--text-dimmer); line-height:1.5;
+}
+@media (max-width:600px){
+  .stats-glosario ul{ columns:1; }
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -352,7 +368,9 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .match-select-row{
   display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:16px;
   -webkit-overflow-scrolling:touch;
+  cursor:grab; user-select:none;
 }
+.match-select-row.dragging{ cursor:grabbing; scroll-behavior:auto; }
 .match-select-row::-webkit-scrollbar{display:none;}
 .match-chip{
   flex-shrink:0; width:52px; height:44px;
@@ -551,15 +569,15 @@ footer{
   background:rgba(169,122,42,0.15); color:var(--gold-dim); padding:2px 8px; border-radius:10px;
 }
 .jp-stat-grid{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(90px,1fr)); gap:8px;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(115px,1fr)); gap:8px;
   margin-bottom:20px;
 }
 .jp-stat{
   background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-  padding:10px 10px; text-align:center;
+  padding:10px 8px; text-align:center;
 }
 .jp-stat .jv{ font-family:'Playfair Display',serif; font-weight:700; font-size:20px; color:var(--red); }
-.jp-stat .jl{ font-size:9.5px; color:var(--text-dimmer); text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
+.jp-stat .jl{ font-size:9.5px; color:var(--text-dimmer); text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; line-height:1.3; }
 
 .jp-matches-title{
   font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim);
@@ -726,6 +744,34 @@ footer{
         <thead><tr id="stats-head"></tr></thead>
         <tbody id="stats-body"></tbody>
       </table>
+    </div>
+    <div class="stats-glosario">
+      <div class="glosario-titulo">📖 ¿Qué significa cada columna?</div>
+      <ul>
+        <li><b>PJ</b> — Partidos Jugados</li>
+        <li><b>PG</b> — Partidos Ganados</li>
+        <li><b>PE</b> — Partidos Empatados</li>
+        <li><b>PP</b> — Partidos Perdidos</li>
+        <li><b>%PG</b> — Porcentaje de Partidos Ganados</li>
+        <li><b>Goles</b> — Goles convertidos en total</li>
+        <li><b>Ast</b> — Asistencias en total</li>
+        <li><b>G+A</b> — Goles más Asistencias (total combinado)</li>
+        <li><b>G/P</b> — Goles por Partido (promedio)</li>
+        <li><b>A/P</b> — Asistencias por Partido (promedio)</li>
+        <li><b>G+A/P</b> — Goles+Asistencias por Partido (promedio)</li>
+        <li><b>Hat-tricks</b> — Cantidad de partidos con 3 o más goles</li>
+        <li><b>Máx Goles</b> — Máxima cantidad de goles hechos en un solo partido</li>
+        <li><b>Máx Ast</b> — Máxima cantidad de asistencias hechas en un solo partido</li>
+        <li><b>Goles Recibidos</b> — Goles que le convirtió el equipo rival, sumados en todos sus partidos</li>
+        <li><b>Goles recibidos por partido</b> — Promedio de goles recibidos por partido</li>
+        <li><b>Debut</b> — Partido en el que jugó por primera vez</li>
+      </ul>
+      <div class="glosario-nota">
+        ℹ️ Estos promedios se calculan acá para todos los jugadores, sin importar cuántos partidos jugaron.
+        En la pestaña <b>Rankings</b>, en cambio, las categorías de promedio (Goles por partido, % de Victorias,
+        Menos goles recibidos) solo muestran jugadores con <b>10 partidos jugados o más</b>, para que el orden
+        no se lo lleve alguien que jugó muy pocas veces y le fue bien de casualidad.
+      </div>
     </div>
   </section>
 
@@ -1222,7 +1268,7 @@ window.addEventListener('resize', updateRankArrows);
 updateRankArrows();
 
 /* Arrastrar con el mouse (click and drag) en desktop */
-(function enableDragScroll(el){
+function enableDragScroll(el){
   let isDown = false;
   let startX = 0;
   let startScroll = 0;
@@ -1252,11 +1298,13 @@ updateRankArrows();
   el.addEventListener('click', (e)=>{
     if(moved){ e.stopPropagation(); e.preventDefault(); }
   }, true);
-})(rankRow);
+}
+enableDragScroll(rankRow);
 
 /* ---------- PARTIDOS ---------- */
 document.getElementById('match-count').textContent = DATA.partidos.length + ' partidos';
 let activeMatch = DATA.partidos.length; // latest by default
+enableDragScroll(document.getElementById('match-chips'));
 
 function renderMatchChips(){
   const row = document.getElementById('match-chips');
@@ -1905,6 +1953,13 @@ function renderJugadorProfile(){
 
   const matches = playerMatches(activeJugador);
   const statKeys = ['PJ','PG','PE','PP','%PG','Goles','Ast','G+A','G/P','A/P','Hat-tricks','Máx Goles','Máx Ast'].filter(k => r[k] !== undefined);
+  const NOMBRES_COMPLETOS_STAT = {
+    'PJ':'Partidos Jugados', 'PG':'Partidos Ganados', 'PE':'Partidos Empatados', 'PP':'Partidos Perdidos',
+    '%PG':'% Partidos Ganados', 'Goles':'Goles', 'Ast':'Asistencias', 'G+A':'Goles + Asistencias',
+    'G/P':'Goles por Partido', 'A/P':'Asistencias por Partido', 'G+A/P':'Goles+Ast. por Partido',
+    'Hat-tricks':'Hat-tricks', 'Máx Goles':'Máximo de Goles en un Partido', 'Máx Ast':'Máximo de Asistencias en un Partido',
+    'Goles Recibidos':'Goles Recibidos', 'Goles recibidos por partido':'Goles Recibidos por Partido', 'Debut':'Debut'
+  };
 
   container.innerHTML = `
     <div class="jp-header">
@@ -1915,7 +1970,7 @@ function renderJugadorProfile(){
       </div>
     </div>
     <div class="jp-stat-grid">
-      ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${k}</div></div>`).join('')}
+      ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${NOMBRES_COMPLETOS_STAT[k] || k}</div></div>`).join('')}
     </div>
     <div class="jp-matches-title">Partidos jugados (${matches.length})</div>
     <div class="jp-match-list">
