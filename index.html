@@ -105,6 +105,26 @@
 }
 .foro-vacio{ font-size:12.5px; color:var(--text-dimmer); font-style:italic; }
 .foro-partido-titulo{ font-family:'Lora',serif; font-weight:700; font-size:13.5px; color:var(--text); margin:22px 0 10px; border-top:1px solid var(--line); padding-top:16px; }
+/* ---------- GRILLOBOT ---------- */
+.bot-intro{
+  background:var(--card2); border:1px solid var(--line); border-radius:8px;
+  padding:12px 14px; margin-bottom:16px; font-size:12.5px; color:var(--text-dim); line-height:1.5;
+}
+.bot-chat{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; min-height:120px; }
+.bot-msg{ max-width:80%; padding:10px 13px; border-radius:12px; font-size:13px; line-height:1.5; white-space:pre-wrap; }
+.bot-msg.usuario{ align-self:flex-end; background:var(--red); color:var(--claro-bg); border-bottom-right-radius:3px; }
+.bot-msg.bot{ align-self:flex-start; background:var(--card); border:1px solid var(--line); color:var(--text); border-bottom-left-radius:3px; }
+.bot-input-row{ display:flex; gap:8px; }
+.bot-input-row input{
+  flex:1; box-sizing:border-box; padding:11px 12px; border-radius:20px;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--text);
+  font-family:'Lora',serif; font-size:13.5px;
+}
+.bot-input-row button{
+  padding:0 20px; border-radius:20px; border:1px solid var(--red);
+  background:var(--red); color:var(--claro-bg); font-weight:700; font-family:'Lora',serif;
+  cursor:pointer; font-size:13px;
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -649,6 +669,7 @@ footer{
       <button class="tab-btn" data-tab="historicos">Partidos Históricos</button>
       <button class="tab-btn" data-tab="jugadores">Jugadores</button>
       <button class="tab-btn" data-tab="foro">Foro general</button>
+      <button class="tab-btn" data-tab="grillobot">GrilloBOT</button>
     </nav>
   </div>
   <div class="stitch-line"></div>
@@ -751,6 +772,22 @@ footer{
       <h2>Foro general</h2>
     </div>
     <div id="foro-general-container"></div>
+  </section>
+
+  <!-- GRILLOBOT -->
+  <section id="panel-grillobot" class="panel">
+    <div class="section-head">
+      <h2>GrilloBOT</h2>
+    </div>
+    <div class="bot-intro">
+      Preguntame por el historial entre dos jugadores. Ejemplos:<br>
+      "¿Cómo es el historial de Leon vs Ciro?" · "¿Cómo les fue a Mateo y Valen jugando juntos?"
+    </div>
+    <div class="bot-chat" id="bot-chat"></div>
+    <div class="bot-input-row">
+      <input type="text" id="bot-input" placeholder="Escribí tu pregunta…">
+      <button id="bot-enviar">Preguntar</button>
+    </div>
   </section>
 
 </main>
@@ -1350,6 +1387,126 @@ async function publicarComentarioForo(tipo, partidoId, contenido, padreId){
     usuario_id: user.id, username, padre_id: padreId, contenido
   });
 }
+
+/* ---------- GRILLOBOT ---------- */
+function normalizarTexto(s){
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+
+function extraerJugadoresDeTexto(texto){
+  const norm = normalizarTexto(texto);
+  const nombres = DATA.estadisticas.map(r => r.Jugador);
+  const candidatos = [];
+  nombres.forEach(n=>{
+    const nn = normalizarTexto(n);
+    const idx = norm.indexOf(nn);
+    if(idx !== -1) candidatos.push({nombre:n, idx, len:nn.length});
+  });
+  candidatos.sort((a,b)=> a.idx - b.idx || b.len - a.len);
+  const elegidos = [];
+  const rangosUsados = [];
+  candidatos.forEach(c=>{
+    const solapa = rangosUsados.some(r => !(c.idx + c.len <= r.desde || c.idx >= r.hasta));
+    if(!solapa){
+      elegidos.push(c.nombre);
+      rangosUsados.push({desde:c.idx, hasta:c.idx + c.len});
+    }
+  });
+  return elegidos;
+}
+
+function calcularHistorial(nombreA, nombreB){
+  let enfrentados=0, victoriasA=0, victoriasB=0, empatesEnf=0;
+  let golesA_enf=0, astA_enf=0, golesB_enf=0, astB_enf=0;
+  let juntos=0, victoriasJuntos=0, empatesJuntos=0, derrotasJuntos=0;
+  let golesA_junto=0, astA_junto=0, golesB_junto=0, astB_junto=0;
+
+  DATA.partidos.forEach(p=>{
+    const enOscuroA = p.oscuro.jugadores.find(j=>j.jugador===nombreA);
+    const enClaroA = p.claro.jugadores.find(j=>j.jugador===nombreA);
+    const enOscuroB = p.oscuro.jugadores.find(j=>j.jugador===nombreB);
+    const enClaroB = p.claro.jugadores.find(j=>j.jugador===nombreB);
+    const entradaA = enOscuroA || enClaroA;
+    const entradaB = enOscuroB || enClaroB;
+    if(!entradaA || !entradaB) return;
+
+    const equipoA = enOscuroA ? 'oscuro' : 'claro';
+    const equipoB = enOscuroB ? 'oscuro' : 'claro';
+    const golesOscuro = p.oscuro.goles, golesClaro = p.claro.goles;
+
+    if(equipoA !== equipoB){
+      enfrentados++;
+      golesA_enf += entradaA.goles; astA_enf += entradaA.asistencias;
+      golesB_enf += entradaB.goles; astB_enf += entradaB.asistencias;
+      if(golesOscuro === golesClaro){ empatesEnf++; }
+      else {
+        const ganador = golesOscuro > golesClaro ? 'oscuro' : 'claro';
+        if(equipoA === ganador) victoriasA++; else victoriasB++;
+      }
+    } else {
+      juntos++;
+      golesA_junto += entradaA.goles; astA_junto += entradaA.asistencias;
+      golesB_junto += entradaB.goles; astB_junto += entradaB.asistencias;
+      if(golesOscuro === golesClaro){ empatesJuntos++; }
+      else {
+        const ganador = golesOscuro > golesClaro ? 'oscuro' : 'claro';
+        if(equipoA === ganador) victoriasJuntos++; else derrotasJuntos++;
+      }
+    }
+  });
+
+  return { enfrentados, victoriasA, victoriasB, empatesEnf, golesA_enf, astA_enf, golesB_enf, astB_enf,
+           juntos, victoriasJuntos, empatesJuntos, derrotasJuntos, golesA_junto, astA_junto, golesB_junto, astB_junto };
+}
+
+function responderPreguntaBot(texto){
+  const jugadores = extraerJugadoresDeTexto(texto);
+  if(jugadores.length < 2) return null;
+
+  const [nombreA, nombreB] = jugadores;
+  const h = calcularHistorial(nombreA, nombreB);
+
+  if(h.enfrentados === 0 && h.juntos === 0){
+    return `${nombreA} y ${nombreB} nunca compartieron cancha en toda la Grillo Liga.`;
+  }
+
+  const partes = [];
+  if(h.enfrentados > 0){
+    partes.push(`Se enfrentaron en ${h.enfrentados} partido${h.enfrentados===1?'':'s'} (equipos rivales): ${nombreA} ganó ${h.victoriasA}, ${nombreB} ganó ${h.victoriasB}, empataron ${h.empatesEnf}. En esos partidos, ${nombreA} hizo ${h.golesA_enf} goles y ${h.astA_enf} asistencias; ${nombreB} hizo ${h.golesB_enf} goles y ${h.astB_enf} asistencias.`);
+  } else {
+    partes.push(`Nunca se enfrentaron en equipos rivales.`);
+  }
+  if(h.juntos > 0){
+    partes.push(`Jugaron juntos (mismo equipo) en ${h.juntos} partido${h.juntos===1?'':'s'}: ganaron ${h.victoriasJuntos}, empataron ${h.empatesJuntos} y perdieron ${h.derrotasJuntos}. En esos partidos, ${nombreA} hizo ${h.golesA_junto} goles y ${h.astA_junto} asistencias; ${nombreB} hizo ${h.golesB_junto} goles y ${h.astB_junto} asistencias.`);
+  } else {
+    partes.push(`Nunca jugaron juntos en el mismo equipo.`);
+  }
+  return partes.join(' ');
+}
+
+async function enviarPreguntaBot(){
+  const input = document.getElementById('bot-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  const chat = document.getElementById('bot-chat');
+  chat.insertAdjacentHTML('beforeend', `<div class="bot-msg usuario">${texto.replace(/</g,'&lt;')}</div>`);
+  input.value = '';
+  chat.scrollTop = chat.scrollHeight;
+
+  let respuesta = responderPreguntaBot(texto);
+  if(!respuesta) respuesta = 'no entendí pa, reformulá la pregunta y veo que respondo';
+
+  chat.insertAdjacentHTML('beforeend', `<div class="bot-msg bot">${respuesta.replace(/</g,'&lt;')}</div>`);
+  chat.scrollTop = chat.scrollHeight;
+
+  const username = await obtenerUsernameActual();
+  sbClient.functions.invoke('registrar-consulta-bot', {
+    body: { usuario: username, pregunta: texto, respuesta }
+  }).catch(e => console.warn('No se pudo registrar la consulta del bot:', e));
+}
+
+document.getElementById('bot-enviar').addEventListener('click', enviarPreguntaBot);
+document.getElementById('bot-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') enviarPreguntaBot(); });
 
 
 renderMatchChips();
