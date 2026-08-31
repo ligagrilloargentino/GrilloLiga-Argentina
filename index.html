@@ -203,6 +203,37 @@
 .pen-zona.deshabilitada{ pointer-events:none; opacity:0.5; }
 .pen-resultado{ text-align:center; font-family:'Lora',serif; font-size:14.5px; color:var(--text); min-height:24px; }
 .pen-final-titulo{ text-align:center; font-family:'Playfair Display',serif; font-weight:900; font-size:22px; color:var(--red); margin-top:10px; }
+/* ---------- MINIJUEGO: GRILLODLE ---------- */
+.gd-intro{
+  background:var(--card2); border:1px solid var(--line); border-radius:8px;
+  padding:12px 14px; margin-bottom:16px; font-size:12.5px; color:var(--text-dim); line-height:1.5;
+}
+.gd-input-row{ display:flex; gap:8px; margin-bottom:16px; }
+.gd-input-row input{
+  flex:1; box-sizing:border-box; padding:10px 12px; border-radius:20px;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--text);
+  font-family:'Lora',serif; font-size:13.5px;
+}
+.gd-input-row button{
+  padding:0 18px; border-radius:20px; border:1px solid var(--red);
+  background:var(--red); color:var(--claro-bg); font-weight:700; font-family:'Lora',serif;
+  cursor:pointer; font-size:13px;
+}
+#gd-tabla-intentos td, #gd-tabla-intentos th{ text-align:center; }
+#gd-tabla-intentos td:first-child, #gd-tabla-intentos th:first-child{ text-align:left; }
+#gd-mensaje-ganaste{
+  background:rgba(74,107,67,.14); border:1px solid var(--grass); color:var(--grass-dim);
+  border-radius:8px; padding:12px 14px; margin-bottom:14px; font-family:'Lora',serif; font-weight:700; text-align:center;
+}
+.gd-pistas-partidos{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px; }
+.gd-pista-col{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+.gd-pista-titulo{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:8px; }
+.gd-pista-col ul{ list-style:none; margin:0; padding:0; }
+.gd-pista-col li{ font-size:11.5px; color:var(--text-dim); margin-bottom:5px; line-height:1.4; }
+.gd-vacio{ font-style:italic; color:var(--text-dimmer) !important; }
+@media (max-width:600px){
+  .gd-pistas-partidos{ grid-template-columns:1fr; }
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -934,9 +965,9 @@ footer{
         <h3>✊✋✌️ Piedra, papel o tijera</h3>
         <p>Retá al GrilloBOT a la vieja confiable.</p>
       </div>
-      <div class="mini-juego-card proximamente">
+      <div class="mini-juego-card" id="mini-card-grillodle">
         <h3>🔤 Grillodle</h3>
-        <p>Próximamente…</p>
+        <p>Adiviná al jugador misterioso.</p>
       </div>
       <div class="mini-juego-card proximamente">
         <h3>🔮 Pronosticador de temporada</h3>
@@ -997,6 +1028,34 @@ footer{
         <div class="pen-final-titulo" id="pen-final-titulo"></div>
         <button class="auth-btn" id="pen-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
       </div>
+    </div>
+
+    <div id="mini-grillodle" style="display:none;">
+      <span class="rps-volver" id="grillodle-volver">← Volver a Minijuegos</span>
+      <div class="gd-intro">Adiviná qué jugador de la Grillo Liga es el misterioso. Escribí un nombre y fijate las pistas.</div>
+      <div class="gd-input-row">
+        <input type="text" id="gd-input" list="gd-lista-jugadores" placeholder="Escribí un nombre…">
+        <datalist id="gd-lista-jugadores"></datalist>
+        <button id="gd-adivinar">Adivinar</button>
+      </div>
+      <div id="gd-mensaje-ganaste" style="display:none;"></div>
+      <div class="table-wrap">
+        <table id="gd-tabla-intentos">
+          <thead><tr><th>Jugador</th><th>PJ</th><th>Goles</th><th>Ast</th><th>Foto</th></tr></thead>
+          <tbody id="gd-tabla-body"></tbody>
+        </table>
+      </div>
+      <div class="gd-pistas-partidos">
+        <div class="gd-pista-col">
+          <div class="gd-pista-titulo">✅ Partidos que SÍ jugó</div>
+          <ul id="gd-lista-si"><li class="gd-vacio">Todavía no hay pistas.</li></ul>
+        </div>
+        <div class="gd-pista-col">
+          <div class="gd-pista-titulo">❌ Partidos que NO jugó</div>
+          <ul id="gd-lista-no"><li class="gd-vacio">Todavía no hay pistas.</li></ul>
+        </div>
+      </div>
+      <button class="auth-btn" id="gd-nuevo-juego" style="max-width:220px; margin:18px auto 0;">Jugar de nuevo</button>
     </div>
   </section>
 
@@ -2022,6 +2081,121 @@ document.getElementById('mini-card-penales').addEventListener('click', ()=>{
 });
 document.getElementById('penales-volver').addEventListener('click', ()=>{
   document.getElementById('mini-penales').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: GRILLODLE ---------- */
+let gdJugadorMisterio = null;
+let gdPoolSi = [];
+let gdPoolNo = [];
+let gdReveladasSi = [];
+let gdReveladasNo = [];
+let gdGanado = false;
+
+function gdCargarListaJugadores(){
+  const lista = document.getElementById('gd-lista-jugadores');
+  lista.innerHTML = DATA.estadisticas.map(r => `<option value="${r.Jugador}">`).join('');
+}
+
+function gdJugadorTieneFoto(nombre){
+  return !!FOTOS_JUGADORES[nombre];
+}
+
+function gdNuevoJuego(){
+  gdGanado = false;
+  gdReveladasSi = [];
+  gdReveladasNo = [];
+  const candidatos = DATA.estadisticas.filter(r => r.PJ > 0);
+  gdJugadorMisterio = candidatos[Math.floor(Math.random()*candidatos.length)];
+
+  gdPoolSi = [];
+  gdPoolNo = [];
+  DATA.partidos.forEach(p=>{
+    const jugo = p.oscuro.jugadores.some(j=>j.jugador===gdJugadorMisterio.Jugador) ||
+                 p.claro.jugadores.some(j=>j.jugador===gdJugadorMisterio.Jugador);
+    if(jugo) gdPoolSi.push(p.titulo); else gdPoolNo.push(p.titulo);
+  });
+  gdPoolSi.sort(()=>Math.random()-0.5);
+  gdPoolNo.sort(()=>Math.random()-0.5);
+
+  document.getElementById('gd-tabla-body').innerHTML = '';
+  document.getElementById('gd-mensaje-ganaste').style.display = 'none';
+  document.getElementById('gd-lista-si').innerHTML = '<li class="gd-vacio">Todavía no hay pistas.</li>';
+  document.getElementById('gd-lista-no').innerHTML = '<li class="gd-vacio">Todavía no hay pistas.</li>';
+  document.getElementById('gd-input').value = '';
+  document.getElementById('gd-input').disabled = false;
+  document.getElementById('gd-adivinar').disabled = false;
+}
+
+function gdFlecha(valorIntento, valorMisterio){
+  if(valorIntento === valorMisterio) return '✅';
+  return valorIntento > valorMisterio ? `${valorIntento} ⬇` : `${valorIntento} ⬆`;
+}
+
+function gdRevelarPista(){
+  if(gdPoolSi.length && gdReveladasSi.length < gdPoolSi.length){
+    const nueva = gdPoolSi[gdReveladasSi.length];
+    gdReveladasSi.push(nueva);
+    const ul = document.getElementById('gd-lista-si');
+    if(ul.querySelector('.gd-vacio')) ul.innerHTML = '';
+    ul.insertAdjacentHTML('beforeend', `<li>${nueva}</li>`);
+  }
+  if(gdPoolNo.length && gdReveladasNo.length < gdPoolNo.length){
+    const nueva = gdPoolNo[gdReveladasNo.length];
+    gdReveladasNo.push(nueva);
+    const ul = document.getElementById('gd-lista-no');
+    if(ul.querySelector('.gd-vacio')) ul.innerHTML = '';
+    ul.insertAdjacentHTML('beforeend', `<li>${nueva}</li>`);
+  }
+}
+
+function gdAdivinar(){
+  if(gdGanado) return;
+  const input = document.getElementById('gd-input');
+  const nombreIntento = input.value.trim();
+  if(!nombreIntento) return;
+  const intento = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombreIntento.toLowerCase());
+  if(!intento){
+    alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.');
+    return;
+  }
+  input.value = '';
+
+  const fila = document.createElement('tr');
+  fila.innerHTML = `
+    <td>${intento.Jugador}</td>
+    <td>${gdFlecha(intento.PJ, gdJugadorMisterio.PJ)}</td>
+    <td>${gdFlecha(intento.Goles, gdJugadorMisterio.Goles)}</td>
+    <td>${gdFlecha(intento.Ast, gdJugadorMisterio.Ast)}</td>
+    <td>${gdJugadorTieneFoto(intento.Jugador) === gdJugadorTieneFoto(gdJugadorMisterio.Jugador) ? '✅' : '❌'}</td>
+  `;
+  document.getElementById('gd-tabla-body').prepend(fila);
+
+  if(intento.Jugador === gdJugadorMisterio.Jugador){
+    gdGanado = true;
+    const msg = document.getElementById('gd-mensaje-ganaste');
+    msg.textContent = `🎉 ¡Adivinaste! Era ${gdJugadorMisterio.Jugador}.`;
+    msg.style.display = 'block';
+    input.disabled = true;
+    document.getElementById('gd-adivinar').disabled = true;
+    return;
+  }
+
+  gdRevelarPista();
+}
+
+document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
+document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
+document.getElementById('gd-nuevo-juego').addEventListener('click', gdNuevoJuego);
+
+document.getElementById('mini-card-grillodle').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-grillodle').style.display = 'block';
+  gdCargarListaJugadores();
+  gdNuevoJuego();
+});
+document.getElementById('grillodle-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-grillodle').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
 
