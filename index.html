@@ -1500,29 +1500,123 @@ function calcularHistorial(nombreA, nombreB){
            juntos, victoriasJuntos, empatesJuntos, derrotasJuntos, golesA_junto, astA_junto, golesB_junto, astB_junto };
 }
 
+function calcularJuntosGrupo(nombres){
+  let partidos=0, victorias=0, empates=0, derrotas=0;
+  const porJugador = {};
+  nombres.forEach(n => porJugador[n] = {goles:0, asistencias:0});
+
+  DATA.partidos.forEach(p=>{
+    ['oscuro','claro'].forEach(equipo=>{
+      const roster = p[equipo].jugadores;
+      const entradas = nombres.map(n => roster.find(j=>j.jugador===n));
+      if(entradas.every(e=>e)){
+        partidos++;
+        const golesPropio = p[equipo].goles;
+        const golesRival = equipo==='oscuro' ? p.claro.goles : p.oscuro.goles;
+        if(golesPropio > golesRival) victorias++;
+        else if(golesPropio < golesRival) derrotas++;
+        else empates++;
+        entradas.forEach((e,i)=>{
+          porJugador[nombres[i]].goles += e.goles;
+          porJugador[nombres[i]].asistencias += e.asistencias;
+        });
+      }
+    });
+  });
+  return { partidos, victorias, empates, derrotas, porJugador };
+}
+
+function combinacionesDeN(arr, k){
+  const resultados = [];
+  function backtrack(start, actual){
+    if(actual.length === k){ resultados.push([...actual]); return; }
+    for(let i=start; i<arr.length; i++){
+      actual.push(arr[i]);
+      backtrack(i+1, actual);
+      actual.pop();
+    }
+  }
+  backtrack(0, []);
+  return resultados;
+}
+
+function analizarGrupoMasRepetido(n){
+  const contador = {};
+  DATA.partidos.forEach(p=>{
+    ['oscuro','claro'].forEach(equipo=>{
+      const roster = p[equipo].jugadores.map(j=>j.jugador);
+      if(roster.length < n) return;
+      combinacionesDeN(roster, n).forEach(combo=>{
+        const key = [...combo].sort().join('|');
+        if(!contador[key]) contador[key] = { count:0, nombres: combo };
+        contador[key].count++;
+      });
+    });
+  });
+  let max = 0;
+  Object.values(contador).forEach(v => { if(v.count > max) max = v.count; });
+  if(max <= 1) return { max:0, grupos:[] };
+  const grupos = Object.values(contador).filter(v => v.count === max);
+  return { max, grupos };
+}
+
+const NUMEROS_TEXTO = { dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10, once:11 };
+
 function responderPreguntaBot(texto){
+  const normTexto = normalizarTexto(texto);
+
+  // Caso 1: "qué N jugadores jugando juntos se repitió más veces"
+  const matchNum = normTexto.match(/(\d+|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once)\s+jugadores/);
+  const pideRepeticion = /repiti|repite|mas veces|misma alineacion|misma formacion/.test(normTexto);
+  if(matchNum && pideRepeticion){
+    let n = parseInt(matchNum[1]);
+    if(isNaN(n)) n = NUMEROS_TEXTO[matchNum[1]];
+    if(n && n >= 2 && n <= 11){
+      const resultado = analizarGrupoMasRepetido(n);
+      if(resultado.max === 0){
+        return `Ningún grupo de ${n} jugadores jugó junto (mismo equipo) más de una vez.`;
+      }
+      if(resultado.grupos.length === 1){
+        return `El grupo de ${n} jugadores que más veces jugó junto en el mismo equipo es: ${resultado.grupos[0].nombres.join(', ')} (se repitió ${resultado.max} veces).`;
+      }
+      const listado = resultado.grupos.map((g,i) => `${i+1}) ${g.nombres.join(', ')}`).join(' — ');
+      return `Hay un empate entre ${resultado.grupos.length} grupos de ${n} jugadores, cada uno se repitió ${resultado.max} veces: ${listado}`;
+    }
+  }
+
+  // Caso 2: preguntas con nombres de jugadores (historial)
   const jugadores = extraerJugadoresDeTexto(texto);
   if(jugadores.length < 2) return null;
 
-  const [nombreA, nombreB] = jugadores;
-  const h = calcularHistorial(nombreA, nombreB);
+  if(jugadores.length === 2){
+    const [nombreA, nombreB] = jugadores;
+    const h = calcularHistorial(nombreA, nombreB);
 
-  if(h.enfrentados === 0 && h.juntos === 0){
-    return `${nombreA} y ${nombreB} nunca compartieron cancha en toda la Grillo Liga.`;
+    if(h.enfrentados === 0 && h.juntos === 0){
+      return `${nombreA} y ${nombreB} nunca compartieron cancha en toda la Grillo Liga.`;
+    }
+
+    const partes = [];
+    if(h.enfrentados > 0){
+      partes.push(`Se enfrentaron en ${h.enfrentados} partido${h.enfrentados===1?'':'s'} (equipos rivales): ${nombreA} ganó ${h.victoriasA}, ${nombreB} ganó ${h.victoriasB}, empataron ${h.empatesEnf}. En esos partidos, ${nombreA} hizo ${h.golesA_enf} goles y ${h.astA_enf} asistencias; ${nombreB} hizo ${h.golesB_enf} goles y ${h.astB_enf} asistencias.`);
+    } else {
+      partes.push(`Nunca se enfrentaron en equipos rivales.`);
+    }
+    if(h.juntos > 0){
+      partes.push(`Jugaron juntos (mismo equipo) en ${h.juntos} partido${h.juntos===1?'':'s'}: ganaron ${h.victoriasJuntos}, empataron ${h.empatesJuntos} y perdieron ${h.derrotasJuntos}. En esos partidos, ${nombreA} hizo ${h.golesA_junto} goles y ${h.astA_junto} asistencias; ${nombreB} hizo ${h.golesB_junto} goles y ${h.astB_junto} asistencias.`);
+    } else {
+      partes.push(`Nunca jugaron juntos en el mismo equipo.`);
+    }
+    return partes.join(' ');
   }
 
-  const partes = [];
-  if(h.enfrentados > 0){
-    partes.push(`Se enfrentaron en ${h.enfrentados} partido${h.enfrentados===1?'':'s'} (equipos rivales): ${nombreA} ganó ${h.victoriasA}, ${nombreB} ganó ${h.victoriasB}, empataron ${h.empatesEnf}. En esos partidos, ${nombreA} hizo ${h.golesA_enf} goles y ${h.astA_enf} asistencias; ${nombreB} hizo ${h.golesB_enf} goles y ${h.astB_enf} asistencias.`);
-  } else {
-    partes.push(`Nunca se enfrentaron en equipos rivales.`);
+  // 3 o más jugadores: solo tiene sentido "jugando juntos"
+  const stats = calcularJuntosGrupo(jugadores);
+  if(stats.partidos === 0){
+    return `Estos ${jugadores.length} pibes no tienen partidos jugados juntos.`;
   }
-  if(h.juntos > 0){
-    partes.push(`Jugaron juntos (mismo equipo) en ${h.juntos} partido${h.juntos===1?'':'s'}: ganaron ${h.victoriasJuntos}, empataron ${h.empatesJuntos} y perdieron ${h.derrotasJuntos}. En esos partidos, ${nombreA} hizo ${h.golesA_junto} goles y ${h.astA_junto} asistencias; ${nombreB} hizo ${h.golesB_junto} goles y ${h.astB_junto} asistencias.`);
-  } else {
-    partes.push(`Nunca jugaron juntos en el mismo equipo.`);
-  }
-  return partes.join(' ');
+  const detalle = jugadores.map(n => `${n} hizo ${stats.porJugador[n].goles} goles y ${stats.porJugador[n].asistencias} asistencias`).join('; ');
+  return `Jugaron juntos (mismo equipo) en ${stats.partidos} partido${stats.partidos===1?'':'s'}: ganaron ${stats.victorias}, empataron ${stats.empates} y perdieron ${stats.derrotas}. En esos partidos, ${detalle}.`;
 }
 
 async function enviarPreguntaBot(){
