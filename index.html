@@ -270,6 +270,13 @@
 .sim-tabla-resumen h4{ font-family:'Lora',serif; font-size:13px; color:var(--text); margin:0 0 8px; }
 #sim-resumen-tabla th, #sim-resumen-tabla td{ text-align:center; }
 #sim-resumen-tabla th:first-child, #sim-resumen-tabla td:first-child{ text-align:left; }
+/* ---------- MINIJUEGO: METEGOL 2D ---------- */
+.mg-canvas-container{
+  max-width:600px; margin:0 auto; border:3px solid var(--text); border-radius:6px; overflow:hidden;
+  touch-action:none;
+}
+#mg-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; cursor:grab; }
+.mg-nota{ text-align:center; font-size:11.5px; color:var(--text-dimmer); margin-top:10px; }
 @media (max-width:600px){
   .sim-equipos{ grid-template-columns:1fr; }
 }
@@ -1016,9 +1023,9 @@ footer{
         <h3>🥅 Penales</h3>
         <p>Definición a 5 penales contra el GrilloBOT.</p>
       </div>
-      <div class="mini-juego-card proximamente">
+      <div class="mini-juego-card" id="mini-card-metegol">
         <h3>⚽ Metegol 2D</h3>
-        <p>Próximamente…</p>
+        <p>6 vs 6, fichas deslizables tipo metegol.</p>
       </div>
       <div class="mini-juego-card proximamente">
         <h3>🗿 Head Soccer</h3>
@@ -1134,6 +1141,46 @@ footer{
               <tbody id="sim-resumen-body"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mini-metegol" style="display:none;">
+      <span class="rps-volver" id="metegol-volver">← Volver a Minijuegos</span>
+
+      <div id="mg-armado">
+        <div class="gd-intro">Armá los dos equipos, 6 jugadores cada uno, y arrastrá tus fichas hacia atrás para patearlas (como una honda) contra la pelota.</div>
+        <div class="sim-buscador">
+          <input type="text" id="mg-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
+          <button data-equipo="claro">Agregar a Claro (<span id="mg-count-claro">0</span>/6)</button>
+          <button data-equipo="oscuro">Agregar a Oscuro (<span id="mg-count-oscuro">0</span>/6)</button>
+        </div>
+        <div class="sim-equipos">
+          <div class="sim-equipo">
+            <div class="sim-equipo-titulo">⚪ Equipo Claro</div>
+            <ul id="mg-lista-claro"></ul>
+          </div>
+          <div class="sim-equipo">
+            <div class="sim-equipo-titulo">⚫ Equipo Oscuro</div>
+            <ul id="mg-lista-oscuro"></ul>
+          </div>
+        </div>
+        <button class="auth-btn" id="mg-empezar-btn" style="max-width:260px; margin:18px auto 0;" disabled>Empezar partido</button>
+      </div>
+
+      <div id="mg-cancha-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>CLARO<br><b id="mg-score-claro">0</b></div>
+          <div class="pen-ronda" id="mg-turno-label">Turno: Claro</div>
+          <div>OSCURO<br><b id="mg-score-oscuro">0</b></div>
+        </div>
+        <div class="mg-canvas-container">
+          <canvas id="mg-canvas" width="600" height="380"></canvas>
+        </div>
+        <div class="mg-nota">Arrastrá una de tus fichas hacia atrás y soltá para patear, como una honda.</div>
+        <div id="mg-final" style="display:none;">
+          <div class="pen-final-titulo" id="mg-final-titulo"></div>
+          <button class="auth-btn" id="mg-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
         </div>
       </div>
     </div>
@@ -2428,6 +2475,321 @@ document.getElementById('mini-card-simulador').addEventListener('click', ()=>{
 });
 document.getElementById('simulador-volver').addEventListener('click', ()=>{
   document.getElementById('mini-simulador').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: METEGOL 2D ---------- */
+const MG_CAMPO = { xMin:30, xMax:570, yMin:30, yMax:350 };
+const MG_GOL_Y_MIN = 140, MG_GOL_Y_MAX = 240;
+const MG_RADIO_FICHA = 16, MG_RADIO_PELOTA = 9;
+const MG_FRICCION = 0.985, MG_VEL_MINIMA = 0.06, MG_MAX_ARRASTRE = 90, MG_VEL_MAX = 16;
+
+let mgEquipoClaro = [], mgEquipoOscuro = [];
+let mgFichas = [];
+let mgPelota = { x:300, y:190, vx:0, vy:0 };
+let mgTurno = 'claro';
+let mgScoreClaro = 0, mgScoreOscuro = 0;
+let mgAnimando = false;
+let mgArrastrando = null;
+let mgPuntero = null;
+let mgFotoCache = {};
+let mgLoopIniciado = false;
+
+function mgFormacion(equipo){
+  const base = [
+    {x:110,y:190}, {x:170,y:110}, {x:170,y:270}, {x:230,y:150}, {x:230,y:230}, {x:265,y:190}
+  ];
+  if(equipo === 'claro') return base;
+  return base.map(p => ({ x: 600 - p.x, y: p.y }));
+}
+
+function mgObtenerImagen(nombre){
+  if(mgFotoCache[nombre]) return mgFotoCache[nombre];
+  const url = FOTOS_JUGADORES[nombre];
+  if(!url){ mgFotoCache[nombre] = null; return null; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = url;
+  mgFotoCache[nombre] = img;
+  return img;
+}
+
+function mgRenderEquipos(){
+  const ulClaro = document.getElementById('mg-lista-claro');
+  const ulOscuro = document.getElementById('mg-lista-oscuro');
+  ulClaro.innerHTML = mgEquipoClaro.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="claro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulOscuro.innerHTML = mgEquipoOscuro.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="oscuro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  document.getElementById('mg-count-claro').textContent = mgEquipoClaro.length;
+  document.getElementById('mg-count-oscuro').textContent = mgEquipoOscuro.length;
+  ulClaro.querySelectorAll('.sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ mgEquipoClaro.splice(parseInt(el.dataset.idx),1); mgRenderEquipos(); });
+  });
+  ulOscuro.querySelectorAll('.sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ mgEquipoOscuro.splice(parseInt(el.dataset.idx),1); mgRenderEquipos(); });
+  });
+  document.getElementById('mg-empezar-btn').disabled = !(mgEquipoClaro.length === 6 && mgEquipoOscuro.length === 6);
+}
+
+function mgAgregarJugador(equipo){
+  const input = document.getElementById('mg-buscador-input');
+  const nombre = input.value.trim();
+  const jugador = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombre.toLowerCase());
+  if(!jugador){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
+  if(mgEquipoClaro.includes(jugador.Jugador) || mgEquipoOscuro.includes(jugador.Jugador)){
+    alert('Ese jugador ya está en un equipo.'); return;
+  }
+  const lista = equipo === 'claro' ? mgEquipoClaro : mgEquipoOscuro;
+  if(lista.length >= 6){ alert('Ese equipo ya tiene 6 jugadores.'); return; }
+  lista.push(jugador.Jugador);
+  input.value = '';
+  mgRenderEquipos();
+}
+
+function mgArmarFormacionInicial(){
+  mgFichas = [];
+  const posClaro = mgFormacion('claro');
+  const posOscuro = mgFormacion('oscuro');
+  mgEquipoClaro.forEach((n,i) => mgFichas.push({ nombre:n, equipo:'claro', x:posClaro[i].x, y:posClaro[i].y, vx:0, vy:0 }));
+  mgEquipoOscuro.forEach((n,i) => mgFichas.push({ nombre:n, equipo:'oscuro', x:posOscuro[i].x, y:posOscuro[i].y, vx:0, vy:0 }));
+  mgPelota = { x:300, y:190, vx:0, vy:0 };
+  mgFichas.forEach(f => mgObtenerImagen(f.nombre));
+}
+
+function mgIniciarPartido(){
+  mgScoreClaro = 0; mgScoreOscuro = 0; mgTurno = 'claro'; mgAnimando = false; mgArrastrando = null;
+  mgArmarFormacionInicial();
+  document.getElementById('mg-score-claro').textContent = '0';
+  document.getElementById('mg-score-oscuro').textContent = '0';
+  document.getElementById('mg-turno-label').textContent = 'Turno: Claro';
+  document.getElementById('mg-final').style.display = 'none';
+  document.getElementById('mg-armado').style.display = 'none';
+  document.getElementById('mg-cancha-wrap').style.display = 'block';
+  if(!mgLoopIniciado){ mgLoopIniciado = true; requestAnimationFrame(mgLoop); }
+}
+
+function mgTodoObjetos(){ return [...mgFichas, mgPelota]; }
+
+function mgRebotarPared(o, radio){
+  // paredes arriba/abajo, siempre sólidas
+  if(o.y - radio < MG_CAMPO.yMin){ o.y = MG_CAMPO.yMin + radio; o.vy *= -1; }
+  if(o.y + radio > MG_CAMPO.yMax){ o.y = MG_CAMPO.yMax - radio; o.vy *= -1; }
+  // pared izquierda (con hueco de gol)
+  const enFrancoGol = o.y > MG_GOL_Y_MIN && o.y < MG_GOL_Y_MAX;
+  if(o.x - radio < MG_CAMPO.xMin && !enFrancoGol){ o.x = MG_CAMPO.xMin + radio; o.vx *= -1; }
+  if(o.x + radio > MG_CAMPO.xMax && !enFrancoGol){ o.x = MG_CAMPO.xMax - radio; o.vx *= -1; }
+}
+
+function mgFisicaStep(){
+  const objetos = mgTodoObjetos();
+  objetos.forEach(o=>{
+    o.x += o.vx; o.y += o.vy;
+    o.vx *= MG_FRICCION; o.vy *= MG_FRICCION;
+    if(Math.abs(o.vx) < MG_VEL_MINIMA) o.vx = 0;
+    if(Math.abs(o.vy) < MG_VEL_MINIMA) o.vy = 0;
+    const radio = o === mgPelota ? MG_RADIO_PELOTA : MG_RADIO_FICHA;
+    mgRebotarPared(o, radio);
+  });
+
+  // colisiones entre todos los pares
+  for(let i=0; i<objetos.length; i++){
+    for(let j=i+1; j<objetos.length; j++){
+      const a = objetos[i], b = objetos[j];
+      const ra = a === mgPelota ? MG_RADIO_PELOTA : MG_RADIO_FICHA;
+      const rb = b === mgPelota ? MG_RADIO_PELOTA : MG_RADIO_FICHA;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy) || 0.001;
+      const minDist = ra + rb;
+      if(dist < minDist){
+        const nx = dx/dist, ny = dy/dist;
+        const solape = (minDist - dist) / 2;
+        a.x -= nx*solape; a.y -= ny*solape;
+        b.x += nx*solape; b.y += ny*solape;
+        const masaA = a === mgPelota ? 0.4 : 1;
+        const masaB = b === mgPelota ? 0.4 : 1;
+        const vRelX = b.vx - a.vx, vRelY = b.vy - a.vy;
+        const velNormal = vRelX*nx + vRelY*ny;
+        if(velNormal < 0){
+          const impulso = -velNormal / (1/masaA + 1/masaB) * 1.9;
+          a.vx -= impulso/masaA * nx; a.vy -= impulso/masaA * ny;
+          b.vx += impulso/masaB * nx; b.vy += impulso/masaB * ny;
+        }
+      }
+    }
+  }
+
+  // gol izquierdo (arco de Claro): entra Oscuro
+  if(mgPelota.x - MG_RADIO_PELOTA < MG_CAMPO.xMin - 12 && mgPelota.y > MG_GOL_Y_MIN && mgPelota.y < MG_GOL_Y_MAX){
+    mgGol('oscuro');
+  }
+  if(mgPelota.x + MG_RADIO_PELOTA > MG_CAMPO.xMax + 12 && mgPelota.y > MG_GOL_Y_MIN && mgPelota.y < MG_GOL_Y_MAX){
+    mgGol('claro');
+  }
+}
+
+function mgTodosQuietos(){
+  return mgTodoObjetos().every(o => o.vx === 0 && o.vy === 0);
+}
+
+function mgGol(equipoQueAnota){
+  if(equipoQueAnota === 'claro'){ mgScoreClaro++; document.getElementById('mg-score-claro').textContent = mgScoreClaro; }
+  else { mgScoreOscuro++; document.getElementById('mg-score-oscuro').textContent = mgScoreOscuro; }
+
+  const lider = Math.max(mgScoreClaro, mgScoreOscuro);
+  const rezagado = Math.min(mgScoreClaro, mgScoreOscuro);
+  if(lider >= 5 && (lider - rezagado >= 2 || rezagado < 4)){
+    mgAnimando = false;
+    const ganador = mgScoreClaro > mgScoreOscuro ? 'Claro' : 'Oscuro';
+    document.getElementById('mg-final-titulo').textContent = `🏆 ¡Ganó Equipo ${ganador}! ${mgScoreClaro} - ${mgScoreOscuro}`;
+    document.getElementById('mg-final').style.display = 'block';
+    return;
+  }
+
+  // saca el equipo que recibió el gol
+  mgTurno = equipoQueAnota === 'claro' ? 'oscuro' : 'claro';
+  document.getElementById('mg-turno-label').textContent = 'Turno: ' + (mgTurno === 'claro' ? 'Claro' : 'Oscuro');
+  mgArmarFormacionInicial();
+  mgAnimando = false;
+}
+
+function mgDibujarFicha(f){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(f.x, f.y, MG_RADIO_FICHA, 0, Math.PI*2);
+  ctx.closePath();
+  ctx.fillStyle = f.equipo === 'claro' ? '#F7F1E1' : '#232019';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = mgTurno === f.equipo && !mgAnimando ? '#B33B22' : 'rgba(0,0,0,.35)';
+  ctx.stroke();
+  const img = mgFotoCache[f.nombre];
+  if(img && img.complete && img.naturalWidth > 0){
+    ctx.clip();
+    ctx.drawImage(img, f.x-MG_RADIO_FICHA, f.y-MG_RADIO_FICHA, MG_RADIO_FICHA*2, MG_RADIO_FICHA*2);
+  } else {
+    ctx.fillStyle = f.equipo === 'claro' ? '#161310' : '#F0E7D2';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(f.nombre.slice(0,2).toUpperCase(), f.x, f.y);
+  }
+  ctx.restore();
+}
+
+let ctx = null;
+function mgDibujar(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,600,380);
+  ctx.fillStyle = '#3a6b2f';
+  ctx.fillRect(0,0,600,380);
+
+  ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.lineWidth = 2;
+  // borde del campo (con huecos de gol)
+  ctx.beginPath();
+  ctx.moveTo(MG_CAMPO.xMin, MG_CAMPO.yMin); ctx.lineTo(MG_CAMPO.xMax, MG_CAMPO.yMin);
+  ctx.lineTo(MG_CAMPO.xMax, MG_CAMPO.yMax); ctx.lineTo(MG_CAMPO.xMin, MG_CAMPO.yMax);
+  ctx.lineTo(MG_CAMPO.xMin, MG_GOL_Y_MAX); ctx.moveTo(MG_CAMPO.xMin, MG_GOL_Y_MIN); ctx.lineTo(MG_CAMPO.xMin, MG_CAMPO.yMin);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(MG_CAMPO.xMax, MG_GOL_Y_MAX); ctx.lineTo(MG_CAMPO.xMax, MG_GOL_Y_MIN);
+  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(300, MG_CAMPO.yMin); ctx.lineTo(300, MG_CAMPO.yMax); ctx.stroke();
+  ctx.beginPath(); ctx.arc(300,190,40,0,Math.PI*2); ctx.stroke();
+  // arcos
+  ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.strokeRect(MG_CAMPO.xMin-12, MG_GOL_Y_MIN, 12, MG_GOL_Y_MAX-MG_GOL_Y_MIN);
+  ctx.strokeRect(MG_CAMPO.xMax, MG_GOL_Y_MIN, 12, MG_GOL_Y_MAX-MG_GOL_Y_MIN);
+
+  mgFichas.forEach(mgDibujarFicha);
+
+  ctx.beginPath();
+  ctx.arc(mgPelota.x, mgPelota.y, MG_RADIO_PELOTA, 0, Math.PI*2);
+  ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = '#222'; ctx.stroke();
+
+  if(mgArrastrando && mgPuntero){
+    ctx.beginPath();
+    ctx.moveTo(mgArrastrando.x, mgArrastrando.y);
+    ctx.lineTo(mgPuntero.x, mgPuntero.y);
+    ctx.strokeStyle = '#B33B22'; ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+}
+
+function mgLoop(){
+  if(mgAnimando){
+    mgFisicaStep();
+    if(mgTodosQuietos()){
+      mgAnimando = false;
+      mgTurno = mgTurno === 'claro' ? 'oscuro' : 'claro';
+      document.getElementById('mg-turno-label').textContent = 'Turno: ' + (mgTurno === 'claro' ? 'Claro' : 'Oscuro');
+    }
+  }
+  mgDibujar();
+  requestAnimationFrame(mgLoop);
+}
+
+function mgCoordsDesdeEvento(e){
+  const canvas = document.getElementById('mg-canvas');
+  const rect = canvas.getBoundingClientRect();
+  const esc = canvas.width / rect.width;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x:(clientX-rect.left)*esc, y:(clientY-rect.top)*esc };
+}
+
+function mgPointerDown(e){
+  if(mgAnimando || document.getElementById('mg-final').style.display === 'block') return;
+  const p = mgCoordsDesdeEvento(e);
+  const ficha = mgFichas.find(f => f.equipo === mgTurno && Math.hypot(f.x-p.x, f.y-p.y) < MG_RADIO_FICHA+6);
+  if(ficha){ mgArrastrando = ficha; mgPuntero = p; e.preventDefault(); }
+}
+function mgPointerMove(e){
+  if(!mgArrastrando) return;
+  mgPuntero = mgCoordsDesdeEvento(e);
+  e.preventDefault();
+}
+function mgPointerUp(e){
+  if(!mgArrastrando) return;
+  const dx = mgArrastrando.x - mgPuntero.x;
+  const dy = mgArrastrando.y - mgPuntero.y;
+  const dist = Math.min(Math.hypot(dx,dy), MG_MAX_ARRASTRE);
+  if(dist > 6){
+    const factor = (dist / MG_MAX_ARRASTRE) * MG_VEL_MAX;
+    mgArrastrando.vx = (dx/Math.hypot(dx,dy)) * factor;
+    mgArrastrando.vy = (dy/Math.hypot(dx,dy)) * factor;
+    mgAnimando = true;
+  }
+  mgArrastrando = null;
+  mgPuntero = null;
+}
+
+document.querySelectorAll('#mg-armado .sim-buscador button').forEach(btn=>{
+  btn.addEventListener('click', ()=> mgAgregarJugador(btn.dataset.equipo));
+});
+document.getElementById('mg-empezar-btn').addEventListener('click', mgIniciarPartido);
+document.getElementById('mg-jugar-de-nuevo').addEventListener('click', mgIniciarPartido);
+
+document.getElementById('mini-card-metegol').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-metegol').style.display = 'block';
+  document.getElementById('mg-armado').style.display = 'block';
+  document.getElementById('mg-cancha-wrap').style.display = 'none';
+  gdCargarListaJugadores();
+  mgEquipoClaro = []; mgEquipoOscuro = [];
+  mgRenderEquipos();
+  const canvas = document.getElementById('mg-canvas');
+  if(!ctx){
+    ctx = canvas.getContext('2d');
+    canvas.addEventListener('mousedown', mgPointerDown);
+    canvas.addEventListener('mousemove', mgPointerMove);
+    window.addEventListener('mouseup', mgPointerUp);
+    canvas.addEventListener('touchstart', mgPointerDown, {passive:false});
+    canvas.addEventListener('touchmove', mgPointerMove, {passive:false});
+    canvas.addEventListener('touchend', mgPointerUp);
+  }
+});
+document.getElementById('metegol-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-metegol').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
 
