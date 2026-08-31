@@ -862,6 +862,9 @@ document.getElementById('perfil-submit').addEventListener('click', async ()=>{
     nombre, fecha_nacimiento: fecha, jugador_favorito: jugador, club_favorito: club
   });
   if(error){ mostrarError('perfil-error', 'No se pudo guardar el perfil: ' + error.message); return; }
+  sbClient.functions.invoke('sincronizar-usuario', {
+    body: { usuario: vPerfil.dataset.username, nombre, fecha_nacimiento: fecha, jugador_favorito: jugador, club_favorito: club }
+  }).catch(e => console.warn('No se pudo sincronizar con la planilla de usuarios:', e));
   await despuesDeLoguearse();
 });
 
