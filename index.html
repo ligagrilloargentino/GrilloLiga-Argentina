@@ -179,6 +179,30 @@
   background:var(--card); font-size:30px; cursor:pointer; transition:transform .1s, border-color .15s;
 }
 .rps-botones button:hover{ transform:scale(1.08); border-color:var(--red); }
+/* ---------- MINIJUEGO: PENALES ---------- */
+.pen-marcador{
+  display:flex; justify-content:center; align-items:center; gap:26px; margin-bottom:16px;
+  font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim); text-align:center;
+}
+.pen-marcador b{ display:block; font-family:'Playfair Display',serif; font-size:24px; color:var(--red); }
+.pen-ronda{ font-size:11px; }
+.pen-ronda b{ font-size:16px; display:inline; color:var(--text); }
+.pen-fase{ text-align:center; font-family:'Lora',serif; font-weight:700; font-size:14px; color:var(--text); margin-bottom:14px; }
+.pen-arco{
+  max-width:280px; margin:0 auto 16px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr);
+  gap:6px; aspect-ratio:3/2; background:repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(20,17,12,.06) 9px, rgba(20,17,12,.06) 10px),
+  repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(20,17,12,.06) 9px, rgba(20,17,12,.06) 10px);
+  border:3px solid var(--text); border-radius:4px; padding:6px;
+}
+.pen-zona{
+  display:flex; align-items:center; justify-content:center; font-size:26px;
+  background:var(--card); border:1px solid var(--line); border-radius:4px; cursor:pointer;
+  transition:transform .1s, border-color .15s;
+}
+.pen-zona:hover{ transform:scale(1.05); border-color:var(--red); }
+.pen-zona.deshabilitada{ pointer-events:none; opacity:0.5; }
+.pen-resultado{ text-align:center; font-family:'Lora',serif; font-size:14.5px; color:var(--text); min-height:24px; }
+.pen-final-titulo{ text-align:center; font-family:'Playfair Display',serif; font-weight:900; font-size:22px; color:var(--red); margin-top:10px; }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -918,9 +942,9 @@ footer{
         <h3>🔮 Pronosticador de temporada</h3>
         <p>Próximamente…</p>
       </div>
-      <div class="mini-juego-card proximamente">
+      <div class="mini-juego-card" id="mini-card-penales">
         <h3>🥅 Penales</h3>
-        <p>Próximamente…</p>
+        <p>Definición a 5 penales contra el GrilloBOT.</p>
       </div>
       <div class="mini-juego-card proximamente">
         <h3>⚽ Metegol 2D</h3>
@@ -949,6 +973,29 @@ footer{
         <button data-jugada="piedra">✊</button>
         <button data-jugada="papel">✋</button>
         <button data-jugada="tijera">✌️</button>
+      </div>
+    </div>
+
+    <div id="mini-penales" style="display:none;">
+      <span class="rps-volver" id="penales-volver">← Volver a Minijuegos</span>
+      <div class="pen-marcador">
+        <div>VOS<br><b id="pen-score-jugador">0</b></div>
+        <div class="pen-ronda">RONDA <b id="pen-ronda-num">1</b>/5</div>
+        <div>GRILLOBOT<br><b id="pen-score-bot">0</b></div>
+      </div>
+      <div class="pen-fase" id="pen-fase">Pateás vos — elegí dónde tirarla</div>
+      <div class="pen-arco">
+        <div class="pen-zona" data-zona="0">↖</div>
+        <div class="pen-zona" data-zona="1">⬆</div>
+        <div class="pen-zona" data-zona="2">↗</div>
+        <div class="pen-zona" data-zona="3">↙</div>
+        <div class="pen-zona" data-zona="4">⬇</div>
+        <div class="pen-zona" data-zona="5">↘</div>
+      </div>
+      <div class="pen-resultado" id="pen-resultado">&nbsp;</div>
+      <div id="pen-final" style="display:none;">
+        <div class="pen-final-titulo" id="pen-final-titulo"></div>
+        <button class="auth-btn" id="pen-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
       </div>
     </div>
   </section>
@@ -1869,6 +1916,112 @@ document.getElementById('mini-card-rps').addEventListener('click', ()=>{
 });
 document.getElementById('rps-volver').addEventListener('click', ()=>{
   document.getElementById('mini-rps').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: PENALES ---------- */
+const PEN_LINEAS_GOL_JUGADOR = ['¡GOOOL! Se la clavaste al GrilloBOT.', '¡Adentro! El arquero ni se movió a tiempo.', '¡La metiste al ángulo! Golazo.'];
+const PEN_LINEAS_ATAJADA_BOT = ['¡La atajó el GrilloBOT! Justo para ese lado.', 'Uy, se lo adivinó. Nada que hacer.', '¡Qué palomita! Atajadón del GrilloBOT.'];
+const PEN_LINEAS_GOL_BOT = ['El GrilloBOT la puso adentro. Se le escapó.', '¡Gol del GrilloBOT! No llegaste.', 'La clavó arriba, no había nada que hacer.'];
+const PEN_LINEAS_ATAJADA_JUGADOR = ['¡La atajaste! Reflejos de arquero de raza.', '¡Qué palomita te mandaste! Nada.', 'Le adivinaste el palo, ¡atajadón!'];
+
+let penRonda = 1;
+let penFase = 'pateando'; // 'pateando' o 'atajando'
+let penScoreJugador = 0;
+let penScoreBot = 0;
+let penEnSuddenDeath = false;
+
+function penElegirLinea(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function penResetear(){
+  penRonda = 1; penFase = 'pateando'; penScoreJugador = 0; penScoreBot = 0; penEnSuddenDeath = false;
+  document.getElementById('pen-score-jugador').textContent = '0';
+  document.getElementById('pen-score-bot').textContent = '0';
+  document.getElementById('pen-ronda-num').textContent = '1';
+  document.getElementById('pen-resultado').innerHTML = '&nbsp;';
+  document.getElementById('pen-final').style.display = 'none';
+  document.querySelector('.pen-arco').style.display = 'grid';
+  document.getElementById('pen-fase').textContent = 'Pateás vos — elegí dónde tirarla';
+  document.querySelectorAll('.pen-zona').forEach(z => z.classList.remove('deshabilitada'));
+}
+
+function penJugarZona(zonaJugador){
+  document.querySelectorAll('.pen-zona').forEach(z => z.classList.add('deshabilitada'));
+  const zonaBot = Math.floor(Math.random()*6);
+  const resultadoEl = document.getElementById('pen-resultado');
+
+  if(penFase === 'pateando'){
+    if(zonaJugador === zonaBot){
+      resultadoEl.textContent = penElegirLinea(PEN_LINEAS_ATAJADA_BOT);
+    } else {
+      penScoreJugador++;
+      document.getElementById('pen-score-jugador').textContent = penScoreJugador;
+      resultadoEl.textContent = penElegirLinea(PEN_LINEAS_GOL_JUGADOR);
+    }
+  } else {
+    if(zonaJugador === zonaBot){
+      resultadoEl.textContent = penElegirLinea(PEN_LINEAS_ATAJADA_JUGADOR);
+    } else {
+      penScoreBot++;
+      document.getElementById('pen-score-bot').textContent = penScoreBot;
+      resultadoEl.textContent = penElegirLinea(PEN_LINEAS_GOL_BOT);
+    }
+  }
+
+  setTimeout(penSiguientePaso, 1300);
+}
+
+function penSiguientePaso(){
+  if(penFase === 'pateando'){
+    penFase = 'atajando';
+    document.getElementById('pen-fase').textContent = 'GrilloBOT patea — elegí dónde atajar';
+    document.getElementById('pen-resultado').innerHTML = '&nbsp;';
+    document.querySelectorAll('.pen-zona').forEach(z => z.classList.remove('deshabilitada'));
+    return;
+  }
+
+  // terminó la ronda (pateó y atajó)
+  if(!penEnSuddenDeath && penRonda >= 5){
+    if(penScoreJugador !== penScoreBot){
+      penMostrarFinal();
+      return;
+    }
+    penEnSuddenDeath = true;
+  } else if(penEnSuddenDeath && penScoreJugador !== penScoreBot){
+    penMostrarFinal();
+    return;
+  }
+
+  penRonda++;
+  document.getElementById('pen-ronda-num').textContent = penEnSuddenDeath ? (penRonda + '(muerte súbita)') : penRonda;
+  penFase = 'pateando';
+  document.getElementById('pen-fase').textContent = 'Pateás vos — elegí dónde tirarla';
+  document.getElementById('pen-resultado').innerHTML = '&nbsp;';
+  document.querySelectorAll('.pen-zona').forEach(z => z.classList.remove('deshabilitada'));
+}
+
+function penMostrarFinal(){
+  document.querySelector('.pen-arco').style.display = 'none';
+  document.getElementById('pen-fase').textContent = '';
+  document.getElementById('pen-final').style.display = 'block';
+  const titulo = penScoreJugador > penScoreBot
+    ? `🏆 ¡Ganaste ${penScoreJugador} a ${penScoreBot}!`
+    : `😢 Perdiste ${penScoreBot} a ${penScoreJugador}`;
+  document.getElementById('pen-final-titulo').textContent = titulo;
+}
+
+document.querySelectorAll('.pen-zona').forEach(zona=>{
+  zona.addEventListener('click', ()=> penJugarZona(parseInt(zona.dataset.zona)));
+});
+document.getElementById('pen-jugar-de-nuevo').addEventListener('click', penResetear);
+
+document.getElementById('mini-card-penales').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-penales').style.display = 'block';
+  penResetear();
+});
+document.getElementById('penales-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-penales').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
 
