@@ -234,6 +234,41 @@
 @media (max-width:600px){
   .gd-pistas-partidos{ grid-template-columns:1fr; }
 }
+/* ---------- MINIJUEGO: SIMULADOR DE PARTIDOS ---------- */
+.sim-buscador{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.sim-buscador input{
+  flex:1; min-width:160px; box-sizing:border-box; padding:9px 12px; border-radius:20px;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--text);
+  font-family:'Lora',serif; font-size:13px;
+}
+.sim-buscador button{
+  padding:0 14px; border-radius:20px; border:1px solid var(--line-strong);
+  background:var(--card2); color:var(--text); font-weight:700; font-family:'Lora',serif;
+  cursor:pointer; font-size:12px;
+}
+.sim-buscador button[data-equipo="A"]:hover{ border-color:#B33B22; }
+.sim-buscador button[data-equipo="B"]:hover{ border-color:#2E5C8A; }
+.sim-equipos{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.sim-equipo{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; min-height:80px; }
+.sim-equipo-titulo{ font-family:'Lora',serif; font-weight:700; font-size:13px; margin-bottom:8px; }
+.sim-equipo ul{ list-style:none; margin:0; padding:0; }
+.sim-equipo li{
+  font-size:12px; color:var(--text); padding:5px 0; display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid var(--line);
+}
+.sim-equipo li:last-child{ border-bottom:none; }
+.sim-equipo li span.sim-quitar{ color:var(--red); cursor:pointer; font-weight:700; padding:0 4px; }
+.sim-marcador-final{
+  text-align:center; font-family:'Playfair Display',serif; font-weight:900; font-size:30px;
+  color:var(--red); margin:20px 0 14px;
+}
+.sim-relato{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 16px; }
+.sim-relato .sim-evento{ font-size:12.5px; color:var(--text-dim); padding:5px 0; border-bottom:1px dashed var(--line); }
+.sim-relato .sim-evento:last-child{ border-bottom:none; }
+.sim-relato .sim-evento b{ color:var(--text); }
+@media (max-width:600px){
+  .sim-equipos{ grid-template-columns:1fr; }
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -969,9 +1004,9 @@ footer{
         <h3>🔤 Grillodle</h3>
         <p>Adiviná al jugador misterioso.</p>
       </div>
-      <div class="mini-juego-card proximamente">
-        <h3>🔮 Pronosticador de temporada</h3>
-        <p>Próximamente…</p>
+      <div class="mini-juego-card" id="mini-card-simulador">
+        <h3>🔮 Simulador de partidos</h3>
+        <p>Armá 2 equipos y mirá qué resultado saldría.</p>
       </div>
       <div class="mini-juego-card" id="mini-card-penales">
         <h3>🥅 Penales</h3>
@@ -1056,6 +1091,38 @@ footer{
         </div>
       </div>
       <button class="auth-btn" id="gd-nuevo-juego" style="max-width:220px; margin:18px auto 0;">Jugar de nuevo</button>
+    </div>
+
+    <div id="mini-simulador" style="display:none;">
+      <span class="rps-volver" id="simulador-volver">← Volver a Minijuegos</span>
+      <div class="gd-intro">
+        Armá dos equipos (mínimo 5 jugadores por lado) y mirá qué resultado saldría, según las estadísticas
+        de cada uno. Ojo: es un cálculo aproximado, no refleja el nivel real de juego de cada uno. 😉
+      </div>
+
+      <div class="sim-buscador">
+        <input type="text" id="sim-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
+        <button data-equipo="A">Agregar a Equipo A</button>
+        <button data-equipo="B">Agregar a Equipo B</button>
+      </div>
+
+      <div class="sim-equipos">
+        <div class="sim-equipo">
+          <div class="sim-equipo-titulo">🔴 Equipo A</div>
+          <ul id="sim-lista-A"></ul>
+        </div>
+        <div class="sim-equipo">
+          <div class="sim-equipo-titulo">🔵 Equipo B</div>
+          <ul id="sim-lista-B"></ul>
+        </div>
+      </div>
+
+      <button class="auth-btn" id="sim-simular-btn" style="max-width:260px; margin:18px auto 0;" disabled>Simular partido</button>
+
+      <div id="sim-resultado-container" style="display:none;">
+        <div class="sim-marcador-final" id="sim-marcador-final"></div>
+        <div class="sim-relato" id="sim-relato"></div>
+      </div>
     </div>
   </section>
 
@@ -2196,6 +2263,141 @@ document.getElementById('mini-card-grillodle').addEventListener('click', ()=>{
 });
 document.getElementById('grillodle-volver').addEventListener('click', ()=>{
   document.getElementById('mini-grillodle').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: SIMULADOR DE PARTIDOS ---------- */
+let simEquipoA = [];
+let simEquipoB = [];
+
+function simObtenerDatosJugador(nombre){
+  const r = DATA.estadisticas.find(x => x.Jugador === nombre);
+  if(!r) return null;
+  const pj = r.PJ || 1;
+  return {
+    nombre: r.Jugador,
+    ataque: (r.Goles + r.Ast) / pj,
+    golesProm: r.Goles / pj,
+    asistProm: r.Ast / pj,
+    recibidosProm: r['Goles recibidos por partido'] || 0
+  };
+}
+
+function simActualizarBotonSimular(){
+  document.getElementById('sim-simular-btn').disabled = !(simEquipoA.length >= 5 && simEquipoB.length >= 5);
+}
+
+function simRenderEquipos(){
+  const ulA = document.getElementById('sim-lista-A');
+  const ulB = document.getElementById('sim-lista-B');
+  ulA.innerHTML = simEquipoA.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="A" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulB.innerHTML = simEquipoB.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="B" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulA.querySelectorAll('.sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ simEquipoA.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
+  });
+  ulB.querySelectorAll('.sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ simEquipoB.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
+  });
+  simActualizarBotonSimular();
+}
+
+function simAgregarJugador(equipo){
+  const input = document.getElementById('sim-buscador-input');
+  const nombre = input.value.trim();
+  const existe = DATA.estadisticas.some(r => r.Jugador.toLowerCase() === nombre.toLowerCase());
+  if(!existe){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
+  const nombreReal = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombre.toLowerCase()).Jugador;
+  if(simEquipoA.includes(nombreReal) || simEquipoB.includes(nombreReal)){
+    alert('Ese jugador ya está en un equipo.');
+    return;
+  }
+  if(equipo === 'A') simEquipoA.push(nombreReal); else simEquipoB.push(nombreReal);
+  input.value = '';
+  simRenderEquipos();
+}
+
+// Generador de números Poisson (algoritmo de Knuth)
+function simPoisson(lambda){
+  const L = Math.exp(-lambda);
+  let k = 0, p = 1;
+  do { k++; p *= Math.random(); } while(p > L);
+  return k - 1;
+}
+
+function simElegirPonderado(items, pesoFn){
+  const pesos = items.map(it => Math.max(pesoFn(it), 0.05));
+  const total = pesos.reduce((a,b)=>a+b, 0);
+  let r = Math.random() * total;
+  for(let i=0; i<items.length; i++){
+    r -= pesos[i];
+    if(r <= 0) return items[i];
+  }
+  return items[items.length-1];
+}
+
+function simSimularPartido(){
+  const datosA = simEquipoA.map(simObtenerDatosJugador);
+  const datosB = simEquipoB.map(simObtenerDatosJugador);
+
+  const ofensivaA = datosA.reduce((s,j)=>s+j.ataque,0) / datosA.length;
+  const ofensivaB = datosB.reduce((s,j)=>s+j.ataque,0) / datosB.length;
+  const defensaA = datosA.reduce((s,j)=>s+j.recibidosProm,0) / datosA.length;
+  const defensaB = datosB.reduce((s,j)=>s+j.recibidosProm,0) / datosB.length;
+
+  const expectedA = Math.max((ofensivaA + defensaB) / 2, 0.4);
+  const expectedB = Math.max((ofensivaB + defensaA) / 2, 0.4);
+
+  const golesA = simPoisson(expectedA);
+  const golesB = simPoisson(expectedB);
+
+  const eventos = [];
+  function generarGoles(cantidad, equipoNombre, datosEquipo){
+    for(let i=0; i<cantidad; i++){
+      const goleador = simElegirPonderado(datosEquipo, j => j.golesProm);
+      const posiblesAsist = datosEquipo.filter(j => j.nombre !== goleador.nombre);
+      const hayAsistencia = Math.random() > 0.25 && posiblesAsist.length > 0;
+      const asistente = hayAsistencia ? simElegirPonderado(posiblesAsist, j => j.asistProm) : null;
+      eventos.push({
+        minuto: Math.floor(Math.random()*90)+1,
+        equipo: equipoNombre,
+        goleador: goleador.nombre,
+        asistente: asistente ? asistente.nombre : null
+      });
+    }
+  }
+  generarGoles(golesA, 'A', datosA);
+  generarGoles(golesB, 'B', datosB);
+  eventos.sort((a,b) => a.minuto - b.minuto);
+
+  document.getElementById('sim-marcador-final').textContent = `Equipo A ${golesA} - ${golesB} Equipo B`;
+  const relatoEl = document.getElementById('sim-relato');
+  if(eventos.length === 0){
+    relatoEl.innerHTML = '<div class="sim-evento">0-0 sin goles. Partidazo cerrado atrás.</div>';
+  } else {
+    relatoEl.innerHTML = eventos.map(e => `
+      <div class="sim-evento">
+        <b>${e.minuto}'</b> — Gol de <b>${e.goleador}</b> (Equipo ${e.equipo})${e.asistente ? `, asistencia de <b>${e.asistente}</b>` : ' (individual)'}
+      </div>
+    `).join('');
+  }
+  document.getElementById('sim-resultado-container').style.display = 'block';
+}
+
+document.querySelectorAll('.sim-buscador button').forEach(btn=>{
+  btn.addEventListener('click', ()=> simAgregarJugador(btn.dataset.equipo));
+});
+document.getElementById('sim-simular-btn').addEventListener('click', simSimularPartido);
+
+document.getElementById('mini-card-simulador').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-simulador').style.display = 'block';
+  gdCargarListaJugadores();
+  simEquipoA = []; simEquipoB = [];
+  document.getElementById('sim-resultado-container').style.display = 'none';
+  simRenderEquipos();
+});
+document.getElementById('simulador-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-simulador').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
 
