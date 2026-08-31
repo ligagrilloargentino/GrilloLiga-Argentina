@@ -277,6 +277,13 @@
 }
 #mg-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; cursor:grab; }
 .mg-nota{ text-align:center; font-size:11.5px; color:var(--text-dimmer); margin-top:10px; }
+.mg-planteles{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+.mg-plantel-col{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+.mg-plantel-titulo{ font-family:'Lora',serif; font-weight:700; font-size:12px; margin-bottom:6px; }
+.mg-plantel-col div#mg-plantel-claro, .mg-plantel-col div#mg-plantel-oscuro{ font-size:11.5px; color:var(--text-dim); line-height:1.6; }
+@media (max-width:600px){
+  .mg-planteles{ grid-template-columns:1fr; }
+}
 @media (max-width:600px){
   .sim-equipos{ grid-template-columns:1fr; }
 }
@@ -1178,6 +1185,16 @@ footer{
           <canvas id="mg-canvas" width="600" height="380"></canvas>
         </div>
         <div class="mg-nota">Arrastrá una de tus fichas hacia atrás y soltá para patear, como una honda.</div>
+        <div class="mg-planteles">
+          <div class="mg-plantel-col">
+            <div class="mg-plantel-titulo">⚪ Equipo Claro</div>
+            <div id="mg-plantel-claro"></div>
+          </div>
+          <div class="mg-plantel-col">
+            <div class="mg-plantel-titulo">⚫ Equipo Oscuro</div>
+            <div id="mg-plantel-oscuro"></div>
+          </div>
+        </div>
         <div id="mg-final" style="display:none;">
           <div class="pen-final-titulo" id="mg-final-titulo"></div>
           <button class="auth-btn" id="mg-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
@@ -2363,10 +2380,10 @@ function simRenderEquipos(){
 
 function simAgregarJugador(equipo){
   const input = document.getElementById('sim-buscador-input');
-  const nombre = input.value.trim();
-  const existe = DATA.estadisticas.some(r => r.Jugador.toLowerCase() === nombre.toLowerCase());
-  if(!existe){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
-  const nombreReal = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombre.toLowerCase()).Jugador;
+  const nombre = normalizarTexto(input.value.trim());
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+  if(!encontrado){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
+  const nombreReal = encontrado.Jugador;
   if(simEquipoClaro.includes(nombreReal) || simEquipoOscuro.includes(nombreReal)){
     alert('Ese jugador ya está en un equipo.');
     return;
@@ -2532,8 +2549,8 @@ function mgRenderEquipos(){
 
 function mgAgregarJugador(equipo){
   const input = document.getElementById('mg-buscador-input');
-  const nombre = input.value.trim();
-  const jugador = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombre.toLowerCase());
+  const nombre = normalizarTexto(input.value.trim());
+  const jugador = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
   if(!jugador){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
   if(mgEquipoClaro.includes(jugador.Jugador) || mgEquipoOscuro.includes(jugador.Jugador)){
     alert('Ese jugador ya está en un equipo.'); return;
@@ -2564,6 +2581,8 @@ function mgIniciarPartido(){
   document.getElementById('mg-final').style.display = 'none';
   document.getElementById('mg-armado').style.display = 'none';
   document.getElementById('mg-cancha-wrap').style.display = 'block';
+  document.getElementById('mg-plantel-claro').textContent = mgEquipoClaro.join(', ');
+  document.getElementById('mg-plantel-oscuro').textContent = mgEquipoOscuro.join(', ');
   if(!mgLoopIniciado){ mgLoopIniciado = true; requestAnimationFrame(mgLoop); }
 }
 
