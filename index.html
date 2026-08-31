@@ -246,8 +246,8 @@
   background:var(--card2); color:var(--text); font-weight:700; font-family:'Lora',serif;
   cursor:pointer; font-size:12px;
 }
-.sim-buscador button[data-equipo="A"]:hover{ border-color:#B33B22; }
-.sim-buscador button[data-equipo="B"]:hover{ border-color:#2E5C8A; }
+.sim-buscador button[data-equipo="claro"]:hover{ border-color:#B33B22; }
+.sim-buscador button[data-equipo="oscuro"]:hover{ border-color:#2E5C8A; }
 .sim-equipos{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .sim-equipo{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; min-height:80px; }
 .sim-equipo-titulo{ font-family:'Lora',serif; font-weight:700; font-size:13px; margin-bottom:8px; }
@@ -266,6 +266,10 @@
 .sim-relato .sim-evento{ font-size:12.5px; color:var(--text-dim); padding:5px 0; border-bottom:1px dashed var(--line); }
 .sim-relato .sim-evento:last-child{ border-bottom:none; }
 .sim-relato .sim-evento b{ color:var(--text); }
+.sim-tabla-resumen{ margin-top:20px; }
+.sim-tabla-resumen h4{ font-family:'Lora',serif; font-size:13px; color:var(--text); margin:0 0 8px; }
+#sim-resumen-tabla th, #sim-resumen-tabla td{ text-align:center; }
+#sim-resumen-tabla th:first-child, #sim-resumen-tabla td:first-child{ text-align:left; }
 @media (max-width:600px){
   .sim-equipos{ grid-template-columns:1fr; }
 }
@@ -1102,18 +1106,18 @@ footer{
 
       <div class="sim-buscador">
         <input type="text" id="sim-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
-        <button data-equipo="A">Agregar a Equipo A</button>
-        <button data-equipo="B">Agregar a Equipo B</button>
+        <button data-equipo="claro">Agregar a Equipo Claro</button>
+        <button data-equipo="oscuro">Agregar a Equipo Oscuro</button>
       </div>
 
       <div class="sim-equipos">
         <div class="sim-equipo">
-          <div class="sim-equipo-titulo">🔴 Equipo A</div>
-          <ul id="sim-lista-A"></ul>
+          <div class="sim-equipo-titulo">⚪ Equipo Claro</div>
+          <ul id="sim-lista-claro"></ul>
         </div>
         <div class="sim-equipo">
-          <div class="sim-equipo-titulo">🔵 Equipo B</div>
-          <ul id="sim-lista-B"></ul>
+          <div class="sim-equipo-titulo">⚫ Equipo Oscuro</div>
+          <ul id="sim-lista-oscuro"></ul>
         </div>
       </div>
 
@@ -1122,6 +1126,15 @@ footer{
       <div id="sim-resultado-container" style="display:none;">
         <div class="sim-marcador-final" id="sim-marcador-final"></div>
         <div class="sim-relato" id="sim-relato"></div>
+        <div class="sim-tabla-resumen">
+          <h4>📊 Resumen del partido</h4>
+          <div class="table-wrap">
+            <table id="sim-resumen-tabla">
+              <thead><tr><th>Jugador</th><th>Equipo</th><th>Goles</th><th>Asistencias</th></tr></thead>
+              <tbody id="sim-resumen-body"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -2267,8 +2280,8 @@ document.getElementById('grillodle-volver').addEventListener('click', ()=>{
 });
 
 /* ---------- MINIJUEGO: SIMULADOR DE PARTIDOS ---------- */
-let simEquipoA = [];
-let simEquipoB = [];
+let simEquipoClaro = [];
+let simEquipoOscuro = [];
 
 function simObtenerDatosJugador(nombre){
   const r = DATA.estadisticas.find(x => x.Jugador === nombre);
@@ -2284,19 +2297,19 @@ function simObtenerDatosJugador(nombre){
 }
 
 function simActualizarBotonSimular(){
-  document.getElementById('sim-simular-btn').disabled = !(simEquipoA.length >= 5 && simEquipoB.length >= 5);
+  document.getElementById('sim-simular-btn').disabled = !(simEquipoClaro.length >= 5 && simEquipoOscuro.length >= 5);
 }
 
 function simRenderEquipos(){
-  const ulA = document.getElementById('sim-lista-A');
-  const ulB = document.getElementById('sim-lista-B');
-  ulA.innerHTML = simEquipoA.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="A" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
-  ulB.innerHTML = simEquipoB.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="B" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
-  ulA.querySelectorAll('.sim-quitar').forEach(el=>{
-    el.addEventListener('click', ()=>{ simEquipoA.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
+  const ulClaro = document.getElementById('sim-lista-claro');
+  const ulOscuro = document.getElementById('sim-lista-oscuro');
+  ulClaro.innerHTML = simEquipoClaro.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="claro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulOscuro.innerHTML = simEquipoOscuro.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="oscuro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulClaro.querySelectorAll('.sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ simEquipoClaro.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
   });
-  ulB.querySelectorAll('.sim-quitar').forEach(el=>{
-    el.addEventListener('click', ()=>{ simEquipoB.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
+  ulOscuro.querySelectorAll('.sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ simEquipoOscuro.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
   });
   simActualizarBotonSimular();
 }
@@ -2307,11 +2320,11 @@ function simAgregarJugador(equipo){
   const existe = DATA.estadisticas.some(r => r.Jugador.toLowerCase() === nombre.toLowerCase());
   if(!existe){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
   const nombreReal = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombre.toLowerCase()).Jugador;
-  if(simEquipoA.includes(nombreReal) || simEquipoB.includes(nombreReal)){
+  if(simEquipoClaro.includes(nombreReal) || simEquipoOscuro.includes(nombreReal)){
     alert('Ese jugador ya está en un equipo.');
     return;
   }
-  if(equipo === 'A') simEquipoA.push(nombreReal); else simEquipoB.push(nombreReal);
+  if(equipo === 'claro') simEquipoClaro.push(nombreReal); else simEquipoOscuro.push(nombreReal);
   input.value = '';
   simRenderEquipos();
 }
@@ -2336,21 +2349,29 @@ function simElegirPonderado(items, pesoFn){
 }
 
 function simSimularPartido(){
-  const datosA = simEquipoA.map(simObtenerDatosJugador);
-  const datosB = simEquipoB.map(simObtenerDatosJugador);
+  const datosClaro = simEquipoClaro.map(simObtenerDatosJugador);
+  const datosOscuro = simEquipoOscuro.map(simObtenerDatosJugador);
 
-  const ofensivaA = datosA.reduce((s,j)=>s+j.ataque,0) / datosA.length;
-  const ofensivaB = datosB.reduce((s,j)=>s+j.ataque,0) / datosB.length;
-  const defensaA = datosA.reduce((s,j)=>s+j.recibidosProm,0) / datosA.length;
-  const defensaB = datosB.reduce((s,j)=>s+j.recibidosProm,0) / datosB.length;
+  const ofensivaClaro = datosClaro.reduce((s,j)=>s+j.ataque,0) / datosClaro.length;
+  const ofensivaOscuro = datosOscuro.reduce((s,j)=>s+j.ataque,0) / datosOscuro.length;
+  const defensaClaro = datosClaro.reduce((s,j)=>s+j.recibidosProm,0) / datosClaro.length;
+  const defensaOscuro = datosOscuro.reduce((s,j)=>s+j.recibidosProm,0) / datosOscuro.length;
 
-  const expectedA = Math.max((ofensivaA + defensaB) / 2, 0.4);
-  const expectedB = Math.max((ofensivaB + defensaA) / 2, 0.4);
+  const expectedClaro = Math.max((ofensivaClaro + defensaOscuro) / 2, 0.4);
+  const expectedOscuro = Math.max((ofensivaOscuro + defensaClaro) / 2, 0.4);
 
-  const golesA = simPoisson(expectedA);
-  const golesB = simPoisson(expectedB);
+  const golesClaro = simPoisson(expectedClaro);
+  const golesOscuro = simPoisson(expectedOscuro);
 
   const eventos = [];
+  const tally = {}; // nombre -> {goles, asistencias, equipo}
+  function registrarTally(nombre, equipo, campo){
+    if(!tally[nombre]) tally[nombre] = { goles:0, asistencias:0, equipo };
+    tally[nombre][campo]++;
+  }
+  simEquipoClaro.forEach(n => tally[n] = { goles:0, asistencias:0, equipo:'Claro' });
+  simEquipoOscuro.forEach(n => tally[n] = { goles:0, asistencias:0, equipo:'Oscuro' });
+
   function generarGoles(cantidad, equipoNombre, datosEquipo){
     for(let i=0; i<cantidad; i++){
       const goleador = simElegirPonderado(datosEquipo, j => j.golesProm);
@@ -2363,13 +2384,15 @@ function simSimularPartido(){
         goleador: goleador.nombre,
         asistente: asistente ? asistente.nombre : null
       });
+      registrarTally(goleador.nombre, equipoNombre, 'goles');
+      if(asistente) registrarTally(asistente.nombre, equipoNombre, 'asistencias');
     }
   }
-  generarGoles(golesA, 'A', datosA);
-  generarGoles(golesB, 'B', datosB);
+  generarGoles(golesClaro, 'Claro', datosClaro);
+  generarGoles(golesOscuro, 'Oscuro', datosOscuro);
   eventos.sort((a,b) => a.minuto - b.minuto);
 
-  document.getElementById('sim-marcador-final').textContent = `Equipo A ${golesA} - ${golesB} Equipo B`;
+  document.getElementById('sim-marcador-final').textContent = `Equipo Claro ${golesClaro} - ${golesOscuro} Equipo Oscuro`;
   const relatoEl = document.getElementById('sim-relato');
   if(eventos.length === 0){
     relatoEl.innerHTML = '<div class="sim-evento">0-0 sin goles. Partidazo cerrado atrás.</div>';
@@ -2380,6 +2403,13 @@ function simSimularPartido(){
       </div>
     `).join('');
   }
+
+  const filasResumen = Object.entries(tally)
+    .sort((a,b) => (b[1].goles + b[1].asistencias) - (a[1].goles + a[1].asistencias));
+  document.getElementById('sim-resumen-body').innerHTML = filasResumen.map(([nombre, t]) => `
+    <tr><td>${nombre}</td><td>${t.equipo}</td><td>${t.goles}</td><td>${t.asistencias}</td></tr>
+  `).join('');
+
   document.getElementById('sim-resultado-container').style.display = 'block';
 }
 
@@ -2392,7 +2422,7 @@ document.getElementById('mini-card-simulador').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-simulador').style.display = 'block';
   gdCargarListaJugadores();
-  simEquipoA = []; simEquipoB = [];
+  simEquipoClaro = []; simEquipoOscuro = [];
   document.getElementById('sim-resultado-container').style.display = 'none';
   simRenderEquipos();
 });
