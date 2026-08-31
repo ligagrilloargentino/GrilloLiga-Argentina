@@ -649,6 +649,22 @@ footer{
       <button class="auth-btn" id="perfil-submit">Entrar a Grillo Liga</button>
     </div>
 
+    <div id="auth-recuperar" style="display:none;">
+      <h1>Recuperar contraseña</h1>
+      <div class="auth-sub">Confirmá tu identidad para poner una clave nueva</div>
+      <div class="auth-error" id="recuperar-error"></div>
+      <div class="auth-field"><label>Usuario</label><input type="text" id="recuperar-username"></div>
+      <div class="auth-field"><label>Fecha de nacimiento (la que usaste al registrarte)</label><input type="date" id="recuperar-fecha"></div>
+      <div class="auth-field"><label>Contraseña nueva</label>
+        <div class="auth-pass-wrap">
+          <input type="password" id="recuperar-clave" autocomplete="new-password">
+          <button type="button" class="auth-eye" data-target="recuperar-clave">👁</button>
+        </div>
+      </div>
+      <button class="auth-btn" id="recuperar-submit">Restablecer contraseña</button>
+      <div class="auth-switch"><a id="ir-a-login-desde-recuperar">Volver a iniciar sesión</a></div>
+    </div>
+
   </div>
 </div>
 
@@ -859,6 +875,7 @@ const authOverlay = document.getElementById('auth-overlay');
 const vLogin = document.getElementById('auth-login');
 const vRegistro = document.getElementById('auth-registro');
 const vPerfil = document.getElementById('auth-perfil');
+const vRecuperar = document.getElementById('auth-recuperar');
 
 function mostrarError(id, msg){
   const el = document.getElementById(id);
@@ -884,8 +901,32 @@ document.getElementById('ir-a-login').addEventListener('click', ()=>{
   ocultarErrores(); vRegistro.style.display='none'; vLogin.style.display='block';
 });
 document.getElementById('olvide-clave').addEventListener('click', ()=>{
+  ocultarErrores(); vLogin.style.display='none'; vRecuperar.style.display='block';
+});
+document.getElementById('ir-a-login-desde-recuperar').addEventListener('click', ()=>{
+  ocultarErrores(); vRecuperar.style.display='none'; vLogin.style.display='block';
+});
+document.getElementById('recuperar-submit').addEventListener('click', async ()=>{
   ocultarErrores();
-  mostrarError('login-error', 'Uffa pa parece que olvidaste la contraseña, ponete en contacto con el grillo');
+  const usuario = document.getElementById('recuperar-username').value.trim();
+  const fecha = document.getElementById('recuperar-fecha').value;
+  const claveNueva = document.getElementById('recuperar-clave').value;
+  if(!usuario || !fecha || !claveNueva){ mostrarError('recuperar-error', 'Completá todos los campos.'); return; }
+  if(claveNueva.length < 6){ mostrarError('recuperar-error', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+  try {
+    const { data, error } = await sbClient.functions.invoke('resetear-clave', {
+      body: { usuario, fecha_nacimiento: fecha, nueva_clave: claveNueva }
+    });
+    if(error || (data && data.error)){
+      mostrarError('recuperar-error', (data && data.error) ? data.error : 'El usuario o la fecha de nacimiento no coinciden.');
+      return;
+    }
+    vRecuperar.style.display='none';
+    vLogin.style.display='block';
+    mostrarError('login-error', 'Listo, tu contraseña se actualizó. Ya podés iniciar sesión.');
+  } catch(e){
+    mostrarError('recuperar-error', 'No se pudo procesar el pedido. Intentá de nuevo.');
+  }
 });
 
 document.getElementById('login-submit').addEventListener('click', async ()=>{
