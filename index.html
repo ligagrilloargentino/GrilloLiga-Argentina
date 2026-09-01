@@ -387,6 +387,17 @@
     border-left:none; border-right:none; border-radius:0;
   }
 }
+/* Modo pantalla completa para jugar Cabezones en celular: solo se ve el campo y "volver" */
+body.cz-pantalla-completa header.top,
+body.cz-pantalla-completa .stitch-line,
+body.cz-pantalla-completa footer,
+body.cz-pantalla-completa #panel-minijuegos > .section-head{
+  display:none !important;
+}
+body.cz-pantalla-completa main{ padding-top:10px; }
+body.cz-pantalla-completa #cabezones-volver{
+  display:block; margin-bottom:8px; font-size:13px;
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -3205,6 +3216,7 @@ function czIniciarPartido(){
   document.getElementById('cz-armado').style.display = 'none';
   document.getElementById('cz-cancha-wrap').style.display = 'block';
   czActualizarAvisoRotar();
+  if(CZ_ES_TACTIL) document.body.classList.add('cz-pantalla-completa');
 
   if(!czLoopIniciado){ czLoopIniciado = true; requestAnimationFrame(czLoop); }
 }
@@ -3648,6 +3660,7 @@ document.getElementById('cz-jugar-de-nuevo').addEventListener('click', czIniciar
 const CZ_ES_TACTIL = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
 
 document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
+  document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-cabezones').style.display = 'block';
   document.getElementById('cz-armado').style.display = 'block';
@@ -3670,6 +3683,7 @@ document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
 });
 document.getElementById('cabezones-volver').addEventListener('click', ()=>{
   czPartidoActivo = false;
+  document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-cabezones').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
