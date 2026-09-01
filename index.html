@@ -3284,9 +3284,9 @@ function czDibujarBotin(j){
   // botín (óvalo con punta hacia adelante)
   czCtx.beginPath();
   czCtx.ellipse(6, 0, 14, 8, 0, 0, Math.PI*2);
-  czCtx.fillStyle = '#8a2c19';
+  czCtx.fillStyle = '#D4AF37';
   czCtx.fill();
-  czCtx.strokeStyle = '#3a1610';
+  czCtx.strokeStyle = '#8a6f1f';
   czCtx.lineWidth = 1.5;
   czCtx.stroke();
   // suela blanca
@@ -3442,15 +3442,19 @@ function czDibujar(){
 }
 
 function czLoop(ts){
-  if(czPartidoActivo && document.getElementById('mini-cabezones').style.display !== 'none'){
-    if(czUltimoTick === null) czUltimoTick = ts;
-    const dt = ts - czUltimoTick;
-    czPaso(dt);
-    if(dt >= 0){
-      czUltimoTick = ts;
+  try {
+    if(czPartidoActivo && document.getElementById('mini-cabezones').style.display !== 'none'){
+      if(czUltimoTick === null) czUltimoTick = ts;
+      const dt = ts - czUltimoTick;
+      czPaso(dt);
+      if(dt >= 0){
+        czUltimoTick = ts;
+      }
     }
+    czDibujar();
+  } catch(err){
+    console.warn('Error en Cabezones, se recupera el siguiente frame:', err);
   }
-  czDibujar();
   requestAnimationFrame(czLoop);
 }
 
@@ -3465,7 +3469,7 @@ setInterval(()=>{
 const CZ_TECLAS_JUEGO = ['a','d','w','s',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
 document.addEventListener('keydown', (e)=>{
   czTeclas[e.key] = true;
-  if(document.getElementById('mini-cabezones').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.key)){
+  if(document.getElementById('cz-cancha-wrap').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.key)){
     e.preventDefault();
   }
 });
