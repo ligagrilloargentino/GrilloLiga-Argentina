@@ -300,6 +300,20 @@
 @media (max-width:600px){
   .sim-equipos{ grid-template-columns:1fr; }
 }
+/* ---------- MINIJUEGO: CABEZONES ---------- */
+.cz-elegir-fila{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+.cz-elegir-col input{
+  width:100%; box-sizing:border-box; padding:9px 12px; border-radius:20px;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--text);
+  font-family:'Lora',serif; font-size:13px;
+}
+.cz-controles-info{
+  background:var(--card2); border:1px solid var(--line); border-radius:8px;
+  padding:10px 14px; font-size:11.5px; color:var(--text-dim); line-height:1.7;
+}
+@media (max-width:600px){
+  .cz-elegir-fila{ grid-template-columns:1fr; }
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -1047,9 +1061,9 @@ footer{
         <h3>⚽ Metegol 2D</h3>
         <p>6 vs 6, fichas deslizables tipo metegol.</p>
       </div>
-      <div class="mini-juego-card proximamente">
-        <h3>🗿 Head Soccer</h3>
-        <p>Próximamente…</p>
+      <div class="mini-juego-card" id="mini-card-cabezones">
+        <h3>🗿 Cabezones</h3>
+        <p>1 vs 1 con cabezas gigantes.</p>
       </div>
     </div>
 
@@ -1230,6 +1244,57 @@ footer{
         <div id="mg-final" style="display:none;">
           <div class="pen-final-titulo" id="mg-final-titulo"></div>
           <button class="auth-btn" id="mg-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mini-cabezones" style="display:none;">
+      <span class="rps-volver" id="cabezones-volver">← Volver a Minijuegos</span>
+
+      <div id="cz-armado">
+        <div class="gd-intro">Elegí tu cabeza (y la del rival), el modo y arrancá el partido. Se juega 90 segundos.</div>
+
+        <div class="mg-opciones">
+          <div class="mg-opciones-col">
+            <div class="mg-opciones-titulo">¿Contra quién jugás?</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle active" id="cz-modo-bot" data-modo="bot">🦗 Contra el GrilloBOT</button>
+              <button class="mg-toggle" id="cz-modo-local" data-modo="local">👥 1vs1 Local (mismo teclado)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cz-elegir-fila">
+          <div class="cz-elegir-col">
+            <div class="mg-opciones-titulo" id="cz-label-j1">Jugador 1</div>
+            <input type="text" id="cz-input-j1" list="gd-lista-jugadores" placeholder="Buscá tu cabeza…">
+          </div>
+          <div class="cz-elegir-col">
+            <div class="mg-opciones-titulo" id="cz-label-j2">GrilloBOT</div>
+            <input type="text" id="cz-input-j2" list="gd-lista-jugadores" placeholder="Buscá la cabeza rival…">
+          </div>
+        </div>
+
+        <div class="cz-controles-info" id="cz-controles-info">
+          <b>Controles Jugador 1:</b> A/D moverse · W saltar · Espacio patear<br>
+          <span id="cz-controles-j2" style="display:none;"><b>Controles Jugador 2:</b> ←/→ moverse · ↑ saltar · Enter patear</span>
+        </div>
+
+        <button class="auth-btn" id="cz-empezar-btn" style="max-width:260px; margin:18px auto 0;" disabled>Empezar partido</button>
+      </div>
+
+      <div id="cz-cancha-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div id="cz-nombre-j1">JUGADOR 1<br><b id="cz-score-j1">0</b></div>
+          <div class="pen-ronda">⏱ <b id="cz-tiempo">90</b>s</div>
+          <div id="cz-nombre-j2">RIVAL<br><b id="cz-score-j2">0</b></div>
+        </div>
+        <div class="mg-canvas-container">
+          <canvas id="cz-canvas" width="600" height="380"></canvas>
+        </div>
+        <div id="cz-final" style="display:none;">
+          <div class="pen-final-titulo" id="cz-final-titulo"></div>
+          <button class="auth-btn" id="cz-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
         </div>
       </div>
     </div>
@@ -2919,6 +2984,351 @@ document.getElementById('mini-card-metegol').addEventListener('click', ()=>{
 });
 document.getElementById('metegol-volver').addEventListener('click', ()=>{
   document.getElementById('mini-metegol').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: CABEZONES ---------- */
+const CZ_CAMPO = { xMin:30, xMax:570, ySuelo:340 };
+const CZ_GOL_Y = 200; // desde esta altura hacia abajo, en los extremos, es arco
+const CZ_GRAVEDAD = 0.55;
+const CZ_RADIO_CABEZA = 24, CZ_RADIO_PELOTA = 11;
+const CZ_VEL_MOV = 4.3, CZ_VEL_SALTO = -11.5;
+const CZ_FRICCION_PELOTA_AIRE = 0.995, CZ_REBOTE_PELOTA = 0.72;
+const CZ_DURACION_PARTIDO = 90;
+const CZ_DURACION_POWERUP = 8000;
+
+let czModo = 'bot';
+let czNombreJ1 = null, czNombreJ2 = null;
+let czJugador1, czJugador2, czPelota;
+let czMarcadorJ1 = 0, czMarcadorJ2 = 0;
+let czTiempoRestante = CZ_DURACION_PARTIDO;
+let czPartidoActivo = false;
+let czUltimoTick = null;
+let czLoopIniciado = false;
+let czPowerUps = [];
+let czProximoPowerUp = 0;
+let czCtx = null;
+let czFotoCache = {};
+let czTeclas = {}; // estado crudo del teclado
+
+function czObtenerImagen(nombre){
+  if(czFotoCache[nombre]) return czFotoCache[nombre];
+  const url = FOTOS_JUGADORES[nombre];
+  if(!url){ czFotoCache[nombre] = null; return null; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = url;
+  czFotoCache[nombre] = img;
+  return img;
+}
+
+function czCrearJugador(nombre, lado, esBot){
+  return {
+    nombre, lado, esBot,
+    x: lado === 'izq' ? 150 : 450,
+    y: CZ_CAMPO.ySuelo - CZ_RADIO_CABEZA,
+    vx: 0, vy: 0,
+    radio: CZ_RADIO_CABEZA,
+    enSuelo: true,
+    mirandoDerecha: lado === 'izq',
+    velocidad: CZ_VEL_MOV,
+    kickPresionado: false,
+    efectoCabezaHasta: 0,
+    efectoRayoHasta: 0
+  };
+}
+
+function czIniciarPartido(){
+  czJugador1 = czCrearJugador(czNombreJ1, 'izq', false);
+  czJugador2 = czCrearJugador(czNombreJ2, 'der', czModo === 'bot');
+  czObtenerImagen(czNombreJ1); czObtenerImagen(czNombreJ2);
+  czPelota = { x:300, y:200, vx:0, vy:0, radio:CZ_RADIO_PELOTA, efectoHasta:0 };
+  czMarcadorJ1 = 0; czMarcadorJ2 = 0;
+  czTiempoRestante = CZ_DURACION_PARTIDO;
+  czPowerUps = [];
+  czProximoPowerUp = Date.now() + 10000;
+  czPartidoActivo = true;
+  czUltimoTick = null;
+
+  document.getElementById('cz-score-j1').textContent = '0';
+  document.getElementById('cz-score-j2').textContent = '0';
+  document.getElementById('cz-tiempo').textContent = String(CZ_DURACION_PARTIDO);
+  document.getElementById('cz-nombre-j1').innerHTML = `${czNombreJ1}<br><b id="cz-score-j1">0</b>`;
+  document.getElementById('cz-nombre-j2').innerHTML = `${czNombreJ2}<br><b id="cz-score-j2">0</b>`;
+  document.getElementById('cz-final').style.display = 'none';
+  document.getElementById('cz-armado').style.display = 'none';
+  document.getElementById('cz-cancha-wrap').style.display = 'block';
+
+  if(!czLoopIniciado){ czLoopIniciado = true; requestAnimationFrame(czLoop); }
+}
+
+function czAplicarGravedadYSuelo(o, radio){
+  o.vy += CZ_GRAVEDAD;
+  o.y += o.vy;
+  o.x += o.vx;
+  if(o.y + radio > CZ_CAMPO.ySuelo){
+    o.y = CZ_CAMPO.ySuelo - radio;
+    if(o.vy > 0){
+      if(o === czPelota){ o.vy *= -CZ_REBOTE_PELOTA; if(Math.abs(o.vy) < 1) o.vy = 0; }
+      else o.vy = 0;
+    }
+  }
+  if(o.x - radio < CZ_CAMPO.xMin){ o.x = CZ_CAMPO.xMin + radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
+  if(o.x + radio > CZ_CAMPO.xMax){ o.x = CZ_CAMPO.xMax - radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
+}
+
+function czColisionCabezaPelota(jugador){
+  const dx = czPelota.x - jugador.x, dy = czPelota.y - jugador.y;
+  const dist = Math.hypot(dx,dy) || 0.001;
+  const minDist = jugador.radio + czPelota.radio;
+  if(dist < minDist){
+    const nx = dx/dist, ny = dy/dist;
+    const solape = minDist - dist;
+    czPelota.x += nx*solape; czPelota.y += ny*solape;
+    const fuerza = Math.max(6, Math.hypot(jugador.vx, jugador.vy)*1.3);
+    czPelota.vx = nx*fuerza + jugador.vx*0.5;
+    czPelota.vy = ny*fuerza - 2;
+  }
+}
+
+function czIntentarPatear(jugador){
+  const dx = czPelota.x - jugador.x, dy = czPelota.y - jugador.y;
+  const dist = Math.hypot(dx,dy);
+  if(dist < jugador.radio + czPelota.radio + 22){
+    const dir = jugador.mirandoDerecha ? 1 : -1;
+    czPelota.vx = dir*11 + jugador.vx*0.4;
+    czPelota.vy = -9.5;
+  }
+}
+
+function czSpawnPowerUp(){
+  const tipos = ['bola_gigante','cabeza_gigante','rayo'];
+  const tipo = tipos[Math.floor(Math.random()*tipos.length)];
+  czPowerUps.push({ tipo, x: 100 + Math.random()*400, y: 20, vy: 1.5, tomado:false });
+}
+
+function czAplicarPowerUp(jugador, tipo){
+  const ahora = Date.now();
+  if(tipo === 'bola_gigante'){ czPelota.radio = CZ_RADIO_PELOTA*1.8; czPelota.efectoHasta = ahora + CZ_DURACION_POWERUP; }
+  if(tipo === 'cabeza_gigante'){ jugador.radio = CZ_RADIO_CABEZA*1.6; jugador.efectoCabezaHasta = ahora + CZ_DURACION_POWERUP; }
+  if(tipo === 'rayo'){ jugador.velocidad = CZ_VEL_MOV*1.9; jugador.efectoRayoHasta = ahora + CZ_DURACION_POWERUP; }
+}
+
+function czActualizarEfectos(){
+  const ahora = Date.now();
+  if(czPelota.efectoHasta && ahora > czPelota.efectoHasta){ czPelota.radio = CZ_RADIO_PELOTA; czPelota.efectoHasta = 0; }
+  [czJugador1, czJugador2].forEach(j=>{
+    if(j.efectoCabezaHasta && ahora > j.efectoCabezaHasta){ j.radio = CZ_RADIO_CABEZA; j.efectoCabezaHasta = 0; }
+    if(j.efectoRayoHasta && ahora > j.efectoRayoHasta){ j.velocidad = CZ_VEL_MOV; j.efectoRayoHasta = 0; }
+  });
+}
+
+function czControlarHumano(jugador, izq, der, arriba, patear){
+  jugador.vx = 0;
+  if(czTeclas[izq]){ jugador.vx = -jugador.velocidad; jugador.mirandoDerecha = false; }
+  if(czTeclas[der]){ jugador.vx = jugador.velocidad; jugador.mirandoDerecha = true; }
+  if(czTeclas[arriba] && jugador.enSuelo){ jugador.vy = CZ_VEL_SALTO; jugador.enSuelo = false; }
+  if(czTeclas[patear] && !jugador.kickPresionado){ czIntentarPatear(jugador); jugador.kickPresionado = true; }
+  if(!czTeclas[patear]) jugador.kickPresionado = false;
+}
+
+function czControlarBot(jugador){
+  const dx = czPelota.x - jugador.x;
+  jugador.vx = 0;
+  if(Math.abs(dx) > 12){
+    jugador.vx = dx > 0 ? jugador.velocidad : -jugador.velocidad;
+    jugador.mirandoDerecha = dx > 0;
+  }
+  if(czPelota.y < jugador.y - 30 && Math.abs(dx) < 70 && jugador.enSuelo && Math.random() < 0.15){
+    jugador.vy = CZ_VEL_SALTO; jugador.enSuelo = false;
+  }
+  const dist = Math.hypot(dx, czPelota.y - jugador.y);
+  if(dist < jugador.radio + czPelota.radio + 22 && Math.random() < 0.5){
+    czIntentarPatear(jugador);
+  }
+}
+
+function czGol(lado){
+  if(lado === 'izq'){ czMarcadorJ2++; document.getElementById('cz-score-j2').textContent = czMarcadorJ2; }
+  else { czMarcadorJ1++; document.getElementById('cz-score-j1').textContent = czMarcadorJ1; }
+  czJugador1.x = 150; czJugador1.y = CZ_CAMPO.ySuelo - czJugador1.radio; czJugador1.vx=0; czJugador1.vy=0;
+  czJugador2.x = 450; czJugador2.y = CZ_CAMPO.ySuelo - czJugador2.radio; czJugador2.vx=0; czJugador2.vy=0;
+  czPelota.x = 300; czPelota.y = 200; czPelota.vx = 0; czPelota.vy = 0;
+}
+
+function czTerminarPartido(){
+  czPartidoActivo = false;
+  let titulo;
+  if(czMarcadorJ1 > czMarcadorJ2) titulo = `🏆 ¡Ganó ${czNombreJ1}! ${czMarcadorJ1} - ${czMarcadorJ2}`;
+  else if(czMarcadorJ2 > czMarcadorJ1) titulo = `🏆 ¡Ganó ${czNombreJ2}! ${czMarcadorJ2} - ${czMarcadorJ1}`;
+  else titulo = `🤝 Empate ${czMarcadorJ1} - ${czMarcadorJ2}`;
+  document.getElementById('cz-final-titulo').textContent = titulo;
+  document.getElementById('cz-final').style.display = 'block';
+}
+
+function czPaso(dtMs){
+  czActualizarEfectos();
+
+  if(Date.now() > czProximoPowerUp){
+    czSpawnPowerUp();
+    czProximoPowerUp = Date.now() + 12000 + Math.random()*5000;
+  }
+  czPowerUps.forEach(p=> p.y += p.vy);
+  czPowerUps = czPowerUps.filter(p=>{
+    if(p.y > CZ_CAMPO.ySuelo) return false;
+    [czJugador1, czJugador2].forEach(j=>{
+      if(!p.tomado && Math.hypot(p.x-j.x, p.y-j.y) < j.radio + 12){
+        p.tomado = true;
+        czAplicarPowerUp(j, p.tipo);
+      }
+    });
+    return !p.tomado;
+  });
+
+  if(czModo === 'bot') czControlarBot(czJugador2);
+  else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter');
+  czControlarHumano(czJugador1, 'a', 'd', 'w', ' ');
+
+  czAplicarGravedadYSuelo(czJugador1, czJugador1.radio);
+  czAplicarGravedadYSuelo(czJugador2, czJugador2.radio);
+  if(czJugador1.y + czJugador1.radio >= CZ_CAMPO.ySuelo) czJugador1.enSuelo = true;
+  if(czJugador2.y + czJugador2.radio >= CZ_CAMPO.ySuelo) czJugador2.enSuelo = true;
+
+  czPelota.vy += CZ_GRAVEDAD;
+  czPelota.vx *= CZ_FRICCION_PELOTA_AIRE;
+  czAplicarGravedadYSuelo(czPelota, czPelota.radio);
+  czColisionCabezaPelota(czJugador1);
+  czColisionCabezaPelota(czJugador2);
+
+  // gol izquierdo (contra Jugador 1)
+  if(czPelota.x - czPelota.radio < CZ_CAMPO.xMin && czPelota.y > CZ_GOL_Y){ czGol('izq'); }
+  if(czPelota.x + czPelota.radio > CZ_CAMPO.xMax && czPelota.y > CZ_GOL_Y){ czGol('der'); }
+}
+
+function czDibujarCabeza(j){
+  czCtx.save();
+  czCtx.beginPath();
+  czCtx.arc(j.x, j.y, j.radio, 0, Math.PI*2);
+  czCtx.closePath();
+  czCtx.fillStyle = j.lado === 'izq' ? '#F7F1E1' : '#232019';
+  czCtx.fill();
+  czCtx.lineWidth = 3;
+  czCtx.strokeStyle = 'rgba(0,0,0,.4)';
+  czCtx.stroke();
+  const img = czFotoCache[j.nombre];
+  if(img && img.complete && img.naturalWidth > 0){
+    czCtx.clip();
+    czCtx.drawImage(img, j.x-j.radio, j.y-j.radio, j.radio*2, j.radio*2);
+  } else {
+    czCtx.fillStyle = j.lado === 'izq' ? '#161310' : '#F0E7D2';
+    czCtx.font = 'bold 14px sans-serif';
+    czCtx.textAlign = 'center'; czCtx.textBaseline = 'middle';
+    czCtx.fillText(j.nombre.slice(0,2).toUpperCase(), j.x, j.y);
+  }
+  czCtx.restore();
+}
+
+function czDibujarPowerUp(p){
+  const emojis = { bola_gigante:'⚽', cabeza_gigante:'🗿', rayo:'⚡' };
+  czCtx.font = '22px sans-serif';
+  czCtx.textAlign = 'center'; czCtx.textBaseline = 'middle';
+  czCtx.fillText(emojis[p.tipo], p.x, p.y);
+}
+
+function czDibujar(){
+  if(!czCtx) return;
+  czCtx.clearRect(0,0,600,380);
+  czCtx.fillStyle = '#3a6b2f';
+  czCtx.fillRect(0,0,600,380);
+  czCtx.fillStyle = '#2f5726';
+  czCtx.fillRect(0, CZ_CAMPO.ySuelo, 600, 380-CZ_CAMPO.ySuelo);
+
+  czCtx.strokeStyle = 'rgba(255,255,255,.85)';
+  czCtx.lineWidth = 2;
+  czCtx.strokeRect(CZ_CAMPO.xMin-14, CZ_GOL_Y, 14, CZ_CAMPO.ySuelo-CZ_GOL_Y);
+  czCtx.strokeRect(CZ_CAMPO.xMax, CZ_GOL_Y, 14, CZ_CAMPO.ySuelo-CZ_GOL_Y);
+  czCtx.beginPath(); czCtx.moveTo(300,0); czCtx.lineTo(300,CZ_CAMPO.ySuelo); czCtx.strokeStyle='rgba(255,255,255,.3)'; czCtx.stroke();
+
+  czPowerUps.forEach(czDibujarPowerUp);
+  czDibujarCabeza(czJugador1);
+  czDibujarCabeza(czJugador2);
+
+  czCtx.beginPath();
+  czCtx.arc(czPelota.x, czPelota.y, czPelota.radio, 0, Math.PI*2);
+  czCtx.fillStyle = '#fff'; czCtx.fill();
+  czCtx.lineWidth = 2; czCtx.strokeStyle = '#222'; czCtx.stroke();
+}
+
+function czLoop(ts){
+  if(czPartidoActivo && document.getElementById('mini-cabezones').style.display !== 'none'){
+    if(czUltimoTick === null) czUltimoTick = ts;
+    const dt = ts - czUltimoTick;
+    czPaso(dt);
+    if(dt >= 0){
+      czUltimoTick = ts;
+    }
+  }
+  czDibujar();
+  requestAnimationFrame(czLoop);
+}
+
+// cronómetro de partido (independiente del rAF de física, corre en segundos reales)
+setInterval(()=>{
+  if(!czPartidoActivo) return;
+  czTiempoRestante--;
+  document.getElementById('cz-tiempo').textContent = String(Math.max(czTiempoRestante,0));
+  if(czTiempoRestante <= 0){ czTerminarPartido(); }
+}, 1000);
+
+document.addEventListener('keydown', (e)=>{ czTeclas[e.key] = true; });
+document.addEventListener('keyup', (e)=>{ czTeclas[e.key] = false; });
+
+function czActualizarBotonEmpezar(){
+  document.getElementById('cz-empezar-btn').disabled = !(czNombreJ1 && czNombreJ2);
+}
+
+document.getElementById('cz-input-j1').addEventListener('change', (e)=>{
+  const nombre = normalizarTexto(e.target.value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+  czNombreJ1 = encontrado ? encontrado.Jugador : null;
+  czActualizarBotonEmpezar();
+});
+document.getElementById('cz-input-j2').addEventListener('change', (e)=>{
+  const nombre = normalizarTexto(e.target.value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+  czNombreJ2 = encontrado ? encontrado.Jugador : null;
+  czActualizarBotonEmpezar();
+});
+
+document.querySelectorAll('#cz-armado [data-modo]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    czModo = btn.dataset.modo;
+    document.querySelectorAll('#cz-armado [data-modo]').forEach(b => b.classList.toggle('active', b === btn));
+    const esLocal = czModo === 'local';
+    document.getElementById('cz-label-j2').textContent = esLocal ? 'Jugador 2' : 'GrilloBOT';
+    document.getElementById('cz-input-j2').placeholder = esLocal ? 'Buscá la cabeza del Jugador 2…' : 'Buscá la cabeza rival…';
+    document.getElementById('cz-controles-j2').style.display = esLocal ? 'inline' : 'none';
+  });
+});
+
+document.getElementById('cz-empezar-btn').addEventListener('click', czIniciarPartido);
+document.getElementById('cz-jugar-de-nuevo').addEventListener('click', czIniciarPartido);
+
+document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-cabezones').style.display = 'block';
+  document.getElementById('cz-armado').style.display = 'block';
+  document.getElementById('cz-cancha-wrap').style.display = 'none';
+  gdCargarListaJugadores();
+  czNombreJ1 = null; czNombreJ2 = null;
+  document.getElementById('cz-input-j1').value = '';
+  document.getElementById('cz-input-j2').value = '';
+  czActualizarBotonEmpezar();
+  if(!czCtx){ czCtx = document.getElementById('cz-canvas').getContext('2d'); }
+});
+document.getElementById('cabezones-volver').addEventListener('click', ()=>{
+  czPartidoActivo = false;
+  document.getElementById('mini-cabezones').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
 
