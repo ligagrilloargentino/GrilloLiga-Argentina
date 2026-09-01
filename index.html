@@ -3166,6 +3166,21 @@ function czTerminarPartido(){
   document.getElementById('cz-final').style.display = 'block';
 }
 
+function czColisionEntreJugadores(){
+  const dx = czJugador2.x - czJugador1.x, dy = czJugador2.y - czJugador1.y;
+  const dist = Math.hypot(dx, dy) || 0.001;
+  const minDist = czJugador1.radio + czJugador2.radio;
+  if(dist < minDist){
+    const nx = dx/dist, ny = dy/dist;
+    const solape = (minDist - dist) / 2;
+    czJugador1.x -= nx*solape;
+    czJugador2.x += nx*solape;
+    // empuje vertical más suave para no arruinar los saltos
+    czJugador1.y -= ny*solape*0.3;
+    czJugador2.y += ny*solape*0.3;
+  }
+}
+
 function czPaso(dtMs){
   czActualizarEfectos();
 
@@ -3193,6 +3208,7 @@ function czPaso(dtMs){
   czAplicarGravedadYSuelo(czJugador2, czJugador2.radio);
   if(czJugador1.y + czJugador1.radio >= CZ_CAMPO.ySuelo) czJugador1.enSuelo = true;
   if(czJugador2.y + czJugador2.radio >= CZ_CAMPO.ySuelo) czJugador2.enSuelo = true;
+  czColisionEntreJugadores();
 
   czPelota.vy += CZ_GRAVEDAD;
   czPelota.vx *= CZ_FRICCION_PELOTA_AIRE;
@@ -3235,19 +3251,58 @@ function czDibujarPowerUp(p){
   czCtx.fillText(emojis[p.tipo], p.x, p.y);
 }
 
+function czDibujarArco(x, ancho){
+  const yTope = CZ_GOL_Y, alto = CZ_CAMPO.ySuelo - CZ_GOL_Y;
+  // fondo del arco
+  czCtx.fillStyle = 'rgba(255,255,255,0.08)';
+  czCtx.fillRect(x, yTope, ancho, alto);
+  // red (patrón cruzado)
+  czCtx.save();
+  czCtx.beginPath();
+  czCtx.rect(x, yTope, ancho, alto);
+  czCtx.clip();
+  czCtx.strokeStyle = 'rgba(255,255,255,.55)';
+  czCtx.lineWidth = 1;
+  for(let i = -alto; i < ancho + alto; i += 9){
+    czCtx.beginPath(); czCtx.moveTo(x+i, yTope); czCtx.lineTo(x+i+alto, CZ_CAMPO.ySuelo); czCtx.stroke();
+    czCtx.beginPath(); czCtx.moveTo(x+i, CZ_CAMPO.ySuelo); czCtx.lineTo(x+i+alto, yTope); czCtx.stroke();
+  }
+  czCtx.restore();
+  // marco (postes) blanco grueso
+  czCtx.lineWidth = 5;
+  czCtx.strokeStyle = '#fff';
+  czCtx.strokeRect(x, yTope, ancho, alto);
+}
+
 function czDibujar(){
   if(!czCtx) return;
   czCtx.clearRect(0,0,600,380);
-  czCtx.fillStyle = '#3a6b2f';
-  czCtx.fillRect(0,0,600,380);
-  czCtx.fillStyle = '#2f5726';
+
+  // franjas de césped cortado
+  for(let i=0; i<600; i+=40){
+    czCtx.fillStyle = (Math.round(i/40) % 2 === 0) ? '#3f7a34' : '#356b2b';
+    czCtx.fillRect(i, 0, 40, CZ_CAMPO.ySuelo);
+  }
+  czCtx.fillStyle = '#2a4a24';
   czCtx.fillRect(0, CZ_CAMPO.ySuelo, 600, 380-CZ_CAMPO.ySuelo);
 
-  czCtx.strokeStyle = 'rgba(255,255,255,.85)';
+  // línea de borde de cancha y línea/círculo central
+  czCtx.strokeStyle = 'rgba(255,255,255,.5)';
   czCtx.lineWidth = 2;
-  czCtx.strokeRect(CZ_CAMPO.xMin-14, CZ_GOL_Y, 14, CZ_CAMPO.ySuelo-CZ_GOL_Y);
-  czCtx.strokeRect(CZ_CAMPO.xMax, CZ_GOL_Y, 14, CZ_CAMPO.ySuelo-CZ_GOL_Y);
-  czCtx.beginPath(); czCtx.moveTo(300,0); czCtx.lineTo(300,CZ_CAMPO.ySuelo); czCtx.strokeStyle='rgba(255,255,255,.3)'; czCtx.stroke();
+  czCtx.strokeRect(CZ_CAMPO.xMin, 18, CZ_CAMPO.xMax-CZ_CAMPO.xMin, CZ_CAMPO.ySuelo-18);
+  czCtx.beginPath(); czCtx.moveTo(300,18); czCtx.lineTo(300,CZ_CAMPO.ySuelo); czCtx.stroke();
+  czCtx.beginPath(); czCtx.arc(300, CZ_CAMPO.ySuelo-60, 38, 0, Math.PI*2); czCtx.stroke();
+
+  czDibujarArco(CZ_CAMPO.xMin-16, 16);
+  czDibujarArco(CZ_CAMPO.xMax, 16);
+
+  // cartel publicitario
+  czCtx.fillStyle = '#B33B22';
+  czCtx.fillRect(0, 0, 600, 16);
+  czCtx.fillStyle = '#F7F1E1';
+  czCtx.font = 'bold 12px sans-serif';
+  czCtx.textAlign = 'center'; czCtx.textBaseline = 'middle';
+  czCtx.fillText('⚡ APANOVI ⚡', 300, 9);
 
   czPowerUps.forEach(czDibujarPowerUp);
   czDibujarCabeza(czJugador1);
@@ -3280,7 +3335,13 @@ setInterval(()=>{
   if(czTiempoRestante <= 0){ czTerminarPartido(); }
 }, 1000);
 
-document.addEventListener('keydown', (e)=>{ czTeclas[e.key] = true; });
+const CZ_TECLAS_JUEGO = ['a','d','w',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
+document.addEventListener('keydown', (e)=>{
+  czTeclas[e.key] = true;
+  if(document.getElementById('mini-cabezones').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.key)){
+    e.preventDefault();
+  }
+});
 document.addEventListener('keyup', (e)=>{ czTeclas[e.key] = false; });
 
 function czActualizarBotonEmpezar(){
