@@ -382,12 +382,13 @@
   .cz-touch-controles{ display:flex; }
 }
 @media (max-width:700px){
-  #mini-cabezones #cz-canvas-container{
+  #mini-cabezones #cz-canvas-container,
+  #mini-metegol #mg-canvas-container{
     max-width:none; width:calc(100% + 28px); margin-left:-14px; margin-right:-14px;
     border-left:none; border-right:none; border-radius:0;
   }
 }
-/* Modo pantalla completa para jugar Cabezones en celular: solo se ve el título achicado, el campo y "volver" */
+/* Modo pantalla completa para jugar Cabezones/Metegol en celular: solo se ve el título achicado, el campo y "volver" */
 body.cz-pantalla-completa .stitch-line,
 body.cz-pantalla-completa footer,
 body.cz-pantalla-completa #panel-minijuegos > .section-head{
@@ -403,17 +404,23 @@ body.cz-pantalla-completa header.top .badge{
 body.cz-pantalla-completa header.top .top-inner{ padding:6px 14px; }
 body.cz-pantalla-completa header.top .brand h1{ font-size:16px; }
 body.cz-pantalla-completa main{ padding-top:6px; padding-bottom:10px; }
-body.cz-pantalla-completa #cabezones-volver{
+body.cz-pantalla-completa .rps-volver{
   display:block; margin-bottom:4px; font-size:12px;
 }
 body.cz-pantalla-completa .cz-rotar-aviso{ padding:5px 10px; margin-bottom:6px; font-size:10.5px; }
 body.cz-pantalla-completa .pen-marcador{ margin-bottom:6px; }
 body.cz-pantalla-completa #cz-canvas{
-  width:auto !important; height:38vh !important; max-height:320px;
+  width:auto !important; height:50vh !important; max-height:420px;
   max-width:100%; margin:0 auto; display:block;
 }
-body.cz-pantalla-completa #cz-canvas-container{ text-align:center; }
+body.cz-pantalla-completa #mg-canvas{
+  width:auto !important; height:50vh !important; max-height:420px;
+  max-width:100%; margin:0 auto; display:block;
+}
+body.cz-pantalla-completa #cz-canvas-container,
+body.cz-pantalla-completa #mg-canvas-container{ text-align:center; }
 body.cz-pantalla-completa .cz-touch-controles{ padding-top:8px; }
+body.cz-pantalla-completa .mg-planteles{ font-size:11px; }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -495,6 +502,25 @@ nav.tabs button.active{
   border-bottom-color:var(--red);
 }
 nav.tabs button:hover{color:var(--text);}
+
+.menu-hamburguesa-btn{ display:none; }
+@media (max-width:700px){
+  .menu-hamburguesa-btn{
+    display:block; width:100%; text-align:left; margin-top:10px;
+    padding:11px 14px; border-radius:6px; border:1px solid var(--line-strong);
+    background:var(--card); color:var(--text); font-family:'Lora',serif; font-weight:700;
+    font-size:13px; cursor:pointer;
+  }
+  nav.tabs{ display:none; flex-direction:column; margin-top:8px; border-top:none; }
+  nav.tabs.menu-abierto{ display:flex; }
+  nav.tabs .tabs-row{ flex-direction:column; overflow-x:visible; }
+  nav.tabs .tabs-row:first-child{ border-bottom:none; }
+  nav.tabs button{
+    text-align:left; padding:11px 14px; border-bottom:1px solid var(--line);
+    border-left:3px solid transparent;
+  }
+  nav.tabs button.active{ border-bottom-color:var(--line); border-left-color:var(--red); }
+}
 
 main{max-width:980px; margin:0 auto; padding:22px 14px 70px 14px;}
 .panel{display:none; animation:fadeIn .25s ease;}
@@ -972,6 +998,7 @@ footer{
     <div class="subtitle" id="subtitle-text"></div>
     <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); margin-right:10px; display:none;"></span>
     <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
+    <button id="menu-hamburguesa-btn" class="menu-hamburguesa-btn">☰ Menú</button>
     <nav class="tabs">
       <div class="tabs-row">
         <button class="tab-btn active" data-tab="inicio">Inicio</button>
@@ -1331,7 +1358,7 @@ footer{
           <div class="pen-ronda"><span id="mg-turno-label">Turno: Claro</span><div id="mg-timer-label"></div></div>
           <div>OSCURO<br><b id="mg-score-oscuro">0</b></div>
         </div>
-        <div class="mg-canvas-container">
+        <div class="mg-canvas-container" id="mg-canvas-container">
           <canvas id="mg-canvas" width="600" height="380"></canvas>
         </div>
         <div class="mg-nota">Arrastrá una de tus fichas hacia atrás y soltá para patear, como una honda.</div>
@@ -1356,7 +1383,7 @@ footer{
       <span class="rps-volver" id="cabezones-volver">← Volver a Minijuegos</span>
 
       <div id="cz-armado">
-        <div class="gd-intro">Elegí tu cabeza (y la del rival), el modo y arrancá el partido. Se juega 90 segundos.</div>
+        <div class="gd-intro">Elegí tu cabeza (y la del rival), el modo, la duración, y arrancá el partido.</div>
 
         <div class="mg-opciones">
           <div class="mg-opciones-col">
@@ -1372,6 +1399,13 @@ footer{
               <button class="mg-toggle" id="cz-dif-facil" data-dificultad="facil">😌 Fácil</button>
               <button class="mg-toggle active" id="cz-dif-normal" data-dificultad="normal">🙂 Normal</button>
               <button class="mg-toggle" id="cz-dif-dificil" data-dificultad="dificil">🔥 Difícil</button>
+            </div>
+          </div>
+          <div class="mg-opciones-col">
+            <div class="mg-opciones-titulo">Duración del partido</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle active" id="cz-dur-60" data-duracion="60">⏱ 60 segundos</button>
+              <button class="mg-toggle" id="cz-dur-90" data-duracion="90">⏱ 90 segundos</button>
             </div>
           </div>
         </div>
@@ -1701,14 +1735,20 @@ document.getElementById('subtitle-text').textContent = DATA.estadisticas.length 
 
 /* ---------- TABS ---------- */
 const tabBtns = document.querySelectorAll('.tab-btn');
+const navTabsEl = document.querySelector('nav.tabs');
 tabBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
     tabBtns.forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    navTabsEl.classList.remove('menu-abierto');
   });
 });
+const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
+if(menuHamburguesaBtn){
+  menuHamburguesaBtn.addEventListener('click', ()=> navTabsEl.classList.toggle('menu-abierto'));
+}
 
 /* ---------- ESTADISTICAS ---------- */
 const statHeaders = Object.keys(DATA.estadisticas[0]).filter(h => h !== 'N°');
@@ -2862,6 +2902,7 @@ function mgIniciarPartido(){
   document.getElementById('mg-plantel-claro').textContent = mgEquipoClaro.join(', ');
   document.getElementById('mg-plantel-oscuro').textContent = mgEquipoOscuro.join(', ');
   mgIniciarDeadline();
+  if(MG_ES_TACTIL) document.body.classList.add('cz-pantalla-completa');
   if(!mgLoopIniciado){ mgLoopIniciado = true; requestAnimationFrame(mgLoop); }
 }
 
@@ -3108,7 +3149,10 @@ document.getElementById('mg-random-btn').addEventListener('click', ()=>{
   mgRenderEquipos();
 });
 
+const MG_ES_TACTIL = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+
 document.getElementById('mini-card-metegol').addEventListener('click', ()=>{
+  document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-metegol').style.display = 'block';
   document.getElementById('mg-armado').style.display = 'block';
@@ -3133,6 +3177,7 @@ document.getElementById('mini-card-metegol').addEventListener('click', ()=>{
   }
 });
 document.getElementById('metegol-volver').addEventListener('click', ()=>{
+  document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-metegol').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
@@ -3146,7 +3191,7 @@ const CZ_GRAVEDAD = 0.55;
 const CZ_RADIO_CABEZA = 26, CZ_RADIO_PELOTA = 12;
 const CZ_VEL_MOV = 4.3, CZ_VEL_SALTO = -11.5;
 const CZ_FRICCION_PELOTA_AIRE = 0.978, CZ_REBOTE_PELOTA = 0.68;
-const CZ_DURACION_PARTIDO = 90;
+let CZ_DURACION_PARTIDO = 60;
 const CZ_DURACION_POWERUP = 8000;
 
 let czModo = 'bot';
@@ -3669,6 +3714,12 @@ document.querySelectorAll('#cz-armado [data-dificultad]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     czDificultad = btn.dataset.dificultad;
     document.querySelectorAll('#cz-armado [data-dificultad]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.querySelectorAll('#cz-armado [data-duracion]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    CZ_DURACION_PARTIDO = parseInt(btn.dataset.duracion);
+    document.querySelectorAll('#cz-armado [data-duracion]').forEach(b => b.classList.toggle('active', b === btn));
   });
 });
 
