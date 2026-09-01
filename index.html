@@ -3133,8 +3133,8 @@ function czIntentarPatear(jugador){
   const dist = Math.hypot(dx,dy);
   if(dist < jugador.radio + czPelota.radio + 24){
     const dir = jugador.mirandoDerecha ? 1 : -1;
-    czPelota.vx = dir*7.5 + jugador.vx*0.35;
-    czPelota.vy = -7;
+    czPelota.vx = dir*10.5 + jugador.vx*0.4;
+    czPelota.vy = -9.5;
   }
 }
 
