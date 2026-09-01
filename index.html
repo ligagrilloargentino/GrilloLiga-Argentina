@@ -1262,6 +1262,14 @@ footer{
               <button class="mg-toggle" id="cz-modo-local" data-modo="local">👥 1vs1 Local (mismo teclado)</button>
             </div>
           </div>
+          <div class="mg-opciones-col" id="cz-dificultad-col">
+            <div class="mg-opciones-titulo">Dificultad del GrilloBOT</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle" id="cz-dif-facil" data-dificultad="facil">😌 Fácil</button>
+              <button class="mg-toggle active" id="cz-dif-normal" data-dificultad="normal">🙂 Normal</button>
+              <button class="mg-toggle" id="cz-dif-dificil" data-dificultad="dificil">🔥 Difícil</button>
+            </div>
+          </div>
         </div>
 
         <div class="cz-elegir-fila">
@@ -2998,6 +3006,12 @@ const CZ_DURACION_PARTIDO = 90;
 const CZ_DURACION_POWERUP = 8000;
 
 let czModo = 'bot';
+let czDificultad = 'normal';
+const CZ_DIFICULTADES = {
+  facil:   { velocidad:0.45, probPatear:0.22, probSaltar:0.05, errorPunteria:70 },
+  normal:  { velocidad:0.72, probPatear:0.40, probSaltar:0.11, errorPunteria:28 },
+  dificil: { velocidad:1.00, probPatear:0.58, probSaltar:0.18, errorPunteria:0 }
+};
 let czNombreJ1 = null, czNombreJ2 = null;
 let czJugador1, czJugador2, czPelota;
 let czMarcadorJ1 = 0, czMarcadorJ2 = 0;
@@ -3152,17 +3166,19 @@ function czControlarHumano(jugador, izq, der, arriba, patear){
 }
 
 function czControlarBot(jugador){
-  const dx = czPelota.x - jugador.x;
+  const cfg = CZ_DIFICULTADES[czDificultad];
+  const errorPunteria = (Math.random()-0.5) * 2 * cfg.errorPunteria;
+  const dx = (czPelota.x + errorPunteria) - jugador.x;
   jugador.vx = 0;
   if(Math.abs(dx) > 12){
-    jugador.vx = dx > 0 ? jugador.velocidad : -jugador.velocidad;
-    jugador.mirandoDerecha = dx > 0;
+    jugador.vx = (dx > 0 ? 1 : -1) * jugador.velocidad * cfg.velocidad;
+    jugador.mirandoDerecha = (czPelota.x - jugador.x) > 0;
   }
-  if(czPelota.y < jugador.y - 30 && Math.abs(dx) < 70 && jugador.enSuelo && Math.random() < 0.15){
+  if(czPelota.y < jugador.y - 30 && Math.abs(czPelota.x - jugador.x) < 70 && jugador.enSuelo && Math.random() < cfg.probSaltar){
     jugador.vy = CZ_VEL_SALTO; jugador.enSuelo = false;
   }
-  const dist = Math.hypot(dx, czPelota.y - jugador.y);
-  if(dist < jugador.radio + czPelota.radio + 22 && Math.random() < 0.5){
+  const dist = Math.hypot(czPelota.x - jugador.x, czPelota.y - jugador.y);
+  if(dist < jugador.radio + czPelota.radio + 22 && Math.random() < cfg.probPatear){
     czIntentarPatear(jugador);
   }
 }
@@ -3440,6 +3456,14 @@ document.querySelectorAll('#cz-armado [data-modo]').forEach(btn=>{
     document.getElementById('cz-label-j2').textContent = esLocal ? 'Jugador 2' : 'GrilloBOT';
     document.getElementById('cz-input-j2').placeholder = esLocal ? 'Buscá la cabeza del Jugador 2…' : 'Buscá la cabeza rival…';
     document.getElementById('cz-controles-j2').style.display = esLocal ? 'inline' : 'none';
+    document.getElementById('cz-dificultad-col').style.display = esLocal ? 'none' : 'block';
+  });
+});
+
+document.querySelectorAll('#cz-armado [data-dificultad]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    czDificultad = btn.dataset.dificultad;
+    document.querySelectorAll('#cz-armado [data-dificultad]').forEach(b => b.classList.toggle('active', b === btn));
   });
 });
 
