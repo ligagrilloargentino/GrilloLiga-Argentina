@@ -351,6 +351,39 @@
   .cg-celda{ width:22px; height:22px; }
   .cg-celda input{ font-size:11px; }
 }
+/* ---------- CABEZONES: CONTROLES TÁCTILES Y RESPONSIVE ---------- */
+.cz-rotar-aviso{
+  text-align:center; font-size:12px; color:var(--text-dim); background:var(--card2);
+  border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin-bottom:10px;
+}
+#cz-canvas-container{ position:relative; }
+.cz-touch-controles{
+  display:none;
+  position:absolute; left:0; right:0; bottom:6px;
+  justify-content:space-between; align-items:flex-end; padding:0 10px;
+  pointer-events:none;
+}
+.cz-touch-controles button{ pointer-events:auto; }
+.cz-touch-mover{ display:flex; gap:8px; }
+.cz-touch-mover button{
+  width:52px; height:52px; border-radius:50%; border:2px solid rgba(255,255,255,.7);
+  background:rgba(20,17,12,.45); color:#fff; font-size:22px; font-weight:900;
+  touch-action:none; user-select:none; -webkit-user-select:none;
+}
+.cz-touch-acciones{ display:flex; gap:8px; align-items:flex-end; }
+.cz-touch-acciones button{
+  width:56px; height:56px; border-radius:50%; border:2px solid rgba(255,255,255,.7);
+  background:rgba(179,59,34,.55); color:#fff; font-size:18px; font-weight:900;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  touch-action:none; user-select:none; -webkit-user-select:none;
+}
+.cz-touch-acciones button span{ font-size:8px; font-weight:400; text-transform:uppercase; }
+.cz-touch-acciones button.cz-touch-saltar{ background:rgba(55,80,48,.6); }
+.cz-touch-acciones button.cz-touch-levantar{ background:rgba(156,122,46,.6); }
+.cz-touch-controles button:active{ transform:scale(0.92); }
+@media (hover:none) and (pointer:coarse){
+  .cz-touch-controles{ display:flex; }
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -1333,13 +1366,25 @@ footer{
       </div>
 
       <div id="cz-cancha-wrap" style="display:none;">
+        <div class="cz-rotar-aviso" id="cz-rotar-aviso" style="display:none;">📱 Para jugar más cómodo, girá el teléfono en horizontal</div>
         <div class="pen-marcador">
           <div id="cz-nombre-j1">JUGADOR 1<br><b id="cz-score-j1">0</b></div>
           <div class="pen-ronda">⏱ <b id="cz-tiempo">90</b>s</div>
           <div id="cz-nombre-j2">RIVAL<br><b id="cz-score-j2">0</b></div>
         </div>
-        <div class="mg-canvas-container">
+        <div class="mg-canvas-container" id="cz-canvas-container">
           <canvas id="cz-canvas" width="760" height="460"></canvas>
+          <div class="cz-touch-controles" id="cz-touch-controles">
+            <div class="cz-touch-mover">
+              <button data-tecla="KeyA">◀</button>
+              <button data-tecla="KeyD">▶</button>
+            </div>
+            <div class="cz-touch-acciones">
+              <button class="cz-touch-levantar" data-tecla="KeyS">⤴<span>control</span></button>
+              <button class="cz-touch-saltar" data-tecla="KeyW">⬆<span>saltar</span></button>
+              <button class="cz-touch-patear" data-tecla="Space">⚡<span>patear</span></button>
+            </div>
+          </div>
         </div>
         <div id="cz-final" style="display:none;">
           <div class="pen-final-titulo" id="cz-final-titulo"></div>
@@ -3156,6 +3201,7 @@ function czIniciarPartido(){
   document.getElementById('cz-final').style.display = 'none';
   document.getElementById('cz-armado').style.display = 'none';
   document.getElementById('cz-cancha-wrap').style.display = 'block';
+  czActualizarAvisoRotar();
 
   if(!czLoopIniciado){ czLoopIniciado = true; requestAnimationFrame(czLoop); }
 }
@@ -3596,6 +3642,8 @@ document.querySelectorAll('#cz-armado [data-dificultad]').forEach(btn=>{
 document.getElementById('cz-empezar-btn').addEventListener('click', czIniciarPartido);
 document.getElementById('cz-jugar-de-nuevo').addEventListener('click', czIniciarPartido);
 
+const CZ_ES_TACTIL = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+
 document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-cabezones').style.display = 'block';
@@ -3607,11 +3655,38 @@ document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
   document.getElementById('cz-input-j2').value = '';
   czActualizarBotonEmpezar();
   if(!czCtx){ czCtx = document.getElementById('cz-canvas').getContext('2d'); }
+
+  if(CZ_ES_TACTIL){
+    // en celular, solo modo GrilloBOT (el 1vs1 local queda para PC)
+    document.getElementById('cz-modo-local').style.display = 'none';
+    czModo = 'bot';
+    document.getElementById('cz-modo-bot').classList.add('active');
+  } else {
+    document.getElementById('cz-modo-local').style.display = 'block';
+  }
 });
 document.getElementById('cabezones-volver').addEventListener('click', ()=>{
   czPartidoActivo = false;
   document.getElementById('mini-cabezones').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
+});
+
+function czActualizarAvisoRotar(){
+  const aviso = document.getElementById('cz-rotar-aviso');
+  if(!aviso) return;
+  aviso.style.display = (CZ_ES_TACTIL && window.innerHeight > window.innerWidth) ? 'block' : 'none';
+}
+window.addEventListener('resize', czActualizarAvisoRotar);
+window.addEventListener('orientationchange', czActualizarAvisoRotar);
+
+document.querySelectorAll('.cz-touch-controles button').forEach(btn=>{
+  const tecla = btn.dataset.tecla;
+  const presionar = (e)=>{ czTeclas[tecla] = true; e.preventDefault(); };
+  const soltar = ()=>{ czTeclas[tecla] = false; };
+  btn.addEventListener('pointerdown', presionar);
+  btn.addEventListener('pointerup', soltar);
+  btn.addEventListener('pointerleave', soltar);
+  btn.addEventListener('pointercancel', soltar);
 });
 
 /* ---------- MINIJUEGO: CRUCIGRILLO ---------- */
