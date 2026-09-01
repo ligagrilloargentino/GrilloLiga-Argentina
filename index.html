@@ -2988,7 +2988,7 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
 });
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
-const CZ_CAMPO = { xMin:30, xMax:570, ySuelo:340 };
+const CZ_CAMPO = { xMin:30, xMax:570, ySuelo:300 };
 const CZ_GOL_Y = 200; // desde esta altura hacia abajo, en los extremos, es arco
 const CZ_GRAVEDAD = 0.55;
 const CZ_RADIO_CABEZA = 24, CZ_RADIO_PELOTA = 11;
@@ -3010,6 +3010,21 @@ let czProximoPowerUp = 0;
 let czCtx = null;
 let czFotoCache = {};
 let czTeclas = {}; // estado crudo del teclado
+let czCartelGolTexto = '';
+let czCartelGolHasta = 0;
+const CZ_FRASES_GOL = [
+  '¡GOOOOL DE {n}!',
+  '¡{n} la puso adentro!',
+  '¡Qué golazo de {n}!',
+  '¡Imparable {n}!',
+  '¡{n} no perdona!',
+  '¡La clavó {n}!',
+  '¡Grande {n}!'
+];
+function czElegirFraseGol(nombre){
+  const frase = CZ_FRASES_GOL[Math.floor(Math.random()*CZ_FRASES_GOL.length)];
+  return frase.replace('{n}', nombre.toUpperCase());
+}
 
 function czObtenerImagen(nombre){
   if(czFotoCache[nombre]) return czFotoCache[nombre];
@@ -3073,8 +3088,12 @@ function czAplicarGravedadYSuelo(o, radio){
       else o.vy = 0;
     }
   }
-  if(o.x - radio < CZ_CAMPO.xMin){ o.x = CZ_CAMPO.xMin + radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
-  if(o.x + radio > CZ_CAMPO.xMax){ o.x = CZ_CAMPO.xMax - radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
+  // la pelota, cuando está a la altura del arco, puede seguir de largo hacia adentro de la red
+  const enZonaGol = (o === czPelota) && o.y > CZ_GOL_Y;
+  const limiteIzq = enZonaGol ? CZ_CAMPO.xMin - 16 : CZ_CAMPO.xMin;
+  const limiteDer = enZonaGol ? CZ_CAMPO.xMax + 16 : CZ_CAMPO.xMax;
+  if(o.x - radio < limiteIzq){ o.x = limiteIzq + radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
+  if(o.x + radio > limiteDer){ o.x = limiteDer - radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
 }
 
 function czColisionCabezaPelota(jugador){
@@ -3149,11 +3168,14 @@ function czControlarBot(jugador){
 }
 
 function czGol(lado){
+  const golNombre = lado === 'izq' ? czNombreJ2 : czNombreJ1;
   if(lado === 'izq'){ czMarcadorJ2++; document.getElementById('cz-score-j2').textContent = czMarcadorJ2; }
   else { czMarcadorJ1++; document.getElementById('cz-score-j1').textContent = czMarcadorJ1; }
   czJugador1.x = 150; czJugador1.y = CZ_CAMPO.ySuelo - czJugador1.radio; czJugador1.vx=0; czJugador1.vy=0;
   czJugador2.x = 450; czJugador2.y = CZ_CAMPO.ySuelo - czJugador2.radio; czJugador2.vx=0; czJugador2.vy=0;
   czPelota.x = 300; czPelota.y = 200; czPelota.vx = 0; czPelota.vy = 0;
+  czCartelGolTexto = czElegirFraseGol(golNombre);
+  czCartelGolHasta = Date.now() + 2500;
 }
 
 function czTerminarPartido(){
@@ -3274,6 +3296,54 @@ function czDibujarArco(x, ancho){
   czCtx.strokeRect(x, yTope, ancho, alto);
 }
 
+function czDibujarTribuna(){
+  // fondo de tribuna (estática, sin animación)
+  czCtx.fillStyle = '#5a4b3a';
+  czCtx.fillRect(0, CZ_CAMPO.ySuelo, 600, 380-CZ_CAMPO.ySuelo);
+  // filas de asientos
+  const filas = 3;
+  for(let f=0; f<filas; f++){
+    const y = CZ_CAMPO.ySuelo + 6 + f*13;
+    czCtx.fillStyle = f % 2 === 0 ? '#7a6248' : '#6b543c';
+    czCtx.fillRect(0, y, 600, 9);
+    // "gente" (puntitos de colores fijos, sin animación)
+    for(let x=8; x<600; x+=14){
+      const seed = (x*7 + f*31) % 5;
+      const colores = ['#B33B22','#375030','#9C7A2E','#F0E7D2','#725A22'];
+      czCtx.fillStyle = colores[seed];
+      czCtx.beginPath();
+      czCtx.arc(x, y+4, 3, 0, Math.PI*2);
+      czCtx.fill();
+    }
+  }
+}
+
+function czDibujarCartelGol(){
+  if(Date.now() > czCartelGolHasta) return;
+  // asta de la bandera
+  czCtx.fillStyle = '#8a7050';
+  czCtx.fillRect(298, CZ_CAMPO.ySuelo-46, 4, 46);
+  // bandera triangular
+  czCtx.fillStyle = '#B33B22';
+  czCtx.beginPath();
+  czCtx.moveTo(302, CZ_CAMPO.ySuelo-46);
+  czCtx.lineTo(302, CZ_CAMPO.ySuelo-16);
+  czCtx.lineTo(360, CZ_CAMPO.ySuelo-31);
+  czCtx.closePath();
+  czCtx.fill();
+
+  // cartel de texto arriba de la bandera
+  czCtx.font = 'bold 15px sans-serif';
+  czCtx.textAlign = 'center'; czCtx.textBaseline = 'middle';
+  const ancho = czCtx.measureText(czCartelGolTexto).width + 24;
+  czCtx.fillStyle = 'rgba(20,17,12,.82)';
+  czCtx.fillRect(300-ancho/2, 60, ancho, 30);
+  czCtx.strokeStyle = '#fff'; czCtx.lineWidth = 2;
+  czCtx.strokeRect(300-ancho/2, 60, ancho, 30);
+  czCtx.fillStyle = '#F0E7D2';
+  czCtx.fillText(czCartelGolTexto, 300, 75);
+}
+
 function czDibujar(){
   if(!czCtx) return;
   czCtx.clearRect(0,0,600,380);
@@ -3283,8 +3353,7 @@ function czDibujar(){
     czCtx.fillStyle = (Math.round(i/40) % 2 === 0) ? '#3f7a34' : '#356b2b';
     czCtx.fillRect(i, 0, 40, CZ_CAMPO.ySuelo);
   }
-  czCtx.fillStyle = '#2a4a24';
-  czCtx.fillRect(0, CZ_CAMPO.ySuelo, 600, 380-CZ_CAMPO.ySuelo);
+  czDibujarTribuna();
 
   // línea de borde de cancha y línea/círculo central
   czCtx.strokeStyle = 'rgba(255,255,255,.5)';
@@ -3312,6 +3381,8 @@ function czDibujar(){
   czCtx.arc(czPelota.x, czPelota.y, czPelota.radio, 0, Math.PI*2);
   czCtx.fillStyle = '#fff'; czCtx.fill();
   czCtx.lineWidth = 2; czCtx.strokeStyle = '#222'; czCtx.stroke();
+
+  czDibujarCartelGol();
 }
 
 function czLoop(ts){
