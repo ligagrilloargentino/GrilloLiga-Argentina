@@ -277,6 +277,19 @@
 }
 #mg-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; cursor:grab; }
 .mg-nota{ text-align:center; font-size:11.5px; color:var(--text-dimmer); margin-top:10px; }
+.mg-opciones{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+.mg-opciones-titulo{ font-family:'Lora',serif; font-weight:700; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+.mg-toggle-row{ display:flex; gap:6px; }
+.mg-toggle{
+  flex:1; padding:8px 6px; border-radius:8px; border:1px solid var(--line-strong);
+  background:var(--card); color:var(--text-dim); font-family:'Lora',serif; font-size:11.5px;
+  cursor:pointer; text-align:center;
+}
+.mg-toggle.active{ background:var(--red); color:var(--claro-bg); border-color:var(--red); font-weight:700; }
+#mg-timer-label{ font-family:'IBM Plex Mono',monospace; font-size:16px; color:var(--red); margin-top:2px; }
+@media (max-width:600px){
+  .mg-opciones{ grid-template-columns:1fr; }
+}
 .mg-planteles{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
 .mg-plantel-col{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
 .mg-plantel-titulo{ font-family:'Lora',serif; font-weight:700; font-size:12px; margin-bottom:6px; }
@@ -1157,11 +1170,30 @@ footer{
 
       <div id="mg-armado">
         <div class="gd-intro">Armá los dos equipos, 6 jugadores cada uno, y arrastrá tus fichas hacia atrás para patearlas (como una honda) contra la pelota.</div>
+
+        <div class="mg-opciones">
+          <div class="mg-opciones-col">
+            <div class="mg-opciones-titulo">¿Contra quién jugás?</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle active" id="mg-modo-offline" data-modo="offline">👥 Offline (2 personas)</button>
+              <button class="mg-toggle" id="mg-modo-bot" data-modo="bot">🦗 Contra el GrilloBOT</button>
+            </div>
+          </div>
+          <div class="mg-opciones-col">
+            <div class="mg-opciones-titulo">Tiempo por turno</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle" id="mg-tiempo-30" data-tiempo="30">⏱ 30 segundos</button>
+              <button class="mg-toggle active" id="mg-tiempo-libre" data-tiempo="libre">♾ Sin límite</button>
+            </div>
+          </div>
+        </div>
+
         <div class="sim-buscador">
           <input type="text" id="mg-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
           <button data-equipo="claro">Agregar a Claro (<span id="mg-count-claro">0</span>/6)</button>
           <button data-equipo="oscuro">Agregar a Oscuro (<span id="mg-count-oscuro">0</span>/6)</button>
         </div>
+        <button class="auth-btn" id="mg-random-btn" style="max-width:220px; margin:0 auto 14px; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🎲 Equipos al azar</button>
         <div class="sim-equipos">
           <div class="sim-equipo">
             <div class="sim-equipo-titulo">⚪ Equipo Claro</div>
@@ -1178,7 +1210,7 @@ footer{
       <div id="mg-cancha-wrap" style="display:none;">
         <div class="pen-marcador">
           <div>CLARO<br><b id="mg-score-claro">0</b></div>
-          <div class="pen-ronda" id="mg-turno-label">Turno: Claro</div>
+          <div class="pen-ronda"><span id="mg-turno-label">Turno: Claro</span><div id="mg-timer-label"></div></div>
           <div>OSCURO<br><b id="mg-score-oscuro">0</b></div>
         </div>
         <div class="mg-canvas-container">
@@ -2511,6 +2543,36 @@ let mgArrastrando = null;
 let mgPuntero = null;
 let mgFotoCache = {};
 let mgLoopIniciado = false;
+let mgModo = 'offline';
+let mgTiempoTurno = 'libre';
+let mgTurnoDeadline = null;
+let mgPartidoTerminado = false;
+
+function mgIniciarDeadline(){
+  mgTurnoDeadline = mgTiempoTurno === '30' ? Date.now() + 30000 : null;
+  const timerEl = document.getElementById('mg-timer-label');
+  if(timerEl) timerEl.textContent = '';
+}
+
+function mgTirarAleatorioIA(equipo){
+  const propias = mgFichas.filter(f => f.equipo === equipo);
+  if(!propias.length) return;
+  let elegida = propias[0], mejorDist = Infinity;
+  propias.forEach(f=>{
+    const d = Math.hypot(f.x - mgPelota.x, f.y - mgPelota.y);
+    if(d < mejorDist){ mejorDist = d; elegida = f; }
+  });
+  let dirX = mgPelota.x - elegida.x, dirY = mgPelota.y - elegida.y;
+  const mag = Math.hypot(dirX, dirY) || 1;
+  dirX /= mag; dirY /= mag;
+  dirX += (Math.random()-0.5) * 0.3;
+  dirY += (Math.random()-0.5) * 0.3;
+  const magFinal = Math.hypot(dirX, dirY) || 1;
+  const potencia = MG_VEL_MAX * (0.55 + Math.random()*0.4);
+  elegida.vx = (dirX/magFinal) * potencia;
+  elegida.vy = (dirY/magFinal) * potencia;
+  mgAnimando = true;
+}
 
 function mgFormacion(equipo){
   const base = [
@@ -2574,6 +2636,7 @@ function mgArmarFormacionInicial(){
 
 function mgIniciarPartido(){
   mgScoreClaro = 0; mgScoreOscuro = 0; mgTurno = 'claro'; mgAnimando = false; mgArrastrando = null;
+  mgPartidoTerminado = false;
   mgArmarFormacionInicial();
   document.getElementById('mg-score-claro').textContent = '0';
   document.getElementById('mg-score-oscuro').textContent = '0';
@@ -2583,6 +2646,7 @@ function mgIniciarPartido(){
   document.getElementById('mg-cancha-wrap').style.display = 'block';
   document.getElementById('mg-plantel-claro').textContent = mgEquipoClaro.join(', ');
   document.getElementById('mg-plantel-oscuro').textContent = mgEquipoOscuro.join(', ');
+  mgIniciarDeadline();
   if(!mgLoopIniciado){ mgLoopIniciado = true; requestAnimationFrame(mgLoop); }
 }
 
@@ -2657,6 +2721,7 @@ function mgGol(equipoQueAnota){
   const rezagado = Math.min(mgScoreClaro, mgScoreOscuro);
   if(lider >= 5 && (lider - rezagado >= 2 || rezagado < 4)){
     mgAnimando = false;
+    mgPartidoTerminado = true;
     const ganador = mgScoreClaro > mgScoreOscuro ? 'Claro' : 'Oscuro';
     document.getElementById('mg-final-titulo').textContent = `🏆 ¡Ganó Equipo ${ganador}! ${mgScoreClaro} - ${mgScoreOscuro}`;
     document.getElementById('mg-final').style.display = 'block';
@@ -2668,6 +2733,14 @@ function mgGol(equipoQueAnota){
   document.getElementById('mg-turno-label').textContent = 'Turno: ' + (mgTurno === 'claro' ? 'Claro' : 'Oscuro');
   mgArmarFormacionInicial();
   mgAnimando = false;
+  mgIniciarDeadline();
+  mgDispararBotSiCorresponde();
+}
+
+function mgDispararBotSiCorresponde(){
+  if(mgModo === 'bot' && mgTurno === 'oscuro' && !mgPartidoTerminado){
+    setTimeout(()=>{ if(!mgAnimando && mgTurno === 'oscuro' && !mgPartidoTerminado) mgTirarAleatorioIA('oscuro'); }, 900);
+  }
 }
 
 function mgDibujarFicha(f){
@@ -2737,10 +2810,22 @@ function mgDibujar(){
 function mgLoop(){
   if(mgAnimando){
     mgFisicaStep();
-    if(mgTodosQuietos()){
+    if(mgTodosQuietos() && !mgPartidoTerminado){
       mgAnimando = false;
       mgTurno = mgTurno === 'claro' ? 'oscuro' : 'claro';
       document.getElementById('mg-turno-label').textContent = 'Turno: ' + (mgTurno === 'claro' ? 'Claro' : 'Oscuro');
+      mgIniciarDeadline();
+      mgDispararBotSiCorresponde();
+    }
+  } else if(!mgPartidoTerminado && mgTurnoDeadline){
+    const restante = Math.ceil((mgTurnoDeadline - Date.now())/1000);
+    const timerEl = document.getElementById('mg-timer-label');
+    if(restante > 0){
+      timerEl.textContent = '⏱ ' + restante + 's';
+    } else {
+      timerEl.textContent = '';
+      mgTurnoDeadline = null;
+      mgTirarAleatorioIA(mgTurno);
     }
   }
   mgDibujar();
@@ -2758,6 +2843,7 @@ function mgCoordsDesdeEvento(e){
 
 function mgPointerDown(e){
   if(mgAnimando || document.getElementById('mg-final').style.display === 'block') return;
+  if(mgModo === 'bot' && mgTurno === 'oscuro') return;
   const p = mgCoordsDesdeEvento(e);
   const ficha = mgFichas.find(f => f.equipo === mgTurno && Math.hypot(f.x-p.x, f.y-p.y) < MG_RADIO_FICHA+6);
   if(ficha){ mgArrastrando = ficha; mgPuntero = p; e.preventDefault(); }
@@ -2788,6 +2874,25 @@ document.querySelectorAll('#mg-armado .sim-buscador button').forEach(btn=>{
 document.getElementById('mg-empezar-btn').addEventListener('click', mgIniciarPartido);
 document.getElementById('mg-jugar-de-nuevo').addEventListener('click', mgIniciarPartido);
 
+document.querySelectorAll('#mg-armado [data-modo]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    mgModo = btn.dataset.modo;
+    document.querySelectorAll('#mg-armado [data-modo]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.querySelectorAll('#mg-armado [data-tiempo]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    mgTiempoTurno = btn.dataset.tiempo;
+    document.querySelectorAll('#mg-armado [data-tiempo]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.getElementById('mg-random-btn').addEventListener('click', ()=>{
+  const disponibles = [...DATA.estadisticas.map(r => r.Jugador)].sort(()=> Math.random()-0.5);
+  mgEquipoClaro = disponibles.slice(0, 6);
+  mgEquipoOscuro = disponibles.slice(6, 12);
+  mgRenderEquipos();
+});
+
 document.getElementById('mini-card-metegol').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-metegol').style.display = 'block';
@@ -2795,6 +2900,11 @@ document.getElementById('mini-card-metegol').addEventListener('click', ()=>{
   document.getElementById('mg-cancha-wrap').style.display = 'none';
   gdCargarListaJugadores();
   mgEquipoClaro = []; mgEquipoOscuro = [];
+  mgModo = 'offline'; mgTiempoTurno = 'libre';
+  document.getElementById('mg-modo-offline').classList.add('active');
+  document.getElementById('mg-modo-bot').classList.remove('active');
+  document.getElementById('mg-tiempo-libre').classList.add('active');
+  document.getElementById('mg-tiempo-30').classList.remove('active');
   mgRenderEquipos();
   const canvas = document.getElementById('mg-canvas');
   if(!ctx){
