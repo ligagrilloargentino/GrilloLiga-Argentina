@@ -1285,8 +1285,8 @@ footer{
         </div>
 
         <div class="cz-controles-info" id="cz-controles-info">
-          <b>Controles Jugador 1:</b> A/D moverse · W saltar · Espacio patear<br>
-          <span id="cz-controles-j2" style="display:none;"><b>Controles Jugador 2:</b> ←/→ moverse · ↑ saltar · Enter patear</span>
+          <b>Controles Jugador 1:</b> A/D moverse · W saltar · Espacio patear · S levantar (control suave)<br>
+          <span id="cz-controles-j2" style="display:none;"><b>Controles Jugador 2:</b> ←/→ moverse · ↑ saltar · Enter patear · ↓ levantar (control suave)</span>
         </div>
 
         <button class="auth-btn" id="cz-empezar-btn" style="max-width:260px; margin:18px auto 0;" disabled>Empezar partido</button>
@@ -3000,7 +3000,7 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
 const CZ_ANCHO = 760, CZ_ALTO = 460, CZ_CENTRO_X = 380;
 const CZ_TRIBUNA_ALTO = 70;
 const CZ_CAMPO = { xMin:35, xMax:725, ySuelo:460 };
-const CZ_GOL_Y = 260; // desde esta altura hacia abajo, en los extremos, es arco
+const CZ_GOL_Y = 320; // desde esta altura hacia abajo, en los extremos, es arco
 const CZ_GRAVEDAD = 0.55;
 const CZ_RADIO_CABEZA = 26, CZ_RADIO_PELOTA = 12;
 const CZ_VEL_MOV = 4.3, CZ_VEL_SALTO = -11.5;
@@ -3065,6 +3065,7 @@ function czCrearJugador(nombre, lado, esBot){
     mirandoDerecha: lado === 'izq',
     velocidad: CZ_VEL_MOV,
     kickPresionado: false,
+    levantarPresionado: false,
     efectoCabezaHasta: 0,
     efectoRayoHasta: 0
   };
@@ -3137,6 +3138,15 @@ function czIntentarPatear(jugador){
   }
 }
 
+function czIntentarLevantar(jugador){
+  const dx = czPelota.x - jugador.x, dy = czPelota.y - jugador.y;
+  const dist = Math.hypot(dx,dy);
+  if(dist < jugador.radio + czPelota.radio + 26){
+    czPelota.vy = -6.2;
+    czPelota.vx = czPelota.vx*0.25 + jugador.vx*0.3;
+  }
+}
+
 function czSpawnPowerUp(){
   const tipos = ['bola_gigante','cabeza_gigante','rayo'];
   const tipo = tipos[Math.floor(Math.random()*tipos.length)];
@@ -3159,13 +3169,15 @@ function czActualizarEfectos(){
   });
 }
 
-function czControlarHumano(jugador, izq, der, arriba, patear){
+function czControlarHumano(jugador, izq, der, arriba, patear, levantar){
   jugador.vx = 0;
   if(czTeclas[izq]){ jugador.vx = -jugador.velocidad; jugador.mirandoDerecha = false; }
   if(czTeclas[der]){ jugador.vx = jugador.velocidad; jugador.mirandoDerecha = true; }
   if(czTeclas[arriba] && jugador.enSuelo){ jugador.vy = CZ_VEL_SALTO; jugador.enSuelo = false; }
   if(czTeclas[patear] && !jugador.kickPresionado){ czIntentarPatear(jugador); jugador.kickPresionado = true; }
   if(!czTeclas[patear]) jugador.kickPresionado = false;
+  if(czTeclas[levantar] && !jugador.levantarPresionado){ czIntentarLevantar(jugador); jugador.levantarPresionado = true; }
+  if(!czTeclas[levantar]) jugador.levantarPresionado = false;
 }
 
 function czControlarBot(jugador){
@@ -3242,8 +3254,8 @@ function czPaso(dtMs){
   });
 
   if(czModo === 'bot') czControlarBot(czJugador2);
-  else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter');
-  czControlarHumano(czJugador1, 'a', 'd', 'w', ' ');
+  else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter', 'ArrowDown');
+  czControlarHumano(czJugador1, 'a', 'd', 'w', ' ', 's');
 
   czAplicarGravedadYSuelo(czJugador1, czJugador1.radio);
   czAplicarGravedadYSuelo(czJugador2, czJugador2.radio);
@@ -3262,7 +3274,31 @@ function czPaso(dtMs){
   if(czPelota.x + czPelota.radio > CZ_CAMPO.xMax && czPelota.y > CZ_GOL_Y){ czGol('der'); }
 }
 
+function czDibujarBotin(j){
+  const dir = j.mirandoDerecha ? 1 : -1;
+  const baseX = j.x + dir*(j.radio*0.35);
+  const baseY = j.y + j.radio*0.85;
+  czCtx.save();
+  czCtx.translate(baseX, baseY);
+  czCtx.scale(dir, 1);
+  // botín (óvalo con punta hacia adelante)
+  czCtx.beginPath();
+  czCtx.ellipse(6, 0, 14, 8, 0, 0, Math.PI*2);
+  czCtx.fillStyle = '#8a2c19';
+  czCtx.fill();
+  czCtx.strokeStyle = '#3a1610';
+  czCtx.lineWidth = 1.5;
+  czCtx.stroke();
+  // suela blanca
+  czCtx.beginPath();
+  czCtx.ellipse(6, 5, 13, 3, 0, 0, Math.PI*2);
+  czCtx.fillStyle = '#F0E7D2';
+  czCtx.fill();
+  czCtx.restore();
+}
+
 function czDibujarCabeza(j){
+  czDibujarBotin(j);
   czCtx.save();
   czCtx.beginPath();
   czCtx.arc(j.x, j.y, j.radio, 0, Math.PI*2);
@@ -3426,7 +3462,7 @@ setInterval(()=>{
   if(czTiempoRestante <= 0){ czTerminarPartido(); }
 }, 1000);
 
-const CZ_TECLAS_JUEGO = ['a','d','w',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
+const CZ_TECLAS_JUEGO = ['a','d','w','s',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
 document.addEventListener('keydown', (e)=>{
   czTeclas[e.key] = true;
   if(document.getElementById('mini-cabezones').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.key)){
