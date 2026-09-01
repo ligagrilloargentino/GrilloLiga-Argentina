@@ -3935,16 +3935,29 @@ function cgNumerarYRecortar(resultado){
   return { grid:nuevaGrid, placed:nuevasPlaced, alto, ancho, numerosPorCelda };
 }
 
+let cgDireccionActual = 'H';
+
+function cgCeldaDirs(row, col, placed){
+  let dirs = '';
+  placed.forEach(pw=>{
+    if(pw.dir === 'H' && pw.row === row && col >= pw.col && col < pw.col + pw.p.length) dirs += 'H';
+    if(pw.dir === 'V' && pw.col === col && row >= pw.row && row < pw.row + pw.p.length) dirs += 'V';
+  });
+  return dirs;
+}
+
 function cgMoverSiguiente(inp){
   const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
-  let next = document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c+1}"]`);
-  if(!next) next = document.querySelector(`#cg-grilla input[data-row="${r+1}"][data-col="${c}"]`);
+  const next = cgDireccionActual === 'V'
+    ? document.querySelector(`#cg-grilla input[data-row="${r+1}"][data-col="${c}"]`)
+    : document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c+1}"]`);
   if(next) next.focus();
 }
 function cgMoverAnterior(inp){
   const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
-  let prev = document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c-1}"]`);
-  if(!prev) prev = document.querySelector(`#cg-grilla input[data-row="${r-1}"][data-col="${c}"]`);
+  const prev = cgDireccionActual === 'V'
+    ? document.querySelector(`#cg-grilla input[data-row="${r-1}"][data-col="${c}"]`)
+    : document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c-1}"]`);
   if(prev) prev.focus();
 }
 
@@ -3972,6 +3985,7 @@ function cgRenderizar(resultado){
         const input = document.createElement('input');
         input.maxLength = 1;
         input.dataset.row = r; input.dataset.col = c; input.dataset.letra = letra;
+        input.dataset.dirs = cgCeldaDirs(r, c, placed);
         div.appendChild(input);
       }
       cont.appendChild(div);
@@ -3980,10 +3994,21 @@ function cgRenderizar(resultado){
 
   const horiz = placed.filter(p => p.dir === 'H').sort((a,b)=> a.numero-b.numero);
   const vert = placed.filter(p => p.dir === 'V').sort((a,b)=> a.numero-b.numero);
-  document.getElementById('cg-pistas-horizontales').innerHTML = horiz.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
-  document.getElementById('cg-pistas-verticales').innerHTML = vert.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+  document.getElementById('cg-pistas-horizontales').innerHTML = horiz.map(p => `<li data-row="${p.row}" data-col="${p.col}" data-dir="H"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+  document.getElementById('cg-pistas-verticales').innerHTML = vert.map(p => `<li data-row="${p.row}" data-col="${p.col}" data-dir="V"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
 
   cont.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('focus', ()=>{
+      const dirs = inp.dataset.dirs;
+      if(dirs.length === 1) cgDireccionActual = dirs;
+      else if(!dirs.includes(cgDireccionActual)) cgDireccionActual = dirs[0];
+    });
+    inp.addEventListener('click', ()=>{
+      // tocar de nuevo la misma celda alterna la dirección, si admite las dos
+      if(document.activeElement === inp && inp.dataset.dirs.length > 1){
+        cgDireccionActual = cgDireccionActual === 'H' ? 'V' : 'H';
+      }
+    });
     inp.addEventListener('input', ()=>{
       inp.value = inp.value.toUpperCase().slice(0,1).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       if(inp.value) cgMoverSiguiente(inp);
@@ -3995,6 +4020,7 @@ function cgRenderizar(resultado){
 
   document.querySelectorAll('#cg-pistas-horizontales li, #cg-pistas-verticales li').forEach(li=>{
     li.addEventListener('click', ()=>{
+      cgDireccionActual = li.dataset.dir;
       const target = cont.querySelector(`input[data-row="${li.dataset.row}"][data-col="${li.dataset.col}"]`);
       if(target) target.focus();
     });
