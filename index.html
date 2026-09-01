@@ -1830,7 +1830,7 @@ async function publicarComentarioForo(tipo, partidoId, contenido, padreId){
 
 /* ---------- GRILLOBOT ---------- */
 function normalizarTexto(s){
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return s.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 }
 
 function extraerJugadoresDeTexto(texto){
@@ -2477,7 +2477,7 @@ function simSimularPartido(){
   document.getElementById('sim-resultado-container').style.display = 'block';
 }
 
-document.querySelectorAll('.sim-buscador button').forEach(btn=>{
+document.querySelectorAll('#mini-simulador .sim-buscador button').forEach(btn=>{
   btn.addEventListener('click', ()=> simAgregarJugador(btn.dataset.equipo));
 });
 document.getElementById('sim-simular-btn').addEventListener('click', simSimularPartido);
