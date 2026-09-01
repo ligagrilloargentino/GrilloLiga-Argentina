@@ -277,6 +277,7 @@
 }
 #cz-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; }
 #mini-cabezones .mg-canvas-container{ max-width:760px; }
+#mini-metegol .mg-canvas-container{ max-width:800px; }
 .mg-nota{ text-align:center; font-size:11.5px; color:var(--text-dimmer); margin-top:10px; }
 .mg-opciones{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
 .mg-opciones-titulo{ font-family:'Lora',serif; font-weight:700; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
@@ -410,12 +411,16 @@ body.cz-pantalla-completa .rps-volver{
 body.cz-pantalla-completa .cz-rotar-aviso{ padding:5px 10px; margin-bottom:6px; font-size:10.5px; }
 body.cz-pantalla-completa .pen-marcador{ margin-bottom:6px; }
 body.cz-pantalla-completa #cz-canvas{
-  width:auto !important; height:50vh !important; max-height:420px;
-  max-width:100%; margin:0 auto; display:block;
+  width:100% !important; height:auto !important;
+  aspect-ratio:760/460;
+  max-width:100%; max-height:50vh;
+  margin:0 auto; display:block;
 }
 body.cz-pantalla-completa #mg-canvas{
-  width:auto !important; height:50vh !important; max-height:420px;
-  max-width:100%; margin:0 auto; display:block;
+  width:100% !important; height:auto !important;
+  aspect-ratio:800/500;
+  max-width:100%; max-height:62vh;
+  margin:0 auto; display:block;
 }
 body.cz-pantalla-completa #cz-canvas-container,
 body.cz-pantalla-completa #mg-canvas-container{ text-align:center; }
@@ -1359,7 +1364,7 @@ footer{
           <div>OSCURO<br><b id="mg-score-oscuro">0</b></div>
         </div>
         <div class="mg-canvas-container" id="mg-canvas-container">
-          <canvas id="mg-canvas" width="600" height="380"></canvas>
+          <canvas id="mg-canvas" width="800" height="500"></canvas>
         </div>
         <div class="mg-nota">Arrastrá una de tus fichas hacia atrás y soltá para patear, como una honda.</div>
         <div class="mg-planteles">
@@ -2783,14 +2788,15 @@ document.getElementById('simulador-volver').addEventListener('click', ()=>{
 });
 
 /* ---------- MINIJUEGO: METEGOL 2D ---------- */
-const MG_CAMPO = { xMin:30, xMax:570, yMin:30, yMax:350 };
-const MG_GOL_Y_MIN = 140, MG_GOL_Y_MAX = 240;
-const MG_RADIO_FICHA = 16, MG_RADIO_PELOTA = 9;
-const MG_FRICCION = 0.985, MG_VEL_MINIMA = 0.06, MG_MAX_ARRASTRE = 90, MG_VEL_MAX = 16;
+const MG_ANCHO = 800, MG_ALTO = 500;
+const MG_CAMPO = { xMin:40, xMax:760, yMin:40, yMax:460 };
+const MG_GOL_Y_MIN = 185, MG_GOL_Y_MAX = 315;
+const MG_RADIO_FICHA = 21, MG_RADIO_PELOTA = 12;
+const MG_FRICCION = 0.985, MG_VEL_MINIMA = 0.06, MG_MAX_ARRASTRE = 110, MG_VEL_MAX = 19;
 
 let mgEquipoClaro = [], mgEquipoOscuro = [];
 let mgFichas = [];
-let mgPelota = { x:300, y:190, vx:0, vy:0 };
+let mgPelota = { x:400, y:250, vx:0, vy:0 };
 let mgTurno = 'claro';
 let mgScoreClaro = 0, mgScoreOscuro = 0;
 let mgAnimando = false;
@@ -2831,10 +2837,10 @@ function mgTirarAleatorioIA(equipo){
 
 function mgFormacion(equipo){
   const base = [
-    {x:110,y:190}, {x:170,y:110}, {x:170,y:270}, {x:230,y:150}, {x:230,y:230}, {x:265,y:190}
+    {x:147,y:250}, {x:227,y:145}, {x:227,y:355}, {x:307,y:197}, {x:307,y:303}, {x:353,y:250}
   ];
   if(equipo === 'claro') return base;
-  return base.map(p => ({ x: 600 - p.x, y: p.y }));
+  return base.map(p => ({ x: MG_ANCHO - p.x, y: p.y }));
 }
 
 function mgObtenerImagen(nombre){
@@ -2885,7 +2891,7 @@ function mgArmarFormacionInicial(){
   const posOscuro = mgFormacion('oscuro');
   mgEquipoClaro.forEach((n,i) => mgFichas.push({ nombre:n, equipo:'claro', x:posClaro[i].x, y:posClaro[i].y, vx:0, vy:0 }));
   mgEquipoOscuro.forEach((n,i) => mgFichas.push({ nombre:n, equipo:'oscuro', x:posOscuro[i].x, y:posOscuro[i].y, vx:0, vy:0 }));
-  mgPelota = { x:300, y:190, vx:0, vy:0 };
+  mgPelota = { x:400, y:250, vx:0, vy:0 };
   mgFichas.forEach(f => mgObtenerImagen(f.nombre));
 }
 
@@ -2957,10 +2963,10 @@ function mgFisicaStep(){
   }
 
   // gol izquierdo (arco de Claro): entra Oscuro
-  if(mgPelota.x - MG_RADIO_PELOTA < MG_CAMPO.xMin - 12 && mgPelota.y > MG_GOL_Y_MIN && mgPelota.y < MG_GOL_Y_MAX){
+  if(mgPelota.x - MG_RADIO_PELOTA < MG_CAMPO.xMin - 16 && mgPelota.y > MG_GOL_Y_MIN && mgPelota.y < MG_GOL_Y_MAX){
     mgGol('oscuro');
   }
-  if(mgPelota.x + MG_RADIO_PELOTA > MG_CAMPO.xMax + 12 && mgPelota.y > MG_GOL_Y_MIN && mgPelota.y < MG_GOL_Y_MAX){
+  if(mgPelota.x + MG_RADIO_PELOTA > MG_CAMPO.xMax + 16 && mgPelota.y > MG_GOL_Y_MIN && mgPelota.y < MG_GOL_Y_MAX){
     mgGol('claro');
   }
 }
@@ -3025,9 +3031,9 @@ function mgDibujarFicha(f){
 let ctx = null;
 function mgDibujar(){
   if(!ctx) return;
-  ctx.clearRect(0,0,600,380);
+  ctx.clearRect(0,0,MG_ANCHO,MG_ALTO);
   ctx.fillStyle = '#3a6b2f';
-  ctx.fillRect(0,0,600,380);
+  ctx.fillRect(0,0,MG_ANCHO,MG_ALTO);
 
   ctx.strokeStyle = 'rgba(255,255,255,.55)';
   ctx.lineWidth = 2;
@@ -3040,12 +3046,12 @@ function mgDibujar(){
   ctx.beginPath();
   ctx.moveTo(MG_CAMPO.xMax, MG_GOL_Y_MAX); ctx.lineTo(MG_CAMPO.xMax, MG_GOL_Y_MIN);
   ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(300, MG_CAMPO.yMin); ctx.lineTo(300, MG_CAMPO.yMax); ctx.stroke();
-  ctx.beginPath(); ctx.arc(300,190,40,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(MG_ANCHO/2, MG_CAMPO.yMin); ctx.lineTo(MG_ANCHO/2, MG_CAMPO.yMax); ctx.stroke();
+  ctx.beginPath(); ctx.arc(MG_ANCHO/2, MG_ALTO/2, 52, 0, Math.PI*2); ctx.stroke();
   // arcos
   ctx.strokeStyle = 'rgba(255,255,255,.85)';
-  ctx.strokeRect(MG_CAMPO.xMin-12, MG_GOL_Y_MIN, 12, MG_GOL_Y_MAX-MG_GOL_Y_MIN);
-  ctx.strokeRect(MG_CAMPO.xMax, MG_GOL_Y_MIN, 12, MG_GOL_Y_MAX-MG_GOL_Y_MIN);
+  ctx.strokeRect(MG_CAMPO.xMin-16, MG_GOL_Y_MIN, 16, MG_GOL_Y_MAX-MG_GOL_Y_MIN);
+  ctx.strokeRect(MG_CAMPO.xMax, MG_GOL_Y_MIN, 16, MG_GOL_Y_MAX-MG_GOL_Y_MIN);
 
   mgFichas.forEach(mgDibujarFicha);
 
@@ -3101,7 +3107,8 @@ function mgPointerDown(e){
   if(mgAnimando || document.getElementById('mg-final').style.display === 'block') return;
   if(mgModo === 'bot' && mgTurno === 'oscuro') return;
   const p = mgCoordsDesdeEvento(e);
-  const ficha = mgFichas.find(f => f.equipo === mgTurno && Math.hypot(f.x-p.x, f.y-p.y) < MG_RADIO_FICHA+6);
+  const tolerancia = MG_RADIO_FICHA + (MG_ES_TACTIL ? 26 : 6);
+  const ficha = mgFichas.find(f => f.equipo === mgTurno && Math.hypot(f.x-p.x, f.y-p.y) < tolerancia);
   if(ficha){ mgArrastrando = ficha; mgPuntero = p; e.preventDefault(); }
 }
 function mgPointerMove(e){
