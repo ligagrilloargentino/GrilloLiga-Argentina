@@ -387,13 +387,21 @@
     border-left:none; border-right:none; border-radius:0;
   }
 }
-/* Modo pantalla completa para jugar Cabezones en celular: solo se ve el campo y "volver" */
-body.cz-pantalla-completa header.top,
+/* Modo pantalla completa para jugar Cabezones en celular: solo se ve el título achicado, el campo y "volver" */
 body.cz-pantalla-completa .stitch-line,
 body.cz-pantalla-completa footer,
 body.cz-pantalla-completa #panel-minijuegos > .section-head{
   display:none !important;
 }
+body.cz-pantalla-completa header.top nav.tabs,
+body.cz-pantalla-completa header.top .subtitle,
+body.cz-pantalla-completa header.top #usuario-actual-nombre,
+body.cz-pantalla-completa header.top #cerrar-sesion-btn,
+body.cz-pantalla-completa header.top .badge{
+  display:none !important;
+}
+body.cz-pantalla-completa header.top .top-inner{ padding:6px 14px; }
+body.cz-pantalla-completa header.top .brand h1{ font-size:16px; }
 body.cz-pantalla-completa main{ padding-top:10px; }
 body.cz-pantalla-completa #cabezones-volver{
   display:block; margin-bottom:8px; font-size:13px;
