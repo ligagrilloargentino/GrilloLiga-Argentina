@@ -402,10 +402,18 @@ body.cz-pantalla-completa header.top .badge{
 }
 body.cz-pantalla-completa header.top .top-inner{ padding:6px 14px; }
 body.cz-pantalla-completa header.top .brand h1{ font-size:16px; }
-body.cz-pantalla-completa main{ padding-top:10px; }
+body.cz-pantalla-completa main{ padding-top:6px; padding-bottom:10px; }
 body.cz-pantalla-completa #cabezones-volver{
-  display:block; margin-bottom:8px; font-size:13px;
+  display:block; margin-bottom:4px; font-size:12px;
 }
+body.cz-pantalla-completa .cz-rotar-aviso{ padding:5px 10px; margin-bottom:6px; font-size:10.5px; }
+body.cz-pantalla-completa .pen-marcador{ margin-bottom:6px; }
+body.cz-pantalla-completa #cz-canvas{
+  width:auto !important; height:38vh !important; max-height:320px;
+  max-width:100%; margin:0 auto; display:block;
+}
+body.cz-pantalla-completa #cz-canvas-container{ text-align:center; }
+body.cz-pantalla-completa .cz-touch-controles{ padding-top:8px; }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -1394,6 +1402,7 @@ footer{
           <div class="pen-ronda">⏱ <b id="cz-tiempo">90</b>s</div>
           <div id="cz-nombre-j2">RIVAL<br><b id="cz-score-j2">0</b></div>
         </div>
+        <button class="auth-btn" id="cz-iniciar-reloj-btn" style="max-width:220px; margin:0 auto 10px; display:block;">▶ Iniciar partido</button>
         <div class="mg-canvas-container" id="cz-canvas-container">
           <canvas id="cz-canvas" width="760" height="460"></canvas>
         </div>
@@ -3212,7 +3221,7 @@ function czIniciarPartido(){
   czTiempoRestante = CZ_DURACION_PARTIDO;
   czPowerUps = [];
   czProximoPowerUp = Date.now() + 10000;
-  czPartidoActivo = true;
+  czPartidoActivo = false; // arranca en pausa, hasta que se apriete "Iniciar partido"
   czUltimoTick = null;
 
   document.getElementById('cz-score-j1').textContent = '0';
@@ -3223,6 +3232,7 @@ function czIniciarPartido(){
   document.getElementById('cz-final').style.display = 'none';
   document.getElementById('cz-armado').style.display = 'none';
   document.getElementById('cz-cancha-wrap').style.display = 'block';
+  document.getElementById('cz-iniciar-reloj-btn').style.display = 'block';
   czActualizarAvisoRotar();
   if(CZ_ES_TACTIL) document.body.classList.add('cz-pantalla-completa');
 
@@ -3664,6 +3674,11 @@ document.querySelectorAll('#cz-armado [data-dificultad]').forEach(btn=>{
 
 document.getElementById('cz-empezar-btn').addEventListener('click', czIniciarPartido);
 document.getElementById('cz-jugar-de-nuevo').addEventListener('click', czIniciarPartido);
+document.getElementById('cz-iniciar-reloj-btn').addEventListener('click', ()=>{
+  czPartidoActivo = true;
+  czUltimoTick = null;
+  document.getElementById('cz-iniciar-reloj-btn').style.display = 'none';
+});
 
 const CZ_ES_TACTIL = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
 
