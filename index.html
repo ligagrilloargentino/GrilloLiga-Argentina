@@ -315,6 +315,42 @@
 @media (max-width:600px){
   .cz-elegir-fila{ grid-template-columns:1fr; }
 }
+/* ---------- MINIJUEGO: CRUCIGRILLO ---------- */
+.cg-layout{ display:grid; grid-template-columns:1fr 280px; gap:20px; align-items:start; }
+.cg-grilla-wrap{ display:flex; flex-direction:column; align-items:center; }
+#cg-grilla{ display:inline-grid; gap:2px; background:var(--line-strong); padding:2px; border-radius:4px; }
+.cg-celda{
+  position:relative; width:28px; height:28px; background:var(--card);
+}
+.cg-celda.cg-vacia{ background:transparent; }
+.cg-celda input{
+  width:100%; height:100%; border:none; background:transparent; text-align:center;
+  font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:700; color:var(--text);
+  text-transform:uppercase; padding:0;
+}
+.cg-celda input:focus{ outline:2px solid var(--red); outline-offset:-2px; }
+.cg-celda.cg-ok input{ background:rgba(74,107,67,.25); }
+.cg-celda.cg-mal input{ background:rgba(179,59,34,.22); }
+.cg-numero{
+  position:absolute; top:0px; left:1px; font-size:8px; color:var(--text-dimmer);
+  font-family:'IBM Plex Mono',monospace; pointer-events:none;
+}
+.cg-acciones{ display:flex; gap:8px; margin-top:14px; }
+.cg-resultado{ margin-top:10px; font-family:'Lora',serif; font-weight:700; font-size:13.5px; text-align:center; min-height:20px; }
+.cg-pistas{ display:flex; flex-direction:column; gap:16px; }
+.cg-pistas-col{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+.cg-pistas-col ul{ list-style:none; margin:0; padding:0; }
+.cg-pistas-col li{
+  font-size:11.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4; cursor:pointer;
+}
+.cg-pistas-col li:hover{ color:var(--red); }
+.cg-pistas-col li b{ color:var(--text); font-family:'IBM Plex Mono',monospace; }
+.cg-pistas-col li.cg-completa{ text-decoration:line-through; opacity:0.55; }
+@media (max-width:700px){
+  .cg-layout{ grid-template-columns:1fr; }
+  .cg-celda{ width:22px; height:22px; }
+  .cg-celda input{ font-size:11px; }
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -1066,6 +1102,10 @@ footer{
         <h3>🗿 Cabezones</h3>
         <p>1 vs 1 con cabezas gigantes.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-crucigrillo">
+        <h3>📰 Crucigrillo</h3>
+        <p>Crucigrama de fútbol y cultura general.</p>
+      </div>
     </div>
 
     <div id="mini-rps" style="display:none;">
@@ -1304,6 +1344,31 @@ footer{
         <div id="cz-final" style="display:none;">
           <div class="pen-final-titulo" id="cz-final-titulo"></div>
           <button class="auth-btn" id="cz-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="mini-crucigrillo" style="display:none;">
+      <span class="rps-volver" id="crucigrillo-volver">← Volver a Minijuegos</span>
+      <div class="gd-intro">Un crucigrama nuevo cada vez, con 15 palabras (mayormente de fútbol y cultura general, alguna de la Grillo Liga de relleno). Hacé clic en un casillero y escribí.</div>
+      <div class="cg-layout">
+        <div class="cg-grilla-wrap">
+          <div id="cg-grilla"></div>
+          <div class="cg-acciones">
+            <button class="auth-btn" id="cg-corregir-btn" style="max-width:160px;">Corregir</button>
+            <button class="auth-btn" id="cg-nuevo-btn" style="max-width:160px; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🔄 Nuevo crucigrama</button>
+          </div>
+          <div id="cg-resultado" class="cg-resultado"></div>
+        </div>
+        <div class="cg-pistas">
+          <div class="cg-pistas-col">
+            <div class="gd-pista-titulo">➡ Horizontales</div>
+            <ul id="cg-pistas-horizontales"></ul>
+          </div>
+          <div class="cg-pistas-col">
+            <div class="gd-pista-titulo">⬇ Verticales</div>
+            <ul id="cg-pistas-verticales"></ul>
+          </div>
         </div>
       </div>
     </div>
@@ -3546,6 +3611,258 @@ document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
 document.getElementById('cabezones-volver').addEventListener('click', ()=>{
   czPartidoActivo = false;
   document.getElementById('mini-cabezones').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: CRUCIGRILLO ---------- */
+function cgLimpiarPalabra(s){
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+}
+
+const CG_BANCO = [
+  {p:'MESSI', c:'Apellido del capitán campeón del mundo en Qatar 2022'},
+  {p:'MARADONA', c:'"El Diego", ídolo eterno del fútbol argentino'},
+  {p:'PELE', c:'Leyenda brasileña, tricampeón del mundo'},
+  {p:'BOCA', c:'Club "Xeneize" de la Ribera'},
+  {p:'RIVER', c:'Club "Millonario" de Núñez'},
+  {p:'PENAL', c:'Sanción máxima que se cobra dentro del área'},
+  {p:'ARQUERO', c:'Jugador que defiende el arco'},
+  {p:'OFFSIDE', c:'Posición adelantada, en inglés'},
+  {p:'MUNDIAL', c:'Torneo que organiza la FIFA cada 4 años'},
+  {p:'ESTADIO', c:'Lugar donde se juegan los partidos'},
+  {p:'ARBITRO', c:'Quien dirige el partido con el silbato'},
+  {p:'CORNER', c:'Tiro de esquina'},
+  {p:'HATTRICK', c:'Cuando un jugador mete 3 goles en un partido'},
+  {p:'ARGENTINA', c:'País tricampeón del mundo en fútbol'},
+  {p:'BRASIL', c:'País pentacampeón del mundo en fútbol'},
+  {p:'CAPITAN', c:'El que lleva la cinta en el brazo'},
+  {p:'VESTUARIO', c:'Donde los jugadores se cambian antes del partido'},
+  {p:'PELOTA', c:'Elemento redondo con el que se juega'},
+  {p:'TARJETA', c:'Puede ser amarilla o roja'},
+  {p:'LIONEL', c:'Nombre de pila de Messi'},
+  {p:'DIEGO', c:'Nombre de pila de Maradona'},
+  {p:'PICASSO', c:'Pintor español, autor del Guernica'},
+  {p:'EGIPTO', c:'País de las pirámides'},
+  {p:'AMAZONAS', c:'El río más caudaloso del mundo'},
+  {p:'EVEREST', c:'La montaña más alta del mundo'},
+  {p:'BEETHOVEN', c:'Compositor alemán sordo, autor de la Novena Sinfonía'},
+  {p:'MONALISA', c:'Obra de Da Vinci que está en el Louvre'},
+  {p:'JUPITER', c:'El planeta más grande del sistema solar'},
+  {p:'OXIGENO', c:'Elemento químico que respiramos'},
+  {p:'SAHARA', c:'El desierto más grande de África'},
+  {p:'SHAKESPEARE', c:'Autor de Romeo y Julieta'},
+  {p:'TANGO', c:'Baile típico de Argentina'},
+  {p:'ASADO', c:'Comida típica argentina a las brasas'},
+  {p:'GOLEADOR', c:'El que más goles convierte'},
+  {p:'MEDIOCAMPO', c:'Zona intermedia de la cancha'},
+  {p:'DELANTERO', c:'Jugador de ataque'},
+  {p:'DEFENSOR', c:'Jugador que marca a los rivales'},
+  {p:'SUPLENTE', c:'El que empieza en el banco'},
+  {p:'HINCHADA', c:'Los fanáticos de un equipo'}
+];
+
+function cgArmarBancoCompleto(){
+  const dinamicas = [];
+  const nombresDisponibles = [...DATA.estadisticas.map(r=>r.Jugador)].sort(()=>Math.random()-0.5);
+  for(const n of nombresDisponibles){
+    const limpio = cgLimpiarPalabra(n);
+    if(limpio.length >= 3 && limpio.length <= 14){
+      dinamicas.push({p:limpio, c:'Jugador de la Grillo Liga'});
+    }
+    if(dinamicas.length >= 5) break;
+  }
+  return [...CG_BANCO, ...dinamicas];
+}
+
+function cgGenerarCrucigrama(candidatos, objetivo){
+  const size = 26;
+  const grid = Array.from({length:size}, ()=> Array(size).fill(null));
+  const placed = [];
+
+  function puedeColocar(word, row, col, dir){
+    for(let i=0; i<word.length; i++){
+      const r = dir === 'V' ? row+i : row;
+      const c = dir === 'H' ? col+i : col;
+      if(r<0 || r>=size || c<0 || c>=size) return false;
+      const actual = grid[r][c];
+      if(actual !== null && actual !== word[i]) return false;
+    }
+    if(dir === 'H'){
+      if(col-1 >= 0 && grid[row][col-1] !== null) return false;
+      if(col+word.length < size && grid[row][col+word.length] !== null) return false;
+    } else {
+      if(row-1 >= 0 && grid[row-1][col] !== null) return false;
+      if(row+word.length < size && grid[row+word.length][col] !== null) return false;
+    }
+    return true;
+  }
+
+  function colocar(word, row, col, dir){
+    for(let i=0; i<word.length; i++){
+      const r = dir === 'V' ? row+i : row;
+      const c = dir === 'H' ? col+i : col;
+      grid[r][c] = word[i];
+    }
+  }
+
+  const centro = Math.floor(size/2);
+  const primera = candidatos[0];
+  const colInicial = centro - Math.floor(primera.p.length/2);
+  colocar(primera.p, centro, colInicial, 'H');
+  placed.push({...primera, row:centro, col:colInicial, dir:'H'});
+
+  for(let idx=1; idx<candidatos.length && placed.length < objetivo; idx++){
+    const { p, c } = candidatos[idx];
+    if(placed.some(pw => pw.p === p)) continue;
+    let colocada = false;
+    busqueda:
+    for(const pw of placed){
+      for(let i=0; i<pw.p.length; i++){
+        for(let j=0; j<p.length; j++){
+          if(pw.p[i] !== p[j]) continue;
+          let row, col, dir;
+          if(pw.dir === 'H'){ dir = 'V'; row = pw.row - j; col = pw.col + i; }
+          else { dir = 'H'; row = pw.row + i; col = pw.col - j; }
+          if(puedeColocar(p, row, col, dir)){
+            colocar(p, row, col, dir);
+            placed.push({ p, c, row, col, dir });
+            colocada = true;
+            break busqueda;
+          }
+        }
+      }
+    }
+  }
+
+  return { grid, placed, size };
+}
+
+function cgNumerarYRecortar(resultado){
+  const { grid, placed, size } = resultado;
+  let minR=size, maxR=-1, minC=size, maxC=-1;
+  for(let r=0; r<size; r++) for(let c=0; c<size; c++) if(grid[r][c] !== null){
+    if(r<minR) minR=r; if(r>maxR) maxR=r; if(c<minC) minC=c; if(c>maxC) maxC=c;
+  }
+  const alto = maxR-minR+1, ancho = maxC-minC+1;
+  const nuevaGrid = Array.from({length:alto}, ()=> Array(ancho).fill(null));
+  for(let r=0; r<alto; r++) for(let c=0; c<ancho; c++) nuevaGrid[r][c] = grid[r+minR][c+minC];
+
+  const nuevasPlaced = placed.map(pw => ({ ...pw, row: pw.row-minR, col: pw.col-minC }));
+
+  const clavesUnicas = [...new Set(nuevasPlaced.map(pw => pw.row+','+pw.col))].sort((a,b)=>{
+    const [ra,ca] = a.split(',').map(Number);
+    const [rb,cb] = b.split(',').map(Number);
+    return ra-rb || ca-cb;
+  });
+  const numerosPorCelda = {};
+  let contador = 1;
+  clavesUnicas.forEach(key => { numerosPorCelda[key] = contador++; });
+  nuevasPlaced.forEach(pw => { pw.numero = numerosPorCelda[pw.row+','+pw.col]; });
+
+  return { grid:nuevaGrid, placed:nuevasPlaced, alto, ancho, numerosPorCelda };
+}
+
+function cgMoverSiguiente(inp){
+  const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
+  let next = document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c+1}"]`);
+  if(!next) next = document.querySelector(`#cg-grilla input[data-row="${r+1}"][data-col="${c}"]`);
+  if(next) next.focus();
+}
+function cgMoverAnterior(inp){
+  const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
+  let prev = document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c-1}"]`);
+  if(!prev) prev = document.querySelector(`#cg-grilla input[data-row="${r-1}"][data-col="${c}"]`);
+  if(prev) prev.focus();
+}
+
+function cgRenderizar(resultado){
+  const { grid, placed, alto, ancho, numerosPorCelda } = resultado;
+  const cont = document.getElementById('cg-grilla');
+  cont.style.gridTemplateColumns = `repeat(${ancho}, 28px)`;
+  cont.style.gridTemplateRows = `repeat(${alto}, 28px)`;
+  cont.innerHTML = '';
+  for(let r=0; r<alto; r++){
+    for(let c=0; c<ancho; c++){
+      const div = document.createElement('div');
+      const letra = grid[r][c];
+      if(letra === null){
+        div.className = 'cg-celda cg-vacia';
+      } else {
+        div.className = 'cg-celda';
+        const key = r+','+c;
+        if(numerosPorCelda[key]){
+          const num = document.createElement('div');
+          num.className = 'cg-numero';
+          num.textContent = numerosPorCelda[key];
+          div.appendChild(num);
+        }
+        const input = document.createElement('input');
+        input.maxLength = 1;
+        input.dataset.row = r; input.dataset.col = c; input.dataset.letra = letra;
+        div.appendChild(input);
+      }
+      cont.appendChild(div);
+    }
+  }
+
+  const horiz = placed.filter(p => p.dir === 'H').sort((a,b)=> a.numero-b.numero);
+  const vert = placed.filter(p => p.dir === 'V').sort((a,b)=> a.numero-b.numero);
+  document.getElementById('cg-pistas-horizontales').innerHTML = horiz.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+  document.getElementById('cg-pistas-verticales').innerHTML = vert.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+
+  cont.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      inp.value = inp.value.toUpperCase().slice(0,1).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if(inp.value) cgMoverSiguiente(inp);
+    });
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key === 'Backspace' && !inp.value) cgMoverAnterior(inp);
+    });
+  });
+
+  document.querySelectorAll('#cg-pistas-horizontales li, #cg-pistas-verticales li').forEach(li=>{
+    li.addEventListener('click', ()=>{
+      const target = cont.querySelector(`input[data-row="${li.dataset.row}"][data-col="${li.dataset.col}"]`);
+      if(target) target.focus();
+    });
+  });
+
+  document.getElementById('cg-resultado').textContent = '';
+}
+
+function cgCorregir(){
+  let correctas = 0, total = 0;
+  document.querySelectorAll('#cg-grilla input').forEach(inp=>{
+    total++;
+    const celda = inp.parentElement;
+    celda.classList.remove('cg-ok','cg-mal');
+    if(inp.value && inp.value === inp.dataset.letra){ celda.classList.add('cg-ok'); correctas++; }
+    else if(inp.value){ celda.classList.add('cg-mal'); }
+  });
+  document.getElementById('cg-resultado').textContent = correctas === total
+    ? '🎉 ¡Crucigrama completo!'
+    : `${correctas} de ${total} letras correctas.`;
+}
+
+function cgNuevoCrucigrama(){
+  const banco = cgArmarBancoCompleto();
+  const mezclado = [...banco].sort(()=> Math.random()-0.5).sort((a,b)=> b.p.length - a.p.length);
+  const pool = mezclado.slice(0, Math.min(30, mezclado.length));
+  const bruto = cgGenerarCrucigrama(pool, 15);
+  const final = cgNumerarYRecortar(bruto);
+  cgRenderizar(final);
+}
+
+document.getElementById('cg-corregir-btn').addEventListener('click', cgCorregir);
+document.getElementById('cg-nuevo-btn').addEventListener('click', cgNuevoCrucigrama);
+
+document.getElementById('mini-card-crucigrillo').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-crucigrillo').style.display = 'block';
+  cgNuevoCrucigrama();
+});
+document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-crucigrillo').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
 
