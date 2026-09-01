@@ -359,30 +359,33 @@
 #cz-canvas-container{ position:relative; }
 .cz-touch-controles{
   display:none;
-  position:absolute; left:0; right:0; bottom:6px;
-  justify-content:space-between; align-items:flex-end; padding:0 10px;
-  pointer-events:none;
+  justify-content:space-between; align-items:center; padding:14px 10px 0;
 }
-.cz-touch-controles button{ pointer-events:auto; }
-.cz-touch-mover{ display:flex; gap:8px; }
+.cz-touch-mover{ display:flex; gap:10px; }
 .cz-touch-mover button{
-  width:52px; height:52px; border-radius:50%; border:2px solid rgba(255,255,255,.7);
-  background:rgba(20,17,12,.45); color:#fff; font-size:22px; font-weight:900;
+  width:56px; height:56px; border-radius:50%; border:2px solid var(--line-strong);
+  background:var(--card2); color:var(--text); font-size:22px; font-weight:900;
   touch-action:none; user-select:none; -webkit-user-select:none;
 }
-.cz-touch-acciones{ display:flex; gap:8px; align-items:flex-end; }
+.cz-touch-acciones{ display:flex; gap:10px; align-items:center; }
 .cz-touch-acciones button{
-  width:56px; height:56px; border-radius:50%; border:2px solid rgba(255,255,255,.7);
-  background:rgba(179,59,34,.55); color:#fff; font-size:18px; font-weight:900;
+  width:60px; height:60px; border-radius:50%; border:2px solid var(--line-strong);
+  background:rgba(179,59,34,.75); color:#fff; font-size:19px; font-weight:900;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
   touch-action:none; user-select:none; -webkit-user-select:none;
 }
 .cz-touch-acciones button span{ font-size:8px; font-weight:400; text-transform:uppercase; }
-.cz-touch-acciones button.cz-touch-saltar{ background:rgba(55,80,48,.6); }
-.cz-touch-acciones button.cz-touch-levantar{ background:rgba(156,122,46,.6); }
+.cz-touch-acciones button.cz-touch-saltar{ background:rgba(55,80,48,.85); }
+.cz-touch-acciones button.cz-touch-levantar{ background:rgba(156,122,46,.85); }
 .cz-touch-controles button:active{ transform:scale(0.92); }
 @media (hover:none) and (pointer:coarse){
   .cz-touch-controles{ display:flex; }
+}
+@media (max-width:700px){
+  #mini-cabezones #cz-canvas-container{
+    max-width:none; width:calc(100% + 28px); margin-left:-14px; margin-right:-14px;
+    border-left:none; border-right:none; border-radius:0;
+  }
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -1374,16 +1377,16 @@ footer{
         </div>
         <div class="mg-canvas-container" id="cz-canvas-container">
           <canvas id="cz-canvas" width="760" height="460"></canvas>
-          <div class="cz-touch-controles" id="cz-touch-controles">
-            <div class="cz-touch-mover">
-              <button data-tecla="KeyA">◀</button>
-              <button data-tecla="KeyD">▶</button>
-            </div>
-            <div class="cz-touch-acciones">
-              <button class="cz-touch-levantar" data-tecla="KeyS">⤴<span>control</span></button>
-              <button class="cz-touch-saltar" data-tecla="KeyW">⬆<span>saltar</span></button>
-              <button class="cz-touch-patear" data-tecla="Space">⚡<span>patear</span></button>
-            </div>
+        </div>
+        <div class="cz-touch-controles" id="cz-touch-controles">
+          <div class="cz-touch-mover">
+            <button data-tecla="KeyA">◀</button>
+            <button data-tecla="KeyD">▶</button>
+          </div>
+          <div class="cz-touch-acciones">
+            <button class="cz-touch-levantar" data-tecla="KeyS">⤴<span>control</span></button>
+            <button class="cz-touch-saltar" data-tecla="KeyW">⬆<span>saltar</span></button>
+            <button class="cz-touch-patear" data-tecla="Space">⚡<span>patear</span></button>
           </div>
         </div>
         <div id="cz-final" style="display:none;">
