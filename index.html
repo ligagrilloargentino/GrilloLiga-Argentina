@@ -3255,7 +3255,7 @@ function czPaso(dtMs){
 
   if(czModo === 'bot') czControlarBot(czJugador2);
   else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter', 'ArrowDown');
-  czControlarHumano(czJugador1, 'a', 'd', 'w', ' ', 's');
+  czControlarHumano(czJugador1, 'KeyA', 'KeyD', 'KeyW', 'Space', 'KeyS');
 
   czAplicarGravedadYSuelo(czJugador1, czJugador1.radio);
   czAplicarGravedadYSuelo(czJugador2, czJugador2.radio);
@@ -3281,18 +3281,35 @@ function czDibujarBotin(j){
   czCtx.save();
   czCtx.translate(baseX, baseY);
   czCtx.scale(dir, 1);
-  // botín (óvalo con punta hacia adelante)
+  // suela blanca (atrás, para que quede debajo del botín)
+  czCtx.beginPath();
+  czCtx.ellipse(6, 5, 13, 3, 0, 0, Math.PI*2);
+  czCtx.fillStyle = '#F0E7D2';
+  czCtx.fill();
+  // botín dorado (óvalo con punta hacia adelante)
   czCtx.beginPath();
   czCtx.ellipse(6, 0, 14, 8, 0, 0, Math.PI*2);
-  czCtx.fillStyle = '#D4AF37';
+  const brillo = czCtx.createLinearGradient(-2, -6, 14, 4);
+  brillo.addColorStop(0, '#F5D97A');
+  brillo.addColorStop(0.5, '#D4AF37');
+  brillo.addColorStop(1, '#a8842a');
+  czCtx.fillStyle = brillo;
   czCtx.fill();
   czCtx.strokeStyle = '#8a6f1f';
   czCtx.lineWidth = 1.5;
   czCtx.stroke();
-  // suela blanca
+  // cordones (líneas cruzadas)
+  czCtx.strokeStyle = 'rgba(58,44,10,.65)';
+  czCtx.lineWidth = 1;
+  for(let i=0; i<3; i++){
+    const cx = -2 + i*4;
+    czCtx.beginPath(); czCtx.moveTo(cx, -4); czCtx.lineTo(cx+3, 1); czCtx.stroke();
+    czCtx.beginPath(); czCtx.moveTo(cx+3, -4); czCtx.lineTo(cx, 1); czCtx.stroke();
+  }
+  // franja/brillo superior tipo marca deportiva
   czCtx.beginPath();
-  czCtx.ellipse(6, 5, 13, 3, 0, 0, Math.PI*2);
-  czCtx.fillStyle = '#F0E7D2';
+  czCtx.ellipse(9, -3, 6, 2, -0.3, 0, Math.PI*2);
+  czCtx.fillStyle = 'rgba(255,255,255,.55)';
   czCtx.fill();
   czCtx.restore();
 }
@@ -3466,14 +3483,14 @@ setInterval(()=>{
   if(czTiempoRestante <= 0){ czTerminarPartido(); }
 }, 1000);
 
-const CZ_TECLAS_JUEGO = ['a','d','w','s',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
+const CZ_TECLAS_JUEGO = ['KeyA','KeyD','KeyW','KeyS','Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
 document.addEventListener('keydown', (e)=>{
-  czTeclas[e.key] = true;
-  if(document.getElementById('cz-cancha-wrap').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.key)){
+  czTeclas[e.code] = true;
+  if(document.getElementById('cz-cancha-wrap').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.code)){
     e.preventDefault();
   }
 });
-document.addEventListener('keyup', (e)=>{ czTeclas[e.key] = false; });
+document.addEventListener('keyup', (e)=>{ czTeclas[e.code] = false; });
 
 function czActualizarBotonEmpezar(){
   document.getElementById('cz-empezar-btn').disabled = !(czNombreJ1 && czNombreJ2);
