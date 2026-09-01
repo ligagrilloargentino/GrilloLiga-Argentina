@@ -275,7 +275,8 @@
   max-width:600px; margin:0 auto; border:3px solid var(--text); border-radius:6px; overflow:hidden;
   touch-action:none;
 }
-#mg-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; cursor:grab; }
+#cz-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; }
+#mini-cabezones .mg-canvas-container{ max-width:760px; }
 .mg-nota{ text-align:center; font-size:11.5px; color:var(--text-dimmer); margin-top:10px; }
 .mg-opciones{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
 .mg-opciones-titulo{ font-family:'Lora',serif; font-weight:700; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
@@ -1298,7 +1299,7 @@ footer{
           <div id="cz-nombre-j2">RIVAL<br><b id="cz-score-j2">0</b></div>
         </div>
         <div class="mg-canvas-container">
-          <canvas id="cz-canvas" width="600" height="380"></canvas>
+          <canvas id="cz-canvas" width="760" height="460"></canvas>
         </div>
         <div id="cz-final" style="display:none;">
           <div class="pen-final-titulo" id="cz-final-titulo"></div>
@@ -2996,21 +2997,23 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
 });
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
-const CZ_CAMPO = { xMin:30, xMax:570, ySuelo:300 };
-const CZ_GOL_Y = 200; // desde esta altura hacia abajo, en los extremos, es arco
+const CZ_ANCHO = 760, CZ_ALTO = 460, CZ_CENTRO_X = 380;
+const CZ_TRIBUNA_ALTO = 70;
+const CZ_CAMPO = { xMin:35, xMax:725, ySuelo:460 };
+const CZ_GOL_Y = 260; // desde esta altura hacia abajo, en los extremos, es arco
 const CZ_GRAVEDAD = 0.55;
-const CZ_RADIO_CABEZA = 24, CZ_RADIO_PELOTA = 11;
+const CZ_RADIO_CABEZA = 26, CZ_RADIO_PELOTA = 12;
 const CZ_VEL_MOV = 4.3, CZ_VEL_SALTO = -11.5;
-const CZ_FRICCION_PELOTA_AIRE = 0.995, CZ_REBOTE_PELOTA = 0.72;
+const CZ_FRICCION_PELOTA_AIRE = 0.978, CZ_REBOTE_PELOTA = 0.68;
 const CZ_DURACION_PARTIDO = 90;
 const CZ_DURACION_POWERUP = 8000;
 
 let czModo = 'bot';
 let czDificultad = 'normal';
 const CZ_DIFICULTADES = {
-  facil:   { velocidad:0.45, probPatear:0.22, probSaltar:0.05, errorPunteria:70 },
-  normal:  { velocidad:0.72, probPatear:0.40, probSaltar:0.11, errorPunteria:28 },
-  dificil: { velocidad:1.00, probPatear:0.58, probSaltar:0.18, errorPunteria:0 }
+  facil:   { velocidad:0.28, probPatear:0.12, probSaltar:0.03, errorPunteria:110 },
+  normal:  { velocidad:0.45, probPatear:0.22, probSaltar:0.06, errorPunteria:65 },
+  dificil: { velocidad:0.68, probPatear:0.35, probSaltar:0.11, errorPunteria:30 }
 };
 let czNombreJ1 = null, czNombreJ2 = null;
 let czJugador1, czJugador2, czPelota;
@@ -3054,7 +3057,7 @@ function czObtenerImagen(nombre){
 function czCrearJugador(nombre, lado, esBot){
   return {
     nombre, lado, esBot,
-    x: lado === 'izq' ? 150 : 450,
+    x: lado === 'izq' ? 190 : 570,
     y: CZ_CAMPO.ySuelo - CZ_RADIO_CABEZA,
     vx: 0, vy: 0,
     radio: CZ_RADIO_CABEZA,
@@ -3071,7 +3074,7 @@ function czIniciarPartido(){
   czJugador1 = czCrearJugador(czNombreJ1, 'izq', false);
   czJugador2 = czCrearJugador(czNombreJ2, 'der', czModo === 'bot');
   czObtenerImagen(czNombreJ1); czObtenerImagen(czNombreJ2);
-  czPelota = { x:300, y:200, vx:0, vy:0, radio:CZ_RADIO_PELOTA, efectoHasta:0 };
+  czPelota = { x:CZ_CENTRO_X, y:CZ_TRIBUNA_ALTO+80, vx:0, vy:0, radio:CZ_RADIO_PELOTA, efectoHasta:0 };
   czMarcadorJ1 = 0; czMarcadorJ2 = 0;
   czTiempoRestante = CZ_DURACION_PARTIDO;
   czPowerUps = [];
@@ -3104,8 +3107,8 @@ function czAplicarGravedadYSuelo(o, radio){
   }
   // la pelota, cuando está a la altura del arco, puede seguir de largo hacia adentro de la red
   const enZonaGol = (o === czPelota) && o.y > CZ_GOL_Y;
-  const limiteIzq = enZonaGol ? CZ_CAMPO.xMin - 16 : CZ_CAMPO.xMin;
-  const limiteDer = enZonaGol ? CZ_CAMPO.xMax + 16 : CZ_CAMPO.xMax;
+  const limiteIzq = enZonaGol ? CZ_CAMPO.xMin - 18 : CZ_CAMPO.xMin;
+  const limiteDer = enZonaGol ? CZ_CAMPO.xMax + 18 : CZ_CAMPO.xMax;
   if(o.x - radio < limiteIzq){ o.x = limiteIzq + radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
   if(o.x + radio > limiteDer){ o.x = limiteDer - radio; if(o===czPelota) o.vx *= -CZ_REBOTE_PELOTA; else o.vx = 0; }
 }
@@ -3118,26 +3121,26 @@ function czColisionCabezaPelota(jugador){
     const nx = dx/dist, ny = dy/dist;
     const solape = minDist - dist;
     czPelota.x += nx*solape; czPelota.y += ny*solape;
-    const fuerza = Math.max(6, Math.hypot(jugador.vx, jugador.vy)*1.3);
-    czPelota.vx = nx*fuerza + jugador.vx*0.5;
-    czPelota.vy = ny*fuerza - 2;
+    const fuerza = Math.max(4, Math.hypot(jugador.vx, jugador.vy)*0.9);
+    czPelota.vx = nx*fuerza + jugador.vx*0.4;
+    czPelota.vy = ny*fuerza - 1.5;
   }
 }
 
 function czIntentarPatear(jugador){
   const dx = czPelota.x - jugador.x, dy = czPelota.y - jugador.y;
   const dist = Math.hypot(dx,dy);
-  if(dist < jugador.radio + czPelota.radio + 22){
+  if(dist < jugador.radio + czPelota.radio + 24){
     const dir = jugador.mirandoDerecha ? 1 : -1;
-    czPelota.vx = dir*11 + jugador.vx*0.4;
-    czPelota.vy = -9.5;
+    czPelota.vx = dir*7.5 + jugador.vx*0.35;
+    czPelota.vy = -7;
   }
 }
 
 function czSpawnPowerUp(){
   const tipos = ['bola_gigante','cabeza_gigante','rayo'];
   const tipo = tipos[Math.floor(Math.random()*tipos.length)];
-  czPowerUps.push({ tipo, x: 100 + Math.random()*400, y: 20, vy: 1.5, tomado:false });
+  czPowerUps.push({ tipo, x: CZ_CAMPO.xMin + 60 + Math.random()*(CZ_CAMPO.xMax-CZ_CAMPO.xMin-120), y: CZ_TRIBUNA_ALTO+10, vy: 1.5, tomado:false });
 }
 
 function czAplicarPowerUp(jugador, tipo){
@@ -3187,9 +3190,9 @@ function czGol(lado){
   const golNombre = lado === 'izq' ? czNombreJ2 : czNombreJ1;
   if(lado === 'izq'){ czMarcadorJ2++; document.getElementById('cz-score-j2').textContent = czMarcadorJ2; }
   else { czMarcadorJ1++; document.getElementById('cz-score-j1').textContent = czMarcadorJ1; }
-  czJugador1.x = 150; czJugador1.y = CZ_CAMPO.ySuelo - czJugador1.radio; czJugador1.vx=0; czJugador1.vy=0;
-  czJugador2.x = 450; czJugador2.y = CZ_CAMPO.ySuelo - czJugador2.radio; czJugador2.vx=0; czJugador2.vy=0;
-  czPelota.x = 300; czPelota.y = 200; czPelota.vx = 0; czPelota.vy = 0;
+  czJugador1.x = 190; czJugador1.y = CZ_CAMPO.ySuelo - czJugador1.radio; czJugador1.vx=0; czJugador1.vy=0;
+  czJugador2.x = 570; czJugador2.y = CZ_CAMPO.ySuelo - czJugador2.radio; czJugador2.vx=0; czJugador2.vy=0;
+  czPelota.x = CZ_CENTRO_X; czPelota.y = CZ_TRIBUNA_ALTO+80; czPelota.vx = 0; czPelota.vy = 0;
   czCartelGolTexto = czElegirFraseGol(golNombre);
   czCartelGolHasta = Date.now() + 2500;
 }
@@ -3313,22 +3316,20 @@ function czDibujarArco(x, ancho){
 }
 
 function czDibujarTribuna(){
-  // fondo de tribuna (estática, sin animación)
+  // fondo de tribuna arriba de la cancha (estática, sin animación)
   czCtx.fillStyle = '#5a4b3a';
-  czCtx.fillRect(0, CZ_CAMPO.ySuelo, 600, 380-CZ_CAMPO.ySuelo);
-  // filas de asientos
+  czCtx.fillRect(0, 16, CZ_ANCHO, CZ_TRIBUNA_ALTO-16);
   const filas = 3;
   for(let f=0; f<filas; f++){
-    const y = CZ_CAMPO.ySuelo + 6 + f*13;
+    const y = 20 + f*15;
     czCtx.fillStyle = f % 2 === 0 ? '#7a6248' : '#6b543c';
-    czCtx.fillRect(0, y, 600, 9);
-    // "gente" (puntitos de colores fijos, sin animación)
-    for(let x=8; x<600; x+=14){
+    czCtx.fillRect(0, y, CZ_ANCHO, 11);
+    for(let x=8; x<CZ_ANCHO; x+=16){
       const seed = (x*7 + f*31) % 5;
       const colores = ['#B33B22','#375030','#9C7A2E','#F0E7D2','#725A22'];
       czCtx.fillStyle = colores[seed];
       czCtx.beginPath();
-      czCtx.arc(x, y+4, 3, 0, Math.PI*2);
+      czCtx.arc(x, y+5, 3.5, 0, Math.PI*2);
       czCtx.fill();
     }
   }
@@ -3336,58 +3337,61 @@ function czDibujarTribuna(){
 
 function czDibujarCartelGol(){
   if(Date.now() > czCartelGolHasta) return;
-  // asta de la bandera
+  const yBase = CZ_TRIBUNA_ALTO + 55;
+  // asta de la bandera (sale desde la tribuna hacia la cancha)
   czCtx.fillStyle = '#8a7050';
-  czCtx.fillRect(298, CZ_CAMPO.ySuelo-46, 4, 46);
+  czCtx.fillRect(CZ_CENTRO_X-2, CZ_TRIBUNA_ALTO, 4, 55);
   // bandera triangular
   czCtx.fillStyle = '#B33B22';
   czCtx.beginPath();
-  czCtx.moveTo(302, CZ_CAMPO.ySuelo-46);
-  czCtx.lineTo(302, CZ_CAMPO.ySuelo-16);
-  czCtx.lineTo(360, CZ_CAMPO.ySuelo-31);
+  czCtx.moveTo(CZ_CENTRO_X+2, CZ_TRIBUNA_ALTO);
+  czCtx.lineTo(CZ_CENTRO_X+2, CZ_TRIBUNA_ALTO+30);
+  czCtx.lineTo(CZ_CENTRO_X+70, CZ_TRIBUNA_ALTO+15);
   czCtx.closePath();
   czCtx.fill();
 
-  // cartel de texto arriba de la bandera
-  czCtx.font = 'bold 15px sans-serif';
+  // cartel de texto debajo de la bandera
+  czCtx.font = 'bold 17px sans-serif';
   czCtx.textAlign = 'center'; czCtx.textBaseline = 'middle';
-  const ancho = czCtx.measureText(czCartelGolTexto).width + 24;
-  czCtx.fillStyle = 'rgba(20,17,12,.82)';
-  czCtx.fillRect(300-ancho/2, 60, ancho, 30);
+  const ancho = czCtx.measureText(czCartelGolTexto).width + 28;
+  czCtx.fillStyle = 'rgba(20,17,12,.85)';
+  czCtx.fillRect(CZ_CENTRO_X-ancho/2, yBase, ancho, 34);
   czCtx.strokeStyle = '#fff'; czCtx.lineWidth = 2;
-  czCtx.strokeRect(300-ancho/2, 60, ancho, 30);
+  czCtx.strokeRect(CZ_CENTRO_X-ancho/2, yBase, ancho, 34);
   czCtx.fillStyle = '#F0E7D2';
-  czCtx.fillText(czCartelGolTexto, 300, 75);
+  czCtx.fillText(czCartelGolTexto, CZ_CENTRO_X, yBase+17);
 }
 
 function czDibujar(){
   if(!czCtx) return;
-  czCtx.clearRect(0,0,600,380);
+  czCtx.clearRect(0,0,CZ_ANCHO,CZ_ALTO);
 
-  // franjas de césped cortado
-  for(let i=0; i<600; i+=40){
-    czCtx.fillStyle = (Math.round(i/40) % 2 === 0) ? '#3f7a34' : '#356b2b';
-    czCtx.fillRect(i, 0, 40, CZ_CAMPO.ySuelo);
+  // franjas de césped cortado (debajo de la tribuna)
+  for(let i=0; i<CZ_ANCHO; i+=48){
+    czCtx.fillStyle = (Math.round(i/48) % 2 === 0) ? '#3f7a34' : '#356b2b';
+    czCtx.fillRect(i, CZ_TRIBUNA_ALTO, 48, CZ_CAMPO.ySuelo-CZ_TRIBUNA_ALTO);
   }
-  czDibujarTribuna();
 
   // línea de borde de cancha y línea/círculo central
   czCtx.strokeStyle = 'rgba(255,255,255,.5)';
   czCtx.lineWidth = 2;
-  czCtx.strokeRect(CZ_CAMPO.xMin, 18, CZ_CAMPO.xMax-CZ_CAMPO.xMin, CZ_CAMPO.ySuelo-18);
-  czCtx.beginPath(); czCtx.moveTo(300,18); czCtx.lineTo(300,CZ_CAMPO.ySuelo); czCtx.stroke();
-  czCtx.beginPath(); czCtx.arc(300, CZ_CAMPO.ySuelo-60, 38, 0, Math.PI*2); czCtx.stroke();
+  czCtx.strokeRect(CZ_CAMPO.xMin, CZ_TRIBUNA_ALTO+6, CZ_CAMPO.xMax-CZ_CAMPO.xMin, CZ_CAMPO.ySuelo-(CZ_TRIBUNA_ALTO+6));
+  czCtx.beginPath(); czCtx.moveTo(CZ_CENTRO_X,CZ_TRIBUNA_ALTO+6); czCtx.lineTo(CZ_CENTRO_X,CZ_CAMPO.ySuelo); czCtx.stroke();
+  czCtx.beginPath(); czCtx.arc(CZ_CENTRO_X, (CZ_TRIBUNA_ALTO+6+CZ_CAMPO.ySuelo)/2, 46, 0, Math.PI*2); czCtx.stroke();
 
-  czDibujarArco(CZ_CAMPO.xMin-16, 16);
-  czDibujarArco(CZ_CAMPO.xMax, 16);
+  czDibujarArco(CZ_CAMPO.xMin-18, 18);
+  czDibujarArco(CZ_CAMPO.xMax, 18);
+
+  // tribuna, arriba de todo
+  czDibujarTribuna();
 
   // cartel publicitario
   czCtx.fillStyle = '#B33B22';
-  czCtx.fillRect(0, 0, 600, 16);
+  czCtx.fillRect(0, 0, CZ_ANCHO, 16);
   czCtx.fillStyle = '#F7F1E1';
   czCtx.font = 'bold 12px sans-serif';
   czCtx.textAlign = 'center'; czCtx.textBaseline = 'middle';
-  czCtx.fillText('⚡ APANOVI ⚡', 300, 9);
+  czCtx.fillText('⚡ APANOVI ⚡', CZ_CENTRO_X, 9);
 
   czPowerUps.forEach(czDibujarPowerUp);
   czDibujarCabeza(czJugador1);
