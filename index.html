@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Los Pibes — Grilloliga</title>
+<title>Grillo Liga Argentina — Torneo amateur de fútbol 2026</title>
+<meta name="description" content="Grillo Liga Argentina: estadísticas, rankings y resultados del torneo amateur de fútbol Los Pibes 2026. Goleadores, asistencias, historial de jugadores y mucho más.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ligagrilloargentino.github.io/Liga-GrilloArgentina/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
+<meta property="og:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026. Goleadores, asistencias e historial de todos los jugadores.">
+<meta property="og:url" content="https://ligagrilloargentino.github.io/Liga-GrilloArgentina/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
+<meta name="twitter:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026.">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -1800,6 +1810,8 @@ async function despuesDeLoguearse(){
 // INTERRUPTOR TEMPORAL: mientras terminamos de afinar el login, lo dejamos en pausa.
 // Cuando esté listo para activarse de nuevo, cambiar esta línea a: const LOGIN_REQUERIDO = true;
 const LOGIN_REQUERIDO = true;
+let modoInvitado = false; // deshabilitado: todo el sitio exige login, sin pestañas públicas
+const TABS_PUBLICAS = [];
 
 async function verificarSesion(){
   if(!LOGIN_REQUERIDO){
@@ -1829,7 +1841,7 @@ function iniciarApp(){
 const _btnCerrarSesion = document.getElementById('cerrar-sesion-btn');
 const _labelUsuario = document.getElementById('usuario-actual-nombre');
 const _miniMenuUsuario = document.getElementById('usuario-mini-menu');
-if(LOGIN_REQUERIDO){
+if(LOGIN_REQUERIDO && !modoInvitado){
   _btnCerrarSesion.style.display = 'inline';
   sbClient.auth.getUser().then(({data})=>{
     if(data && data.user){
@@ -1857,6 +1869,10 @@ if(LOGIN_REQUERIDO){
       });
     }
   });
+} else if(modoInvitado){
+  _labelUsuario.textContent = '🔑 Iniciar sesión';
+  _labelUsuario.style.display = 'inline';
+  _labelUsuario.addEventListener('click', ()=>{ authOverlay.style.display = 'flex'; });
 }
 _btnCerrarSesion.addEventListener('click', async ()=>{
   await sbClient.auth.signOut();
@@ -1882,6 +1898,11 @@ function abrirCajonMenu(){
 
 tabBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
+    if(modoInvitado && !TABS_PUBLICAS.includes(btn.dataset.tab)){
+      cerrarCajonMenu();
+      authOverlay.style.display = 'flex';
+      return;
+    }
     tabBtns.forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -1894,6 +1915,10 @@ if(menuHamburguesaBtn){
   menuHamburguesaBtn.addEventListener('click', abrirCajonMenu);
 }
 document.getElementById('drawer-cerrar-btn').addEventListener('click', cerrarCajonMenu);
+if(modoInvitado){
+  const tabEstadisticas = document.querySelector('.tab-btn[data-tab="estadisticas"]');
+  if(tabEstadisticas) tabEstadisticas.click();
+}
 drawerOverlayEl.addEventListener('click', cerrarCajonMenu);
 
 /* ---------- ESTADISTICAS ---------- */
