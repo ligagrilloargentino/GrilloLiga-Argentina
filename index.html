@@ -2477,7 +2477,12 @@ function responderPreguntaBot(texto){
   }
 
   // Caso -2: grupo de N jugadores con mayor diferencia de victorias jugando juntos
-  if(/diferencia/.test(normTexto) && /jugador/.test(normTexto)){
+  // (incluye frases tipo "trío con mejor historial jugando juntos", que significan lo mismo)
+  const pideGrupoDiferencia =
+    (/diferencia/.test(normTexto) && /jugador/.test(normTexto)) ||
+    /trio|tridente/.test(normTexto) ||
+    (/historial/.test(normTexto) && /juntos/.test(normTexto) && /jugador/.test(normTexto));
+  if(pideGrupoDiferencia){
     const matchGrupo = normTexto.match(/(\d+|dos|tres|cuatro)\s+jugadores/);
     let n = 3;
     if(matchGrupo){ const parsed = parseInt(matchGrupo[1]); n = isNaN(parsed) ? NUMEROS_TEXTO[matchGrupo[1]] : parsed; }
