@@ -484,8 +484,23 @@ header.top{
 }
 .usuario-sesion-info{
   position:absolute; top:16px; right:18px;
-  display:flex; align-items:center; gap:10px;
+  display:flex; align-items:center; gap:12px;
 }
+.usuario-menu-wrap{ position:relative; }
+#usuario-actual-nombre{
+  font-family:'Lora',serif; font-weight:700; font-size:14px; color:var(--text);
+  cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px;
+}
+#usuario-actual-nombre:hover{ color:var(--red); }
+.usuario-mini-menu{
+  display:none; position:absolute; top:26px; right:0; z-index:200;
+  background:var(--card); border:1px solid var(--line-strong); border-radius:8px;
+  padding:14px 16px; min-width:210px; box-shadow:0 6px 18px rgba(0,0,0,.16);
+}
+.usuario-mini-menu.abierto{ display:block; }
+.umm-fila{ font-family:'Lora',serif; font-size:12px; color:var(--text); margin-bottom:8px; line-height:1.4; }
+.umm-fila:last-child{ margin-bottom:0; }
+.umm-fila b{ color:var(--text-dim); font-weight:700; margin-right:4px; }
 .brand{
   display:flex; align-items:baseline; gap:12px; margin-bottom:8px;
 }
@@ -1039,8 +1054,15 @@ footer{
 <header class="top">
   <div class="top-inner">
     <div class="usuario-sesion-info">
-      <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); display:none;"></span>
-      <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
+      <div class="usuario-menu-wrap">
+        <span id="usuario-actual-nombre" style="display:none;"></span>
+        <div class="usuario-mini-menu" id="usuario-mini-menu">
+          <div class="umm-fila"><b>Usuario:</b> <span id="umm-usuario">—</span></div>
+          <div class="umm-fila"><b>Hincha de:</b> <span id="umm-club">—</span></div>
+          <div class="umm-fila"><b>Jugador favorito:</b> <span id="umm-jugador">—</span></div>
+        </div>
+      </div>
+      <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:12px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
     </div>
     <div class="brand">
       <span class="badge">2026</span>
@@ -1777,6 +1799,7 @@ verificarSesion();
 function iniciarApp(){
 const _btnCerrarSesion = document.getElementById('cerrar-sesion-btn');
 const _labelUsuario = document.getElementById('usuario-actual-nombre');
+const _miniMenuUsuario = document.getElementById('usuario-mini-menu');
 if(LOGIN_REQUERIDO){
   _btnCerrarSesion.style.display = 'inline';
   sbClient.auth.getUser().then(({data})=>{
@@ -1784,6 +1807,25 @@ if(LOGIN_REQUERIDO){
       const usuario = data.user.email.replace(DOMINIO_FALSO, '');
       _labelUsuario.textContent = usuario;
       _labelUsuario.style.display = 'inline';
+
+      sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito')
+        .eq('id', data.user.id).maybeSingle().then(({data:perfil})=>{
+          if(perfil){
+            document.getElementById('umm-usuario').textContent = perfil.username || usuario;
+            document.getElementById('umm-club').textContent = perfil.club_favorito || '—';
+            document.getElementById('umm-jugador').textContent = perfil.jugador_favorito || '—';
+          }
+        });
+
+      _labelUsuario.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        _miniMenuUsuario.classList.toggle('abierto');
+      });
+      document.addEventListener('click', (e)=>{
+        if(_miniMenuUsuario.classList.contains('abierto') && !_miniMenuUsuario.contains(e.target)){
+          _miniMenuUsuario.classList.remove('abierto');
+        }
+      });
     }
   });
 }
