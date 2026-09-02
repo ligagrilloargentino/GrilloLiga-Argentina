@@ -504,12 +504,20 @@ header.top{
   font-style:italic; letter-spacing:0.3px;
 }
 .menu-hamburguesa-btn{
-  display:inline-flex; align-items:center; gap:7px; margin-top:12px;
-  padding:9px 16px; border-radius:20px; border:1px solid var(--line-strong);
-  background:var(--card); color:var(--text); font-family:'Lora',serif; font-weight:700;
-  font-size:13px; cursor:pointer; transition:border-color .15s, background .15s;
+  display:inline-flex; align-items:center; gap:9px; margin-top:12px;
+  padding:9px 18px; border-radius:22px; border:1px solid var(--red);
+  background:var(--red); color:var(--claro-bg); font-family:'Lora',serif; font-weight:700;
+  font-size:13px; letter-spacing:0.4px; cursor:pointer;
+  box-shadow:0 2px 8px rgba(179,59,34,.28);
+  transition:background .18s, transform .12s, box-shadow .18s;
 }
-.menu-hamburguesa-btn:hover{ border-color:var(--red); background:var(--card2); }
+.menu-hamburguesa-btn:hover{
+  background:var(--red-dim); transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(179,59,34,.35);
+}
+.menu-hamburguesa-btn:active{ transform:translateY(0); }
+.hamburguesa-icono{ display:inline-flex; flex-direction:column; gap:3.5px; width:15px; }
+.hamburguesa-icono span{ display:block; height:2px; width:100%; background:var(--claro-bg); border-radius:1px; }
 
 .drawer-overlay{
   position:fixed; inset:0; background:rgba(20,17,12,.55); z-index:9000;
@@ -1029,7 +1037,10 @@ footer{
     <div class="subtitle" id="subtitle-text"></div>
     <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); margin-right:10px; display:none;"></span>
     <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
-    <button id="menu-hamburguesa-btn" class="menu-hamburguesa-btn">☰ Menú</button>
+    <button id="menu-hamburguesa-btn" class="menu-hamburguesa-btn">
+      <span class="hamburguesa-icono"><span></span><span></span><span></span></span>
+      Menú
+    </button>
   </div>
   <div class="stitch-line"></div>
 </header>
@@ -1040,15 +1051,15 @@ footer{
     <h2>GrilloLiga</h2>
     <button class="drawer-cerrar" id="drawer-cerrar-btn">✕</button>
   </div>
-  <button class="tab-btn active" data-tab="inicio">Inicio</button>
-  <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
-  <button class="tab-btn" data-tab="rankings">Rankings</button>
-  <button class="tab-btn" data-tab="partidos">Partidos</button>
-  <button class="tab-btn" data-tab="historicos">Partidos Históricos</button>
-  <button class="tab-btn" data-tab="jugadores">Jugadores</button>
-  <button class="tab-btn" data-tab="foro">Foro general</button>
-  <button class="tab-btn" data-tab="grillobot">GrilloBOT</button>
-  <button class="tab-btn" data-tab="minijuegos">Minijuegos</button>
+  <button class="tab-btn active" data-tab="inicio">🏠 Inicio</button>
+  <button class="tab-btn" data-tab="estadisticas">📊 Estadísticas</button>
+  <button class="tab-btn" data-tab="rankings">🏆 Rankings</button>
+  <button class="tab-btn" data-tab="partidos">⚽ Partidos</button>
+  <button class="tab-btn" data-tab="historicos">📜 Partidos Históricos</button>
+  <button class="tab-btn" data-tab="jugadores">👤 Jugadores</button>
+  <button class="tab-btn" data-tab="foro">💬 Foro general</button>
+  <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
+  <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
 </nav>
 
 <main>
