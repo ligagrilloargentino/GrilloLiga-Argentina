@@ -316,36 +316,59 @@
 @media (max-width:600px){
   .cz-elegir-fila{ grid-template-columns:1fr; }
 }
-/* ---------- MINIJUEGO: CRUCIGRILLO ---------- */
+/* ---------- MINIJUEGO: CRUCIGRILLO (estética tipo diario) ---------- */
 .cg-layout{ display:grid; grid-template-columns:1fr 280px; gap:20px; align-items:start; }
-.cg-grilla-wrap{ display:flex; flex-direction:column; align-items:center; }
-#cg-grilla{ display:inline-grid; gap:2px; background:var(--line-strong); padding:2px; border-radius:4px; }
-.cg-celda{
-  position:relative; width:28px; height:28px; background:var(--card);
+.cg-grilla-wrap{
+  display:flex; flex-direction:column; align-items:center;
+  background:#F7F4EC; border:1px solid #cfc9b8; padding:16px 14px 10px; border-radius:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
 }
-.cg-celda.cg-vacia{ background:transparent; }
+.cg-titulo-diario{
+  font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:15px; letter-spacing:1px;
+  text-transform:uppercase; color:#1a1a1a; text-align:center; margin-bottom:2px;
+}
+.cg-subtitulo-diario{
+  font-family:Georgia,serif; font-style:italic; font-size:10px; color:#555; text-align:center;
+  border-top:2px solid #1a1a1a; border-bottom:1px solid #1a1a1a; padding:3px 0; margin-bottom:14px;
+}
+#cg-grilla{ display:inline-grid; gap:1px; background:#1a1a1a; padding:1px; border:2px solid #1a1a1a; }
+.cg-celda{
+  position:relative; width:28px; height:28px; background:#fff;
+}
+.cg-celda.cg-vacia{ background:#1a1a1a; }
 .cg-celda input{
   width:100%; height:100%; border:none; background:transparent; text-align:center;
-  font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:700; color:var(--text);
+  font-family:Georgia,'Times New Roman',serif; font-size:15px; font-weight:700; color:#1a1a1a;
   text-transform:uppercase; padding:0;
 }
-.cg-celda input:focus{ outline:2px solid var(--red); outline-offset:-2px; }
-.cg-celda.cg-ok input{ background:rgba(74,107,67,.25); }
-.cg-celda.cg-mal input{ background:rgba(179,59,34,.22); }
+.cg-celda input:focus{ outline:2px solid #B33B22; outline-offset:-2px; background:#fdf6e8; }
+.cg-celda.cg-ok input{ background:#e3ecdd; }
+.cg-celda.cg-mal input{ background:#f3dcd4; }
 .cg-numero{
-  position:absolute; top:0px; left:1px; font-size:8px; color:var(--text-dimmer);
-  font-family:'IBM Plex Mono',monospace; pointer-events:none;
+  position:absolute; top:0px; left:1px; font-size:7.5px; color:#333;
+  font-family:Georgia,serif; pointer-events:none;
 }
 .cg-acciones{ display:flex; gap:8px; margin-top:14px; }
+.cg-actual-barra{
+  display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:14px;
+}
+.cg-actual-texto{ font-family:'Lora',serif; font-size:13px; color:var(--text); }
+.cg-actual-texto b{ color:var(--red); }
+.cg-celda.cg-activa{ background:#fdf6e8; }
+.cg-celda.cg-activa input{ background:#fdf6e8; }
+.cg-celda.cg-inactiva{ pointer-events:none; }
+.cg-celda.cg-inactiva input{ color:#999; }
+.cg-pistas-col li.cg-pista-activa{ color:var(--red); font-weight:700; }
 .cg-resultado{ margin-top:10px; font-family:'Lora',serif; font-weight:700; font-size:13.5px; text-align:center; min-height:20px; }
 .cg-pistas{ display:flex; flex-direction:column; gap:16px; }
-.cg-pistas-col{ background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+.cg-pistas-col{ background:#F7F4EC; border:1px solid #cfc9b8; border-radius:2px; padding:12px 14px; }
+.cg-pistas-col .gd-pista-titulo{ font-family:'Playfair Display',Georgia,serif; text-transform:uppercase; letter-spacing:0.5px; font-size:11px; border-bottom:1px solid #1a1a1a; padding-bottom:4px; }
 .cg-pistas-col ul{ list-style:none; margin:0; padding:0; }
 .cg-pistas-col li{
-  font-size:11.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4; cursor:pointer;
+  font-family:Georgia,serif; font-size:11.5px; color:#333; margin-bottom:8px; line-height:1.4;
 }
-.cg-pistas-col li:hover{ color:var(--red); }
-.cg-pistas-col li b{ color:var(--text); font-family:'IBM Plex Mono',monospace; }
+.cg-pistas-col li b{ color:#1a1a1a; font-family:Georgia,serif; }
 .cg-pistas-col li.cg-completa{ text-decoration:line-through; opacity:0.55; }
 @media (max-width:700px){
   .cg-layout{ grid-template-columns:1fr; }
@@ -1156,8 +1179,8 @@ footer{
       <h2>GrilloBOT</h2>
     </div>
     <div class="bot-intro">
-      Preguntame por el historial entre dos jugadores. Ejemplos:<br>
-      "¿Cómo es el historial de Leon vs Ciro?" · "¿Cómo les fue a Mateo y Valen jugando juntos?"
+      Preguntame por historiales, o por lo mejor y peor del torneo. Ejemplos:<br>
+      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "¿Quién tiene la mayor paternidad?"
     </div>
     <div class="bot-chat" id="bot-chat"></div>
     <div class="bot-input-row">
@@ -1465,9 +1488,17 @@ footer{
 
     <div id="mini-crucigrillo" style="display:none;">
       <span class="rps-volver" id="crucigrillo-volver">← Volver a Minijuegos</span>
-      <div class="gd-intro">Un crucigrama nuevo cada vez, con 15 palabras (mayormente de fútbol y cultura general, alguna de la Grillo Liga de relleno). Hacé clic en un casillero y escribí.</div>
+      <div class="gd-intro">Un crucigrama nuevo cada vez, con 15 palabras (mayormente de fútbol y cultura general, alguna de la Grillo Liga de relleno). Completá en orden, palabra por palabra.</div>
+      <div class="cg-actual-barra">
+        <div class="cg-actual-texto">
+          <span id="cg-actual-progreso">1/15</span> · <b id="cg-actual-numero">1</b> <span id="cg-actual-dir"></span> — <span id="cg-actual-pista">…</span>
+        </div>
+        <button class="auth-btn" id="cg-saltar-btn" style="max-width:130px; margin:0;">Saltar ⏭</button>
+      </div>
       <div class="cg-layout">
         <div class="cg-grilla-wrap">
+          <div class="cg-titulo-diario">El Crucigrillo</div>
+          <div class="cg-subtitulo-diario">Edición de fútbol y cultura general</div>
           <div id="cg-grilla"></div>
           <div class="cg-acciones">
             <button class="auth-btn" id="cg-corregir-btn" style="max-width:160px;">Corregir</button>
@@ -2125,6 +2156,12 @@ function normalizarTexto(s){
   return s.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 }
 
+// Apodos/alias que el GrilloBOT debe reconocer como el nombre real de la base.
+// Se va ampliando con el tiempo a medida que el usuario avisa nuevos casos.
+const BOT_APODOS = {
+  'felipe': 'Pipe'
+};
+
 function extraerJugadoresDeTexto(texto){
   const norm = normalizarTexto(texto);
   const nombres = DATA.estadisticas.map(r => r.Jugador);
@@ -2133,6 +2170,12 @@ function extraerJugadoresDeTexto(texto){
     const nn = normalizarTexto(n);
     const idx = norm.indexOf(nn);
     if(idx !== -1) candidatos.push({nombre:n, idx, len:nn.length});
+  });
+  Object.entries(BOT_APODOS).forEach(([apodo, real])=>{
+    const idx = norm.indexOf(apodo);
+    if(idx !== -1 && DATA.estadisticas.some(r => r.Jugador === real)){
+      candidatos.push({nombre:real, idx, len:apodo.length});
+    }
   });
   candidatos.sort((a,b)=> a.idx - b.idx || b.len - a.len);
   const elegidos = [];
@@ -2253,8 +2296,125 @@ function analizarGrupoMasRepetido(n){
 
 const NUMEROS_TEXTO = { dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10, once:11 };
 
+/* ---------- GRILLOBOT: preguntas nuevas (mejor/peor jugador, mejor historial, paternidad) ---------- */
+function botMejorJugador(){
+  const candidatos = DATA.estadisticas.filter(r => r.PJ >= 10);
+  if(!candidatos.length) return null;
+  const maxPG = Math.max(...candidatos.map(r => r['%PG']));
+  const maxGA = Math.max(...candidatos.map(r => r['G+A/P']));
+  const maxPJ = Math.max(...candidatos.map(r => r.PJ));
+  const puntuados = candidatos.map(r => ({
+    ...r,
+    score: (r['%PG']/(maxPG||1)) + (r['G+A/P']/(maxGA||1)) + (r.PJ/(maxPJ||1))
+  }));
+  puntuados.sort((a,b) => b.score - a.score);
+  return puntuados[0];
+}
+
+function botPeorJugador(){
+  const candidatos = DATA.estadisticas.filter(r => r.PJ >= 10);
+  if(!candidatos.length) return null;
+  const maxPG = Math.max(...candidatos.map(r => r['%PG']));
+  const maxGA = Math.max(...candidatos.map(r => r['G+A/P']));
+  const maxPJ = Math.max(...candidatos.map(r => r.PJ));
+  const puntuados = candidatos.map(r => ({
+    ...r,
+    score: (1 - r['%PG']/(maxPG||1)) + (1 - r['G+A/P']/(maxGA||1)) + (r.PJ/(maxPJ||1))
+  }));
+  puntuados.sort((a,b) => b.score - a.score);
+  return puntuados[0];
+}
+
+function botMejorHistorialLiga(){
+  const candidatos = DATA.estadisticas.filter(r => r.PJ >= 10).map(r => r.Jugador);
+  const todos = DATA.estadisticas.map(r => r.Jugador);
+  const resultados = candidatos.map(nombre=>{
+    let rivalesConDominio = 0, margenTotal = 0, totalRivales = 0;
+    todos.filter(n => n !== nombre).forEach(rival=>{
+      const h = calcularHistorial(nombre, rival);
+      if(h.enfrentados > 0){
+        totalRivales++;
+        const margen = h.victoriasA - h.victoriasB;
+        if(margen > 0) rivalesConDominio++;
+        margenTotal += margen;
+      }
+    });
+    return { nombre, rivalesConDominio, margenTotal, totalRivales };
+  });
+  resultados.sort((a,b) => b.rivalesConDominio - a.rivalesConDominio || b.margenTotal - a.margenTotal);
+  return resultados[0];
+}
+
+function botPaternidadPar(nombreA, nombreB){
+  const h = calcularHistorial(nombreA, nombreB);
+  if(h.enfrentados < 5) return { suficiente:false, enfrentados:h.enfrentados };
+  const margen = h.victoriasA - h.victoriasB;
+  return {
+    suficiente: true, enfrentados: h.enfrentados,
+    ganador: margen >= 0 ? nombreA : nombreB,
+    perdedor: margen >= 0 ? nombreB : nombreA,
+    diferencia: Math.abs(margen)
+  };
+}
+
+function botPaternidadGlobal(){
+  const nombres = DATA.estadisticas.map(r => r.Jugador);
+  let mejor = null;
+  for(let i=0; i<nombres.length; i++){
+    for(let j=i+1; j<nombres.length; j++){
+      const h = calcularHistorial(nombres[i], nombres[j]);
+      if(h.enfrentados >= 5){
+        const margen = h.victoriasA - h.victoriasB;
+        const abs = Math.abs(margen);
+        if(!mejor || abs > mejor.diferencia){
+          mejor = {
+            ganador: margen >= 0 ? nombres[i] : nombres[j],
+            perdedor: margen >= 0 ? nombres[j] : nombres[i],
+            diferencia: abs, enfrentados: h.enfrentados
+          };
+        }
+      }
+    }
+  }
+  return mejor;
+}
+
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
+
+  // Caso 0a: mejor jugador del torneo
+  if(/mejor jugador|jugador mas completo|el mas capo/.test(normTexto)){
+    const r = botMejorJugador();
+    if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    return `¡Tremendo el que te voy a tirar! Analizando % de victorias, goles+asistencias por partido y presencia en cancha (mínimo 10 partidos jugados), el mejor del torneo es ${r.Jugador}: ${r.PJ} partidos jugados, ${r['%PG']}% de efectividad y ${r['G+A/P']} de gol+asistencia por partido en promedio. ¡Un caballo total!`;
+  }
+
+  // Caso 0b: peor jugador del torneo
+  if(/peor jugador/.test(normTexto)){
+    const r = botPeorJugador();
+    if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    return `Uh loco, no todos podemos ser Messi... el que más necesita rodaje es ${r.Jugador}: ${r.PJ} partidos en el lomo, apenas ${r['%PG']}% de efectividad y ${r['G+A/P']} de gol+asistencia por partido. Pero eh, juega con toda la garra, ¡así que aguante igual!`;
+  }
+
+  // Caso 0c: mejor historial de la liga
+  if(/mejor historial/.test(normTexto)){
+    const r = botMejorHistorialLiga();
+    if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    return `El que más rivales se llevó puestos en toda la GrilloLiga es ${r.nombre}: tiene historial positivo contra ${r.rivalesConDominio} de los ${r.totalRivales} que enfrentó. ¡Un fenómeno para bajarle el copete a cualquiera!`;
+  }
+
+  // Caso 0d: paternidad (con o sin nombres específicos)
+  if(/paternidad/.test(normTexto)){
+    const jugadoresPat = extraerJugadoresDeTexto(texto);
+    if(jugadoresPat.length >= 2){
+      const p = botPaternidadPar(jugadoresPat[0], jugadoresPat[1]);
+      if(!p.suficiente) return `${jugadoresPat[0]} y ${jugadoresPat[1]} se cruzaron solo ${p.enfrentados} vez${p.enfrentados===1?'':'es'}, muy poquito para hablar de paternidad (hace falta un mínimo de 5 enfrentamientos directos).`;
+      return `¡${p.ganador} le tiene la paternidad a ${p.perdedor} de taquito! Se enfrentaron ${p.enfrentados} veces y le sacó ${p.diferencia} partido${p.diferencia===1?'':'s'} de ventaja. ¡Ni loco se la banca ${p.perdedor}!`;
+    }
+    const g = botPaternidadGlobal();
+    if(!g) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    return `La paternidad más grande de toda la GrilloLiga es la de ${g.ganador} sobre ${g.perdedor}: se enfrentaron ${g.enfrentados} veces y le sacó ${g.diferencia} partido${g.diferencia===1?'':'s'} de ventaja. ¡${g.perdedor} la tiene difícil con ${g.ganador}!`;
+  }
 
   // Caso 1: "qué N jugadores jugando juntos se repitió más veces"
   const matchNum = normTexto.match(/(\d+|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once)\s+jugadores/);
@@ -3935,30 +4095,67 @@ function cgNumerarYRecortar(resultado){
   return { grid:nuevaGrid, placed:nuevasPlaced, alto, ancho, numerosPorCelda };
 }
 
-let cgDireccionActual = 'H';
+let cgCola = [];
+let cgIndiceActual = 0;
 
-function cgCeldaDirs(row, col, placed){
-  let dirs = '';
-  placed.forEach(pw=>{
-    if(pw.dir === 'H' && pw.row === row && col >= pw.col && col < pw.col + pw.p.length) dirs += 'H';
-    if(pw.dir === 'V' && pw.col === col && row >= pw.row && row < pw.row + pw.p.length) dirs += 'V';
+function cgConstruirCola(placed){
+  const ordenado = [...placed].sort((a,b)=> a.numero - b.numero || (a.dir === 'H' ? -1 : 1));
+  return ordenado.map(pw=>{
+    const celdas = [];
+    for(let i=0; i<pw.p.length; i++){
+      const row = pw.dir === 'V' ? pw.row + i : pw.row;
+      const col = pw.dir === 'H' ? pw.col + i : pw.col;
+      celdas.push({ row, col });
+    }
+    return { ...pw, celdas };
   });
-  return dirs;
 }
 
-function cgMoverSiguiente(inp){
-  const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
-  const next = cgDireccionActual === 'V'
-    ? document.querySelector(`#cg-grilla input[data-row="${r+1}"][data-col="${c}"]`)
-    : document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c+1}"]`);
-  if(next) next.focus();
+function cgInputDe(row, col){
+  return document.querySelector(`#cg-grilla input[data-row="${row}"][data-col="${col}"]`);
 }
-function cgMoverAnterior(inp){
-  const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
-  const prev = cgDireccionActual === 'V'
-    ? document.querySelector(`#cg-grilla input[data-row="${r-1}"][data-col="${c}"]`)
-    : document.querySelector(`#cg-grilla input[data-row="${r}"][data-col="${c-1}"]`);
-  if(prev) prev.focus();
+
+function cgPalabraCompleta(palabra){
+  return palabra.celdas.every(({row,col}) => { const inp = cgInputDe(row,col); return inp && inp.value; });
+}
+
+function cgActivarPalabra(indice){
+  cgIndiceActual = indice;
+
+  document.querySelectorAll('.cg-celda').forEach(div=>{
+    div.classList.remove('cg-activa');
+    div.classList.add('cg-inactiva');
+  });
+  document.querySelectorAll('#cg-pistas-horizontales li, #cg-pistas-verticales li').forEach(li=>{
+    li.classList.remove('cg-pista-activa');
+  });
+
+  if(indice >= cgCola.length){
+    document.getElementById('cg-actual-progreso').textContent = `${cgCola.length}/${cgCola.length}`;
+    document.getElementById('cg-actual-numero').textContent = '✅';
+    document.getElementById('cg-actual-dir').textContent = '';
+    document.getElementById('cg-actual-pista').textContent = 'Recorriste todas las palabras. ¡Tocá "Corregir"!';
+    document.getElementById('cg-saltar-btn').disabled = true;
+    return;
+  }
+
+  const palabra = cgCola[indice];
+  document.getElementById('cg-actual-progreso').textContent = `${indice+1}/${cgCola.length}`;
+  document.getElementById('cg-actual-numero').textContent = palabra.numero;
+  document.getElementById('cg-actual-dir').textContent = palabra.dir === 'H' ? '➡ Horizontal' : '⬇ Vertical';
+  document.getElementById('cg-actual-pista').textContent = palabra.c;
+  document.getElementById('cg-saltar-btn').disabled = false;
+
+  palabra.celdas.forEach(({row,col})=>{
+    const inp = cgInputDe(row,col);
+    if(inp){ inp.parentElement.classList.remove('cg-inactiva'); inp.parentElement.classList.add('cg-activa'); }
+  });
+  document.querySelectorAll(`#cg-pistas-${palabra.dir === 'H' ? 'horizontales' : 'verticales'} li[data-row="${palabra.row}"][data-col="${palabra.col}"]`)
+    .forEach(li => li.classList.add('cg-pista-activa'));
+
+  const primeraVacia = palabra.celdas.find(({row,col}) => { const inp = cgInputDe(row,col); return inp && !inp.value; }) || palabra.celdas[0];
+  const inputEnfocar = cgInputDe(primeraVacia.row, primeraVacia.col);
+  if(inputEnfocar) inputEnfocar.focus();
 }
 
 function cgRenderizar(resultado){
@@ -3974,7 +4171,7 @@ function cgRenderizar(resultado){
       if(letra === null){
         div.className = 'cg-celda cg-vacia';
       } else {
-        div.className = 'cg-celda';
+        div.className = 'cg-celda cg-inactiva';
         const key = r+','+c;
         if(numerosPorCelda[key]){
           const num = document.createElement('div');
@@ -3985,7 +4182,6 @@ function cgRenderizar(resultado){
         const input = document.createElement('input');
         input.maxLength = 1;
         input.dataset.row = r; input.dataset.col = c; input.dataset.letra = letra;
-        input.dataset.dirs = cgCeldaDirs(r, c, placed);
         div.appendChild(input);
       }
       cont.appendChild(div);
@@ -3994,39 +4190,42 @@ function cgRenderizar(resultado){
 
   const horiz = placed.filter(p => p.dir === 'H').sort((a,b)=> a.numero-b.numero);
   const vert = placed.filter(p => p.dir === 'V').sort((a,b)=> a.numero-b.numero);
-  document.getElementById('cg-pistas-horizontales').innerHTML = horiz.map(p => `<li data-row="${p.row}" data-col="${p.col}" data-dir="H"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
-  document.getElementById('cg-pistas-verticales').innerHTML = vert.map(p => `<li data-row="${p.row}" data-col="${p.col}" data-dir="V"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+  document.getElementById('cg-pistas-horizontales').innerHTML = horiz.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+  document.getElementById('cg-pistas-verticales').innerHTML = vert.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
+
+  cgCola = cgConstruirCola(placed);
 
   cont.querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('focus', ()=>{
-      const dirs = inp.dataset.dirs;
-      if(dirs.length === 1) cgDireccionActual = dirs;
-      else if(!dirs.includes(cgDireccionActual)) cgDireccionActual = dirs[0];
-    });
-    inp.addEventListener('click', ()=>{
-      // tocar de nuevo la misma celda alterna la dirección, si admite las dos
-      if(document.activeElement === inp && inp.dataset.dirs.length > 1){
-        cgDireccionActual = cgDireccionActual === 'H' ? 'V' : 'H';
-      }
-    });
     inp.addEventListener('input', ()=>{
       inp.value = inp.value.toUpperCase().slice(0,1).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-      if(inp.value) cgMoverSiguiente(inp);
+      if(!inp.value) return;
+      const palabra = cgCola[cgIndiceActual];
+      if(!palabra) return;
+      const idx = palabra.celdas.findIndex(cel => cel.row === parseInt(inp.dataset.row) && cel.col === parseInt(inp.dataset.col));
+      if(idx === -1) return;
+      if(idx < palabra.celdas.length - 1){
+        const sig = palabra.celdas[idx+1];
+        const siguiente = cgInputDe(sig.row, sig.col);
+        if(siguiente) siguiente.focus();
+      } else if(cgPalabraCompleta(palabra)){
+        cgActivarPalabra(cgIndiceActual + 1);
+      }
     });
     inp.addEventListener('keydown', (e)=>{
-      if(e.key === 'Backspace' && !inp.value) cgMoverAnterior(inp);
-    });
-  });
-
-  document.querySelectorAll('#cg-pistas-horizontales li, #cg-pistas-verticales li').forEach(li=>{
-    li.addEventListener('click', ()=>{
-      cgDireccionActual = li.dataset.dir;
-      const target = cont.querySelector(`input[data-row="${li.dataset.row}"][data-col="${li.dataset.col}"]`);
-      if(target) target.focus();
+      if(e.key !== 'Backspace' || inp.value) return;
+      const palabra = cgCola[cgIndiceActual];
+      if(!palabra) return;
+      const idx = palabra.celdas.findIndex(cel => cel.row === parseInt(inp.dataset.row) && cel.col === parseInt(inp.dataset.col));
+      if(idx > 0){
+        const ant = palabra.celdas[idx-1];
+        const anterior = cgInputDe(ant.row, ant.col);
+        if(anterior) anterior.focus();
+      }
     });
   });
 
   document.getElementById('cg-resultado').textContent = '';
+  cgActivarPalabra(0);
 }
 
 function cgCorregir(){
@@ -4054,6 +4253,7 @@ function cgNuevoCrucigrama(){
 
 document.getElementById('cg-corregir-btn').addEventListener('click', cgCorregir);
 document.getElementById('cg-nuevo-btn').addEventListener('click', cgNuevoCrucigrama);
+document.getElementById('cg-saltar-btn').addEventListener('click', ()=> cgActivarPalabra(cgIndiceActual + 1));
 
 document.getElementById('mini-card-crucigrillo').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
