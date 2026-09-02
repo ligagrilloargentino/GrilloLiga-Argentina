@@ -2297,9 +2297,9 @@ function analizarGrupoMasRepetido(n){
 const NUMEROS_TEXTO = { dos:2, tres:3, cuatro:4, cinco:5, seis:6, siete:7, ocho:8, nueve:9, diez:10, once:11 };
 
 /* ---------- GRILLOBOT: preguntas nuevas (mejor/peor jugador, mejor historial, paternidad) ---------- */
-function botMejorJugador(){
+function botListaMejores(){
   const candidatos = DATA.estadisticas.filter(r => r.PJ >= 10);
-  if(!candidatos.length) return null;
+  if(!candidatos.length) return [];
   const maxPG = Math.max(...candidatos.map(r => r['%PG']));
   const maxGA = Math.max(...candidatos.map(r => r['G+A/P']));
   const maxPJ = Math.max(...candidatos.map(r => r.PJ));
@@ -2308,12 +2308,12 @@ function botMejorJugador(){
     score: (r['%PG']/(maxPG||1)) + (r['G+A/P']/(maxGA||1)) + (r.PJ/(maxPJ||1))
   }));
   puntuados.sort((a,b) => b.score - a.score);
-  return puntuados[0];
+  return puntuados;
 }
 
-function botPeorJugador(){
+function botListaPeores(){
   const candidatos = DATA.estadisticas.filter(r => r.PJ >= 10);
-  if(!candidatos.length) return null;
+  if(!candidatos.length) return [];
   const maxPG = Math.max(...candidatos.map(r => r['%PG']));
   const maxGA = Math.max(...candidatos.map(r => r['G+A/P']));
   const maxPJ = Math.max(...candidatos.map(r => r.PJ));
@@ -2322,7 +2322,18 @@ function botPeorJugador(){
     score: (1 - r['%PG']/(maxPG||1)) + (1 - r['G+A/P']/(maxGA||1)) + (r.PJ/(maxPJ||1))
   }));
   puntuados.sort((a,b) => b.score - a.score);
-  return puntuados[0];
+  return puntuados;
+}
+
+function botMejorJugador(){ return botListaMejores()[0] || null; }
+function botPeorJugador(){ return botListaPeores()[0] || null; }
+
+function botExtraerCantidad(normTexto){
+  let m = normTexto.match(/top\s*(\d+)/);
+  if(m) return parseInt(m[1]);
+  m = normTexto.match(/(\d+|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(mejores|peores)/);
+  if(m){ const n = parseInt(m[1]); return isNaN(n) ? NUMEROS_TEXTO[m[1]] : n; }
+  return null;
 }
 
 function botMejorHistorialLiga(){
@@ -2343,6 +2354,38 @@ function botMejorHistorialLiga(){
   });
   resultados.sort((a,b) => b.rivalesConDominio - a.rivalesConDominio || b.margenTotal - a.margenTotal);
   return resultados[0];
+}
+
+// Mayor paternidad QUE UN JUGADOR PUNTUAL tiene sobre otros (busca su rival más dominado)
+function botMejorPaternidadDe(nombre){
+  const rivales = DATA.estadisticas.map(r => r.Jugador).filter(n => n !== nombre);
+  let mejor = null;
+  rivales.forEach(rival=>{
+    const h = calcularHistorial(nombre, rival);
+    if(h.enfrentados >= 5){
+      const margen = h.victoriasA - h.victoriasB;
+      if(margen > 0 && (!mejor || margen > mejor.diferencia)){
+        mejor = { rival, diferencia: margen, enfrentados: h.enfrentados };
+      }
+    }
+  });
+  return mejor;
+}
+
+// "Papá de" un jugador puntual: quién lo domina más a ÉL
+function botPapaDe(nombre){
+  const rivales = DATA.estadisticas.map(r => r.Jugador).filter(n => n !== nombre);
+  let mejor = null;
+  rivales.forEach(rival=>{
+    const h = calcularHistorial(nombre, rival);
+    if(h.enfrentados >= 5){
+      const margen = h.victoriasB - h.victoriasA;
+      if(margen > 0 && (!mejor || margen > mejor.diferencia)){
+        mejor = { rival, diferencia: margen, enfrentados: h.enfrentados };
+      }
+    }
+  });
+  return mejor;
 }
 
 function botPaternidadPar(nombreA, nombreB){
@@ -2382,35 +2425,66 @@ function botPaternidadGlobal(){
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
 
-  // Caso 0a: mejor jugador del torneo
+  // Caso 0a: top N mejores/peores jugadores (plural)
+  if(/mejores jugadores|peores jugadores/.test(normTexto)){
+    const esPeor = /peores jugadores/.test(normTexto);
+    let cantidad = botExtraerCantidad(normTexto);
+    if(!cantidad) cantidad = 3;
+    cantidad = Math.min(Math.max(cantidad, 2), 10);
+    const lista = (esPeor ? botListaPeores() : botListaMejores()).slice(0, cantidad);
+    if(!lista.length) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    const encabezado = esPeor ? `Los ${cantidad} que más necesitan rodaje son:` : `Los ${cantidad} mejores del torneo son:`;
+    const items = lista.map((r,i) => `${i+1}) ${r.Jugador} (${r.PJ} PJ, ${r['%PG']}% efectividad, ${r['G+A/P']} G+A por partido)`).join(' — ');
+    return `${encabezado} ${items}.`;
+  }
+
+  // Caso 0b: mejor jugador del torneo (singular)
   if(/mejor jugador|jugador mas completo|el mas capo/.test(normTexto)){
     const r = botMejorJugador();
     if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
     return `¡Tremendo el que te voy a tirar! Analizando % de victorias, goles+asistencias por partido y presencia en cancha (mínimo 10 partidos jugados), el mejor del torneo es ${r.Jugador}: ${r.PJ} partidos jugados, ${r['%PG']}% de efectividad y ${r['G+A/P']} de gol+asistencia por partido en promedio. ¡Un caballo total!`;
   }
 
-  // Caso 0b: peor jugador del torneo
+  // Caso 0c: peor jugador del torneo (singular)
   if(/peor jugador/.test(normTexto)){
     const r = botPeorJugador();
     if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
     return `Uh loco, no todos podemos ser Messi... el que más necesita rodaje es ${r.Jugador}: ${r.PJ} partidos en el lomo, apenas ${r['%PG']}% de efectividad y ${r['G+A/P']} de gol+asistencia por partido. Pero eh, juega con toda la garra, ¡así que aguante igual!`;
   }
 
-  // Caso 0c: mejor historial de la liga
+  // Caso 0d: mejor historial de la liga
   if(/mejor historial/.test(normTexto)){
     const r = botMejorHistorialLiga();
     if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
     return `El que más rivales se llevó puestos en toda la GrilloLiga es ${r.nombre}: tiene historial positivo contra ${r.rivalesConDominio} de los ${r.totalRivales} que enfrentó. ¡Un fenómeno para bajarle el copete a cualquiera!`;
   }
 
-  // Caso 0d: paternidad (con o sin nombres específicos)
+  // Caso 0e: "papá de X" (quién domina más a X)
+  if(/papa de|el papa/.test(normTexto)){
+    const jug = extraerJugadoresDeTexto(texto);
+    if(jug.length >= 1){
+      const res = botPapaDe(jug[0]);
+      if(!res) return `${jug[0]} todavía no tiene un "papá" claro (hace falta un mínimo de 5 enfrentamientos directos donde algún rival le gane claramente más de lo que pierde).`;
+      return `El papá de ${jug[0]} es ${res.rival}: en ${res.enfrentados} enfrentamientos directos, ${res.rival} le sacó ${res.diferencia} partido${res.diferencia===1?'':'s'} de ventaja. ¡Qué mano le tiene tomada!`;
+    }
+  }
+
+  // Caso 0f: paternidad (1 nombre puntual, 2 nombres puntuales, o global)
   if(/paternidad/.test(normTexto)){
     const jugadoresPat = extraerJugadoresDeTexto(texto);
+
+    if(jugadoresPat.length === 1){
+      const res = botMejorPaternidadDe(jugadoresPat[0]);
+      if(!res) return `${jugadoresPat[0]} todavía no tiene una paternidad clara sobre ningún rival (hace falta un mínimo de 5 enfrentamientos directos y ganarle más de lo que pierde).`;
+      return `La mayor paternidad de ${jugadoresPat[0]} es sobre ${res.rival}: se enfrentaron ${res.enfrentados} veces y le sacó ${res.diferencia} partido${res.diferencia===1?'':'s'} de ventaja. ¡${res.rival} la tiene difícil con ${jugadoresPat[0]}!`;
+    }
+
     if(jugadoresPat.length >= 2){
       const p = botPaternidadPar(jugadoresPat[0], jugadoresPat[1]);
       if(!p.suficiente) return `${jugadoresPat[0]} y ${jugadoresPat[1]} se cruzaron solo ${p.enfrentados} vez${p.enfrentados===1?'':'es'}, muy poquito para hablar de paternidad (hace falta un mínimo de 5 enfrentamientos directos).`;
       return `¡${p.ganador} le tiene la paternidad a ${p.perdedor} de taquito! Se enfrentaron ${p.enfrentados} veces y le sacó ${p.diferencia} partido${p.diferencia===1?'':'s'} de ventaja. ¡Ni loco se la banca ${p.perdedor}!`;
     }
+
     const g = botPaternidadGlobal();
     if(!g) return 'no entendí pa, reformulá la pregunta y veo que respondo';
     return `La paternidad más grande de toda la GrilloLiga es la de ${g.ganador} sobre ${g.perdedor}: se enfrentaron ${g.enfrentados} veces y le sacó ${g.diferencia} partido${g.diferencia===1?'':'s'} de ventaja. ¡${g.perdedor} la tiene difícil con ${g.ganador}!`;
