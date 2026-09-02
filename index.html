@@ -140,6 +140,9 @@
 }
 @media (max-width:600px){
   .stats-glosario ul{ columns:1; }
+  .usuario-sesion-info{
+    position:static; margin-bottom:6px; justify-content:flex-end;
+  }
 }
 /* ---------- MINIJUEGOS ---------- */
 .mini-juegos-lista{ display:flex; flex-direction:column; gap:14px; }
@@ -477,6 +480,11 @@ header.top{
 }
 .top-inner{
   max-width:980px; margin:0 auto; padding:16px 18px 0 18px;
+  position:relative;
+}
+.usuario-sesion-info{
+  position:absolute; top:16px; right:18px;
+  display:flex; align-items:center; gap:10px;
 }
 .brand{
   display:flex; align-items:baseline; gap:12px; margin-bottom:8px;
@@ -1030,13 +1038,15 @@ footer{
 
 <header class="top">
   <div class="top-inner">
+    <div class="usuario-sesion-info">
+      <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); display:none;"></span>
+      <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
+    </div>
     <div class="brand">
       <span class="badge">2026</span>
       <h1><span>GRILLOLIGA</span> ARGENTINA</h1>
     </div>
     <div class="subtitle" id="subtitle-text"></div>
-    <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); margin-right:10px; display:none;"></span>
-    <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
     <button id="menu-hamburguesa-btn" class="menu-hamburguesa-btn">
       <span class="hamburguesa-icono"><span></span><span></span><span></span></span>
       Menú
