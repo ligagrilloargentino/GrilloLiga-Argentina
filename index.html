@@ -2422,8 +2422,70 @@ function botPaternidadGlobal(){
   return mejor;
 }
 
+// Todos los rivales contra los que un jugador puntual tiene historial POSITIVO (le ganó más de lo que perdió)
+function botHistorialAFavorDe(nombre){
+  const rivales = DATA.estadisticas.map(r => r.Jugador).filter(n => n !== nombre);
+  const positivos = [];
+  rivales.forEach(rival=>{
+    const h = calcularHistorial(nombre, rival);
+    if(h.enfrentados > 0 && h.victoriasA > h.victoriasB){
+      positivos.push({ rival, victorias: h.victoriasA, derrotas: h.victoriasB, empates: h.empatesEnf });
+    }
+  });
+  positivos.sort((a,b) => (b.victorias - b.derrotas) - (a.victorias - a.derrotas));
+  return positivos;
+}
+
+// El grupo de N jugadores (jugando juntos) con la mayor diferencia victorias-derrotas
+function botMejorGrupoDiferencia(n){
+  const nombres = DATA.estadisticas.map(r => r.Jugador);
+  let mejor = null;
+  function combinar(inicio, actual){
+    if(actual.length === n){
+      const stats = calcularJuntosGrupo(actual);
+      if(stats.partidos > 0){
+        const diferencia = stats.victorias - stats.derrotas;
+        if(!mejor || diferencia > mejor.diferencia){
+          mejor = { grupo: [...actual], diferencia, ...stats };
+        }
+      }
+      return;
+    }
+    for(let i = inicio; i < nombres.length; i++){
+      actual.push(nombres[i]);
+      combinar(i+1, actual);
+      actual.pop();
+    }
+  }
+  combinar(0, []);
+  return mejor;
+}
+
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
+
+  // Caso -1: historial a favor de X (todos los rivales a los que le ganó más)
+  if(/historial a favor/.test(normTexto)){
+    const jug = extraerJugadoresDeTexto(texto);
+    if(jug.length >= 1){
+      const positivos = botHistorialAFavorDe(jug[0]);
+      if(!positivos.length) return `${jug[0]} todavía no tiene historial positivo contra ningún jugador de la GrilloLiga.`;
+      const listado = positivos.slice(0, 10).map(p => `${p.rival} (${p.victorias}-${p.derrotas})`).join(', ');
+      const extra = positivos.length > 10 ? ` y ${positivos.length - 10} más` : '';
+      return `${jug[0]} tiene historial a favor contra: ${listado}${extra}.`;
+    }
+  }
+
+  // Caso -2: grupo de N jugadores con mayor diferencia de victorias jugando juntos
+  if(/diferencia/.test(normTexto) && /jugador/.test(normTexto)){
+    const matchGrupo = normTexto.match(/(\d+|dos|tres|cuatro)\s+jugadores/);
+    let n = 3;
+    if(matchGrupo){ const parsed = parseInt(matchGrupo[1]); n = isNaN(parsed) ? NUMEROS_TEXTO[matchGrupo[1]] : parsed; }
+    n = Math.min(Math.max(n, 2), 4);
+    const mejor = botMejorGrupoDiferencia(n);
+    if(!mejor) return `No encontré ningún grupo de ${n} jugadores que haya jugado junto todavía.`;
+    return `El grupo de ${n} jugadores que más diferencia saca jugando juntos es: ${mejor.grupo.join(', ')} — ${mejor.partidos} partidos juntos, ${mejor.victorias} ganados y ${mejor.derrotas} perdidos (diferencia de +${mejor.diferencia}).`;
+  }
 
   // Caso 0a: top N mejores/peores jugadores (plural)
   if(/mejores jugadores|peores jugadores/.test(normTexto)){
