@@ -195,19 +195,40 @@
 .pen-ronda{ font-size:11px; }
 .pen-ronda b{ font-size:16px; display:inline; color:var(--text); }
 .pen-fase{ text-align:center; font-family:'Lora',serif; font-weight:700; font-size:14px; color:var(--text); margin-bottom:14px; }
+.pen-cancha{
+  position:relative; max-width:320px; margin:0 auto 16px; padding:22px 14px 46px;
+  background:linear-gradient(180deg, #4a8a3c 0%, #2f5726 100%);
+  border-radius:10px; box-shadow:inset 0 0 30px rgba(0,0,0,.18);
+}
 .pen-arco{
-  max-width:280px; margin:0 auto 16px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr);
-  gap:6px; aspect-ratio:3/2; background:repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(20,17,12,.06) 9px, rgba(20,17,12,.06) 10px),
-  repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(20,17,12,.06) 9px, rgba(20,17,12,.06) 10px);
-  border:3px solid var(--text); border-radius:4px; padding:6px;
+  position:relative; margin:0 auto; display:grid;
+  grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr);
+  gap:0; aspect-ratio:3/2;
+  background-color:rgba(255,255,255,.10);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 1px, transparent 1px, transparent 11px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 1px, transparent 1px, transparent 11px);
+  border:6px solid #fff; border-radius:2px;
+  box-shadow:0 6px 14px rgba(0,0,0,.28);
 }
 .pen-zona{
-  display:flex; align-items:center; justify-content:center; font-size:26px;
-  background:var(--card); border:1px solid var(--line); border-radius:4px; cursor:pointer;
-  transition:transform .1s, border-color .15s;
+  background:transparent; border:none; cursor:pointer; transition:background .15s;
+  border-right:1px dashed rgba(255,255,255,.18); border-bottom:1px dashed rgba(255,255,255,.18);
 }
-.pen-zona:hover{ transform:scale(1.05); border-color:var(--red); }
-.pen-zona.deshabilitada{ pointer-events:none; opacity:0.5; }
+.pen-zona:nth-child(3n){ border-right:none; }
+.pen-zona:nth-child(n+4){ border-bottom:none; }
+.pen-zona:hover{ background:rgba(179,59,34,.28); }
+.pen-zona.deshabilitada{ pointer-events:none; }
+.pen-arquero{
+  position:absolute; font-size:32px; left:50%; top:50%;
+  transform:translate(-50%,-50%); transition:left .4s ease, top .4s ease;
+  pointer-events:none; filter:drop-shadow(0 3px 4px rgba(0,0,0,.45)); z-index:2;
+}
+.pen-pelota{
+  position:absolute; left:50%; bottom:8px; font-size:24px;
+  transform:translateX(-50%); transition:left .5s ease, bottom .5s ease, top .5s ease;
+  pointer-events:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)); z-index:3;
+}
 .pen-resultado{ text-align:center; font-family:'Lora',serif; font-size:14.5px; color:var(--text); min-height:24px; }
 .pen-final-titulo{ text-align:center; font-family:'Playfair Display',serif; font-weight:900; font-size:22px; color:var(--red); margin-top:10px; }
 /* ---------- MINIJUEGO: GRILLODLE ---------- */
@@ -1306,13 +1327,17 @@ footer{
         <div>GRILLOBOT<br><b id="pen-score-bot">0</b></div>
       </div>
       <div class="pen-fase" id="pen-fase">Pateás vos — elegí dónde tirarla</div>
-      <div class="pen-arco">
-        <div class="pen-zona" data-zona="0">↖</div>
-        <div class="pen-zona" data-zona="1">⬆</div>
-        <div class="pen-zona" data-zona="2">↗</div>
-        <div class="pen-zona" data-zona="3">↙</div>
-        <div class="pen-zona" data-zona="4">⬇</div>
-        <div class="pen-zona" data-zona="5">↘</div>
+      <div class="pen-cancha">
+        <div class="pen-arco" id="pen-arco-el">
+          <div class="pen-zona" data-zona="0"></div>
+          <div class="pen-zona" data-zona="1"></div>
+          <div class="pen-zona" data-zona="2"></div>
+          <div class="pen-zona" data-zona="3"></div>
+          <div class="pen-zona" data-zona="4"></div>
+          <div class="pen-zona" data-zona="5"></div>
+          <div class="pen-arquero" id="pen-arquero">🧤</div>
+        </div>
+        <div class="pen-pelota" id="pen-pelota">⚽</div>
       </div>
       <div class="pen-resultado" id="pen-resultado">&nbsp;</div>
       <div id="pen-final" style="display:none;">
@@ -2812,7 +2837,29 @@ let penScoreJugador = 0;
 let penScoreBot = 0;
 let penEnSuddenDeath = false;
 
+const PEN_ZONA_POS = [
+  { left:'17%', top:'26%' }, { left:'50%', top:'26%' }, { left:'83%', top:'26%' },
+  { left:'17%', top:'74%' }, { left:'50%', top:'74%' }, { left:'83%', top:'74%' }
+];
+
 function penElegirLinea(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function penUbicarArquero(zona){
+  const el = document.getElementById('pen-arquero');
+  const pos = PEN_ZONA_POS[zona];
+  el.style.left = pos.left; el.style.top = pos.top;
+}
+function penUbicarPelota(zona){
+  const el = document.getElementById('pen-pelota');
+  const pos = PEN_ZONA_POS[zona];
+  el.style.left = pos.left; el.style.bottom = 'auto'; el.style.top = pos.top;
+}
+function penResetPosiciones(){
+  const arquero = document.getElementById('pen-arquero');
+  const pelota = document.getElementById('pen-pelota');
+  arquero.style.left = '50%'; arquero.style.top = '50%';
+  pelota.style.left = '50%'; pelota.style.top = 'auto'; pelota.style.bottom = '8px';
+}
 
 function penResetear(){
   penRonda = 1; penFase = 'pateando'; penScoreJugador = 0; penScoreBot = 0; penEnSuddenDeath = false;
@@ -2821,15 +2868,21 @@ function penResetear(){
   document.getElementById('pen-ronda-num').textContent = '1';
   document.getElementById('pen-resultado').innerHTML = '&nbsp;';
   document.getElementById('pen-final').style.display = 'none';
-  document.querySelector('.pen-arco').style.display = 'grid';
+  document.querySelector('.pen-cancha').style.display = 'block';
   document.getElementById('pen-fase').textContent = 'Pateás vos — elegí dónde tirarla';
   document.querySelectorAll('.pen-zona').forEach(z => z.classList.remove('deshabilitada'));
+  penResetPosiciones();
 }
 
 function penJugarZona(zonaJugador){
   document.querySelectorAll('.pen-zona').forEach(z => z.classList.add('deshabilitada'));
   const zonaBot = Math.floor(Math.random()*6);
   const resultadoEl = document.getElementById('pen-resultado');
+
+  const zonaTiro = penFase === 'pateando' ? zonaJugador : zonaBot;
+  const zonaArquero = penFase === 'pateando' ? zonaBot : zonaJugador;
+  penUbicarPelota(zonaTiro);
+  penUbicarArquero(zonaArquero);
 
   if(penFase === 'pateando'){
     if(zonaJugador === zonaBot){
@@ -2849,10 +2902,12 @@ function penJugarZona(zonaJugador){
     }
   }
 
-  setTimeout(penSiguientePaso, 1300);
+  setTimeout(penSiguientePaso, 1500);
 }
 
 function penSiguientePaso(){
+  penResetPosiciones();
+
   if(penFase === 'pateando'){
     penFase = 'atajando';
     document.getElementById('pen-fase').textContent = 'GrilloBOT patea — elegí dónde atajar';
@@ -2882,7 +2937,7 @@ function penSiguientePaso(){
 }
 
 function penMostrarFinal(){
-  document.querySelector('.pen-arco').style.display = 'none';
+  document.querySelector('.pen-cancha').style.display = 'none';
   document.getElementById('pen-fase').textContent = '';
   document.getElementById('pen-final').style.display = 'block';
   const titulo = penScoreJugador > penScoreBot
