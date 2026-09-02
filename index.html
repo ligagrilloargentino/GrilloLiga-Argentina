@@ -418,7 +418,7 @@ body.cz-pantalla-completa footer,
 body.cz-pantalla-completa #panel-minijuegos > .section-head{
   display:none !important;
 }
-body.cz-pantalla-completa header.top nav.tabs,
+body.cz-pantalla-completa header.top .menu-hamburguesa-btn,
 body.cz-pantalla-completa header.top .subtitle,
 body.cz-pantalla-completa header.top #usuario-actual-nombre,
 body.cz-pantalla-completa header.top #cerrar-sesion-btn,
@@ -503,51 +503,54 @@ header.top{
   color:var(--text-dim); font-size:12.5px; margin:4px 0 14px 0;
   font-style:italic; letter-spacing:0.3px;
 }
-nav.tabs{
-  display:flex; flex-direction:column; gap:0; margin-top:2px;
-  border-top:1px solid var(--line);
+.menu-hamburguesa-btn{
+  display:inline-flex; align-items:center; gap:7px; margin-top:12px;
+  padding:9px 16px; border-radius:20px; border:1px solid var(--line-strong);
+  background:var(--card); color:var(--text); font-family:'Lora',serif; font-weight:700;
+  font-size:13px; cursor:pointer; transition:border-color .15s, background .15s;
 }
-.tabs-row{
-  display:flex; gap:2px;
-  overflow-x:auto; -webkit-overflow-scrolling:touch;
-}
-.tabs-row::-webkit-scrollbar{display:none;}
-.tabs-row:first-child{ border-bottom:1px solid var(--line); }
-nav.tabs button{
-  flex:0 0 auto;
-  background:transparent; border:none; cursor:pointer;
-  color:var(--text-dim);
-  font-family:'Lora',serif; font-weight:600; font-size:12.5px;
-  letter-spacing:0.8px;
-  padding:12px 11px 12px 11px;
-  border-bottom:3px solid transparent;
-  transition:color .15s, border-color .15s;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-nav.tabs button.active{
-  color:var(--red);
-  border-bottom-color:var(--red);
-}
-nav.tabs button:hover{color:var(--text);}
+.menu-hamburguesa-btn:hover{ border-color:var(--red); background:var(--card2); }
 
-.menu-hamburguesa-btn{ display:none; }
-@media (max-width:700px){
-  .menu-hamburguesa-btn{
-    display:block; width:100%; text-align:left; margin-top:10px;
-    padding:11px 14px; border-radius:6px; border:1px solid var(--line-strong);
-    background:var(--card); color:var(--text); font-family:'Lora',serif; font-weight:700;
-    font-size:13px; cursor:pointer;
-  }
-  nav.tabs{ display:none; flex-direction:column; margin-top:8px; border-top:none; }
-  nav.tabs.menu-abierto{ display:flex; }
-  nav.tabs .tabs-row{ flex-direction:column; overflow-x:visible; }
-  nav.tabs .tabs-row:first-child{ border-bottom:none; }
-  nav.tabs button{
-    text-align:left; padding:11px 14px; border-bottom:1px solid var(--line);
-    border-left:3px solid transparent;
-  }
-  nav.tabs button.active{ border-bottom-color:var(--line); border-left-color:var(--red); }
+.drawer-overlay{
+  position:fixed; inset:0; background:rgba(20,17,12,.55); z-index:9000;
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+.drawer-overlay.abierto{ opacity:1; pointer-events:auto; }
+
+.drawer-menu{
+  position:fixed; top:0; left:0; bottom:0; width:290px; max-width:84vw;
+  background:var(--bg); border-right:1px solid var(--line-strong);
+  transform:translateX(-104%); transition:transform .32s cubic-bezier(.2,.9,.3,1);
+  z-index:9001; display:flex; flex-direction:column; padding:10px 0 20px;
+  overflow-y:auto; box-shadow:6px 0 24px rgba(0,0,0,.22);
+}
+.drawer-menu.abierto{ transform:translateX(0); }
+
+.drawer-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 20px 16px; border-bottom:1px solid var(--line); margin-bottom:8px;
+}
+.drawer-header h2{
+  font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:19px;
+  margin:0; color:var(--red); letter-spacing:0.3px;
+}
+.drawer-cerrar{
+  background:none; border:1px solid var(--line-strong); border-radius:50%;
+  width:30px; height:30px; font-size:15px; cursor:pointer; color:var(--text-dim);
+  line-height:1; transition:border-color .15s, color .15s;
+}
+.drawer-cerrar:hover{ border-color:var(--red); color:var(--red); }
+
+.drawer-menu .tab-btn{
+  display:block; width:100%; text-align:left; background:none; border:none;
+  border-left:3px solid transparent;
+  padding:14px 22px; font-family:'Lora',serif; font-weight:700; font-size:13.5px;
+  letter-spacing:0.5px; text-transform:uppercase; color:var(--text-dim); cursor:pointer;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.drawer-menu .tab-btn:hover{ background:var(--card2); color:var(--text); }
+.drawer-menu .tab-btn.active{
+  border-left-color:var(--red); color:var(--red); background:var(--card2);
 }
 
 main{max-width:980px; margin:0 auto; padding:22px 14px 70px 14px;}
@@ -1027,24 +1030,26 @@ footer{
     <span id="usuario-actual-nombre" style="font-size:11px; color:var(--text-dim); margin-right:10px; display:none;"></span>
     <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:11px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
     <button id="menu-hamburguesa-btn" class="menu-hamburguesa-btn">☰ Menú</button>
-    <nav class="tabs">
-      <div class="tabs-row">
-        <button class="tab-btn active" data-tab="inicio">Inicio</button>
-        <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
-        <button class="tab-btn" data-tab="rankings">Rankings</button>
-        <button class="tab-btn" data-tab="partidos">Partidos</button>
-        <button class="tab-btn" data-tab="historicos">Partidos Históricos</button>
-      </div>
-      <div class="tabs-row">
-        <button class="tab-btn" data-tab="jugadores">Jugadores</button>
-        <button class="tab-btn" data-tab="foro">Foro general</button>
-        <button class="tab-btn" data-tab="grillobot">GrilloBOT</button>
-        <button class="tab-btn" data-tab="minijuegos">Minijuegos</button>
-      </div>
-    </nav>
   </div>
   <div class="stitch-line"></div>
 </header>
+
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<nav class="drawer-menu" id="drawer-menu">
+  <div class="drawer-header">
+    <h2>GrilloLiga</h2>
+    <button class="drawer-cerrar" id="drawer-cerrar-btn">✕</button>
+  </div>
+  <button class="tab-btn active" data-tab="inicio">Inicio</button>
+  <button class="tab-btn" data-tab="estadisticas">Estadísticas</button>
+  <button class="tab-btn" data-tab="rankings">Rankings</button>
+  <button class="tab-btn" data-tab="partidos">Partidos</button>
+  <button class="tab-btn" data-tab="historicos">Partidos Históricos</button>
+  <button class="tab-btn" data-tab="jugadores">Jugadores</button>
+  <button class="tab-btn" data-tab="foro">Foro general</button>
+  <button class="tab-btn" data-tab="grillobot">GrilloBOT</button>
+  <button class="tab-btn" data-tab="minijuegos">Minijuegos</button>
+</nav>
 
 <main>
 
@@ -1771,20 +1776,33 @@ document.getElementById('subtitle-text').textContent = DATA.estadisticas.length 
 
 /* ---------- TABS ---------- */
 const tabBtns = document.querySelectorAll('.tab-btn');
-const navTabsEl = document.querySelector('nav.tabs');
+const drawerMenuEl = document.getElementById('drawer-menu');
+const drawerOverlayEl = document.getElementById('drawer-overlay');
+
+function cerrarCajonMenu(){
+  drawerMenuEl.classList.remove('abierto');
+  drawerOverlayEl.classList.remove('abierto');
+}
+function abrirCajonMenu(){
+  drawerMenuEl.classList.add('abierto');
+  drawerOverlayEl.classList.add('abierto');
+}
+
 tabBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
     tabBtns.forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-    navTabsEl.classList.remove('menu-abierto');
+    cerrarCajonMenu();
   });
 });
 const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
 if(menuHamburguesaBtn){
-  menuHamburguesaBtn.addEventListener('click', ()=> navTabsEl.classList.toggle('menu-abierto'));
+  menuHamburguesaBtn.addEventListener('click', abrirCajonMenu);
 }
+document.getElementById('drawer-cerrar-btn').addEventListener('click', cerrarCajonMenu);
+drawerOverlayEl.addEventListener('click', cerrarCajonMenu);
 
 /* ---------- ESTADISTICAS ---------- */
 const statHeaders = Object.keys(DATA.estadisticas[0]).filter(h => h !== 'N°');
