@@ -607,6 +607,24 @@ header.top{
 }
 .drawer-overlay.abierto{ opacity:1; pointer-events:auto; }
 
+#cz-desafio-overlay{
+  position:fixed; inset:0; background:rgba(20,17,12,.6); z-index:10040;
+}
+#cz-desafio-modal{
+  position:fixed; inset:0; z-index:10041; display:none;
+  align-items:center; justify-content:center; padding:20px;
+}
+.cz-online-fila{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 16px; margin-bottom:8px; background:var(--card); border:1px solid var(--line);
+  border-radius:8px;
+}
+.cz-online-fila b{ font-family:'Lora',serif; font-size:13.5px; color:var(--text); }
+.cz-online-vacio{ text-align:center; padding:30px 0; color:var(--text-dimmer); font-style:italic; }
+.cz-online-esperando{
+  text-align:center; padding:16px; color:var(--text-dim); font-size:13px;
+}
+
 .drawer-menu{
   position:fixed; top:0; left:0; bottom:0; width:290px; max-width:84vw;
   background:var(--bg); border-right:1px solid var(--line-strong);
@@ -1532,6 +1550,7 @@ footer{
               <button class="mg-toggle" id="cz-modo-local" data-modo="local">👥 1vs1 Local (mismo teclado)</button>
               <button class="mg-toggle" id="cz-modo-temporada" data-modo="temporada">🏆 Grillo Temporada</button>
               <button class="mg-toggle" id="cz-modo-copa" data-modo="copa">🏅 Grillo Copa</button>
+              <button class="mg-toggle" id="cz-modo-online" data-modo="online">🌐 Online (1vs1 real)</button>
             </div>
           </div>
           <div class="mg-opciones-col" id="cz-dificultad-col">
@@ -1575,6 +1594,22 @@ footer{
         <div id="cz-historial-torneo" style="display:none;">
           <div class="cg-pista-titulo" style="margin-top:22px;">📜 Tus intentos anteriores</div>
           <div id="cz-historial-lista" class="cz-controles-info" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <div id="cz-online-lobby" style="display:none;">
+        <div class="gd-intro">Estás en la sala de espera. Si hay alguien más, elegilo para desafiarlo — si no, esperá a que entre alguien.</div>
+        <div id="cz-online-lista"></div>
+        <button class="auth-btn" id="cz-online-salir-btn" style="max-width:220px; margin:18px auto 0; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Salir de la sala</button>
+      </div>
+
+      <div id="cz-desafio-overlay" style="display:none;"></div>
+      <div id="cz-desafio-modal" style="display:none;">
+        <div class="auth-card" style="max-width:300px;">
+          <h1 id="cz-desafio-titulo" style="font-size:18px;">¡Te desafiaron!</h1>
+          <div class="auth-sub" id="cz-desafio-texto"></div>
+          <button class="auth-btn" id="cz-desafio-aceptar-btn">Aceptar</button>
+          <button class="auth-btn" id="cz-desafio-rechazar-btn" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong); margin-top:8px;">Rechazar</button>
         </div>
       </div>
 
@@ -3754,6 +3789,15 @@ let czTiempoRestante = CZ_DURACION_PARTIDO;
 let czTorneo = null;
 let czTiempoExtra = false;
 let czDificultadTorneo = 'normal';
+let czLobbyChannel = null;
+let czMatchChannel = null;
+let czEsHostOnline = false;
+let czOnlineActivo = false;
+let czOponenteOnline = null;
+let czMiUsernameOnline = null;
+let czInputRemoto = { izq:false, der:false, arriba:false, patear:false };
+let czContadorBroadcast = 0;
+let czIntervaloInputGuest = null;
 let czPartidoActivo = false;
 let czUltimoTick = null;
 let czLoopIniciado = false;
@@ -4156,6 +4200,220 @@ async function czCargarHistorialTorneo(){
   }).join('');
 }
 
+/* ---------- CABEZONES: MODO ONLINE (1vs1 real) ---------- */
+function czControlarRemoto(jugador, input){
+  jugador.vx = 0;
+  if(!input) return;
+  if(input.izq){ jugador.vx = -jugador.velocidad; jugador.mirandoDerecha = false; }
+  if(input.der){ jugador.vx = jugador.velocidad; jugador.mirandoDerecha = true; }
+  if(input.arriba && jugador.enSuelo){ jugador.vy = CZ_VEL_SALTO; jugador.enSuelo = false; }
+  if(input.patear && !jugador.kickPresionado){ czIntentarPatear(jugador); jugador.kickPresionado = true; }
+  if(!input.patear) jugador.kickPresionado = false;
+}
+
+function czEmpaquetarEstado(){
+  return {
+    j1: { x:czJugador1.x, y:czJugador1.y, mirandoDerecha:czJugador1.mirandoDerecha, radio:czJugador1.radio, pateando:czJugador1.pateando, pateoProgreso:czJugador1.pateoProgreso },
+    j2: { x:czJugador2.x, y:czJugador2.y, mirandoDerecha:czJugador2.mirandoDerecha, radio:czJugador2.radio, pateando:czJugador2.pateando, pateoProgreso:czJugador2.pateoProgreso },
+    pelota: { x:czPelota.x, y:czPelota.y, radio:czPelota.radio, rotacion:czPelota.rotacion },
+    marcadorJ1:czMarcadorJ1, marcadorJ2:czMarcadorJ2, tiempo:czTiempoRestante,
+    powerUps:czPowerUps, cartelGolTexto:czCartelGolTexto, cartelGolHasta:czCartelGolHasta
+  };
+}
+
+function czAplicarEstadoRemoto(estado){
+  if(!czJugador1 || !czJugador2 || !czPelota) return;
+  Object.assign(czJugador1, estado.j1);
+  Object.assign(czJugador2, estado.j2);
+  Object.assign(czPelota, estado.pelota);
+  czMarcadorJ1 = estado.marcadorJ1; czMarcadorJ2 = estado.marcadorJ2;
+  czTiempoRestante = estado.tiempo;
+  czPowerUps = estado.powerUps || [];
+  czCartelGolTexto = estado.cartelGolTexto; czCartelGolHasta = estado.cartelGolHasta;
+  document.getElementById('cz-score-j1').textContent = czMarcadorJ1;
+  document.getElementById('cz-score-j2').textContent = czMarcadorJ2;
+  document.getElementById('cz-tiempo').textContent = String(Math.max(czTiempoRestante,0));
+}
+
+function czCapturarInputLocalGuest(){
+  return {
+    izq: !!czTeclas['KeyA'], der: !!czTeclas['KeyD'],
+    arriba: !!czTeclas['KeyW'], patear: !!czTeclas['Space']
+  };
+}
+
+async function czEntrarSalaEspera(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user){ alert('Necesitás estar logueado para jugar online.'); return; }
+  czMiUsernameOnline = user.email.replace(DOMINIO_FALSO, '');
+
+  document.getElementById('cz-armado').style.display = 'none';
+  document.getElementById('cz-online-lobby').style.display = 'block';
+  document.getElementById('cz-online-lista').innerHTML = '<div class="cz-online-esperando">Conectando a la sala…</div>';
+
+  czLobbyChannel = sbClient.channel('cabezones-lobby-online', { config:{ presence:{ key: czMiUsernameOnline } } });
+
+  czLobbyChannel.on('presence', { event:'sync' }, ()=> czRenderizarSalaEspera());
+
+  czLobbyChannel.on('broadcast', { event:'desafio' }, (msg)=>{
+    if(msg.payload.para === czMiUsernameOnline) czMostrarDesafioRecibido(msg.payload);
+  });
+  czLobbyChannel.on('broadcast', { event:'desafio_aceptado' }, (msg)=>{
+    if(msg.payload.para === czMiUsernameOnline){
+      czIniciarPartidoOnline(false, msg.payload.roomId, msg.payload.de, msg.payload.cabezaDe);
+    }
+  });
+  czLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
+    if(msg.payload.para === czMiUsernameOnline){
+      alert(msg.payload.de + ' rechazó tu desafío.');
+      czRenderizarSalaEspera();
+    }
+  });
+
+  czLobbyChannel.subscribe(async (status)=>{
+    if(status === 'SUBSCRIBED'){
+      await czLobbyChannel.track({ username: czMiUsernameOnline, cabeza: czNombreJ1 });
+    }
+  });
+}
+
+function czRenderizarSalaEspera(){
+  if(!czLobbyChannel) return;
+  const estado = czLobbyChannel.presenceState();
+  const lista = document.getElementById('cz-online-lista');
+  const otros = [];
+  Object.values(estado).forEach(arr => arr.forEach(p=>{ if(p.username !== czMiUsernameOnline) otros.push(p); }));
+  if(!otros.length){
+    lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>';
+    return;
+  }
+  lista.innerHTML = otros.map(p => `
+    <div class="cz-online-fila">
+      <b>${p.username}</b>
+      <button class="auth-btn" style="max-width:130px; margin:0;" data-desafiar="${p.username}">Desafiar</button>
+    </div>
+  `).join('');
+  lista.querySelectorAll('[data-desafiar]').forEach(btn=>{
+    btn.addEventListener('click', ()=> czEnviarDesafio(btn.dataset.desafiar));
+  });
+}
+
+function czEnviarDesafio(paraUsername){
+  czLobbyChannel.send({ type:'broadcast', event:'desafio', payload:{ de:czMiUsernameOnline, cabezaDe:czNombreJ1, para:paraUsername } });
+  document.getElementById('cz-online-lista').innerHTML = `<div class="cz-online-esperando">Esperando que ${paraUsername} responda…</div>`;
+}
+
+function czMostrarDesafioRecibido(payload){
+  document.getElementById('cz-desafio-texto').textContent = `${payload.de} te quiere desafiar a un partido online. ¿Aceptás?`;
+  document.getElementById('cz-desafio-overlay').style.display = 'block';
+  document.getElementById('cz-desafio-modal').style.display = 'flex';
+
+  const aceptarBtn = document.getElementById('cz-desafio-aceptar-btn');
+  const rechazarBtn = document.getElementById('cz-desafio-rechazar-btn');
+  const aceptarNuevo = aceptarBtn.cloneNode(true);
+  const rechazarNuevo = rechazarBtn.cloneNode(true);
+  aceptarBtn.replaceWith(aceptarNuevo);
+  rechazarBtn.replaceWith(rechazarNuevo);
+
+  const limpiar = ()=>{
+    document.getElementById('cz-desafio-overlay').style.display = 'none';
+    document.getElementById('cz-desafio-modal').style.display = 'none';
+  };
+  aceptarNuevo.addEventListener('click', ()=>{
+    const roomId = 'sala-' + Math.random().toString(36).slice(2,10);
+    czLobbyChannel.send({ type:'broadcast', event:'desafio_aceptado', payload:{ de:czMiUsernameOnline, cabezaDe:czNombreJ1, para:payload.de, roomId } });
+    limpiar();
+    czIniciarPartidoOnline(true, roomId, payload.de, payload.cabezaDe);
+  });
+  rechazarNuevo.addEventListener('click', ()=>{
+    czLobbyChannel.send({ type:'broadcast', event:'desafio_rechazado', payload:{ de:czMiUsernameOnline, para:payload.de } });
+    limpiar();
+  });
+}
+
+function czIniciarPartidoOnline(esHost, roomId, nombreRival, cabezaRival){
+  czEsHostOnline = esHost;
+  czOnlineActivo = true;
+  czOponenteOnline = { username: nombreRival, cabeza: cabezaRival };
+  czModo = 'online';
+
+  document.getElementById('cz-online-lobby').style.display = 'none';
+  if(czLobbyChannel){ czLobbyChannel.unsubscribe(); czLobbyChannel = null; }
+
+  czMatchChannel = sbClient.channel('cabezones-match-' + roomId);
+
+  czMatchChannel.on('presence', { event:'leave' }, ({ leftPresences })=>{
+    if(!czOnlineActivo) return;
+    if(leftPresences.some(p => p.username === czOponenteOnline.username)){
+      czOnlineActivo = false;
+      czPartidoActivo = false;
+      document.getElementById('cz-cancha-wrap').style.display = 'block';
+      document.getElementById('cz-final-titulo').textContent = '⚠️ Se desconectó el rival. El partido no cuenta.';
+      document.getElementById('cz-final').style.display = 'block';
+      if(czIntervaloInputGuest){ clearInterval(czIntervaloInputGuest); czIntervaloInputGuest = null; }
+    }
+  });
+
+  if(esHost){
+    czNombreJ2 = cabezaRival;
+    czMatchChannel.on('broadcast', { event:'input' }, (msg)=>{ czInputRemoto = msg.payload; });
+    czMatchChannel.subscribe(async (status)=>{
+      if(status === 'SUBSCRIBED') await czMatchChannel.track({ username: czMiUsernameOnline });
+    });
+    czIniciarPartido();
+  } else {
+    czNombreJ2 = cabezaRival; // la cabeza del host, se dibuja como "Jugador 1" en esta pantalla
+    document.getElementById('cz-armado').style.display = 'none';
+    document.getElementById('cz-torneo-wrap').style.display = 'none';
+    document.getElementById('cz-cancha-wrap').style.display = 'block';
+    document.getElementById('cz-iniciar-reloj-btn').style.display = 'none';
+    document.getElementById('cz-final').style.display = 'none';
+    document.getElementById('cz-nombre-j1').innerHTML = `${cabezaRival}<br><b id="cz-score-j1">0</b>`;
+    document.getElementById('cz-nombre-j2').innerHTML = `${czNombreJ1}<br><b id="cz-score-j2">0</b>`;
+    if(!czCtx){ czCtx = document.getElementById('cz-canvas').getContext('2d'); }
+    czJugador1 = czCrearJugador(cabezaRival, 'izq', false);
+    czJugador2 = czCrearJugador(czNombreJ1, 'der', false);
+    czObtenerImagen(cabezaRival); czObtenerImagen(czNombreJ1);
+    czPelota = { x:CZ_CENTRO_X, y:CZ_TRIBUNA_ALTO+100, vx:0, vy:0, radio:CZ_RADIO_PELOTA, efectoHasta:0, rotacion:0 };
+    czMarcadorJ1 = 0; czMarcadorJ2 = 0;
+    czActualizarAvisoRotar();
+    if(CZ_ES_TACTIL) document.body.classList.add('cz-pantalla-completa');
+
+    czMatchChannel.on('broadcast', { event:'estado' }, (msg)=> czAplicarEstadoRemoto(msg.payload));
+    czMatchChannel.on('broadcast', { event:'fin' }, (msg)=> czMostrarFinOnlineGuest(msg.payload));
+    czMatchChannel.subscribe(async (status)=>{
+      if(status === 'SUBSCRIBED') await czMatchChannel.track({ username: czMiUsernameOnline });
+    });
+
+    if(czIntervaloInputGuest) clearInterval(czIntervaloInputGuest);
+    czIntervaloInputGuest = setInterval(()=>{
+      if(!czOnlineActivo || !czMatchChannel) return;
+      czMatchChannel.send({ type:'broadcast', event:'input', payload: czCapturarInputLocalGuest() });
+    }, 50);
+
+    if(!czLoopIniciado){ czLoopIniciado = true; requestAnimationFrame(czLoop); }
+  }
+}
+
+function czMostrarFinOnlineGuest(payload){
+  czMarcadorJ1 = payload.golesJ1; czMarcadorJ2 = payload.golesJ2;
+  let titulo;
+  if(czMarcadorJ1 > czMarcadorJ2) titulo = `🏆 ¡Ganó ${czNombreJ1}! ${czMarcadorJ1} - ${czMarcadorJ2}`;
+  else if(czMarcadorJ2 > czMarcadorJ1) titulo = `🏆 ¡Ganó ${czNombreJ2}! ${czMarcadorJ2} - ${czMarcadorJ1}`;
+  else titulo = `🤝 Empate ${czMarcadorJ1} - ${czMarcadorJ2}`;
+  document.getElementById('cz-final-titulo').textContent = titulo;
+  document.getElementById('cz-final').style.display = 'block';
+}
+
+function czSalirModoOnline(){
+  czOnlineActivo = false;
+  czPartidoActivo = false;
+  if(czLobbyChannel){ czLobbyChannel.unsubscribe(); czLobbyChannel = null; }
+  if(czMatchChannel){ czMatchChannel.unsubscribe(); czMatchChannel = null; }
+  if(czIntervaloInputGuest){ clearInterval(czIntervaloInputGuest); czIntervaloInputGuest = null; }
+  document.getElementById('cz-online-lobby').style.display = 'none';
+}
+
 function czGol(lado){
   const golNombre = lado === 'izq' ? czNombreJ2 : czNombreJ1;
   if(lado === 'izq'){ czMarcadorJ2++; document.getElementById('cz-score-j2').textContent = czMarcadorJ2; }
@@ -4185,6 +4443,10 @@ function czTerminarPartido(){
   if(czTorneo && (czTorneo.tipo === 'temporada' || (czTorneo.tipo === 'copa' && czTorneo.pendienteUsuario))){
     czRegistrarResultadoTorneoEnVivo();
     return;
+  }
+
+  if(czModo === 'online' && czEsHostOnline && czMatchChannel){
+    czMatchChannel.send({ type:'broadcast', event:'fin', payload:{ golesJ1:czMarcadorJ1, golesJ2:czMarcadorJ2 } });
   }
 
   let titulo;
@@ -4230,6 +4492,7 @@ function czPaso(dtMs){
   });
 
   if(czModo === 'bot') czControlarBot(czJugador2);
+  else if(czModo === 'online'){ if(czEsHostOnline) czControlarRemoto(czJugador2, czInputRemoto); }
   else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter');
   czControlarHumano(czJugador1, 'KeyA', 'KeyD', 'KeyW', 'Space');
   czActualizarAnimacionPatada(czJugador1);
@@ -4497,7 +4760,8 @@ function czDibujarPelotaFutbol(){
 
 function czLoop(ts){
   try {
-    if(czPartidoActivo && document.getElementById('mini-cabezones').style.display !== 'none'){
+    const esInvitadoOnline = czModo === 'online' && !czEsHostOnline;
+    if(czPartidoActivo && !esInvitadoOnline && document.getElementById('mini-cabezones').style.display !== 'none'){
       if(czUltimoTick === null) czUltimoTick = ts;
       const dt = ts - czUltimoTick;
       czPaso(dt);
@@ -4506,6 +4770,12 @@ function czLoop(ts){
       }
     }
     czDibujar();
+    if(czModo === 'online' && czEsHostOnline && czMatchChannel){
+      czContadorBroadcast = (czContadorBroadcast||0) + 1;
+      if(czContadorBroadcast % 3 === 0){
+        czMatchChannel.send({ type:'broadcast', event:'estado', payload: czEmpaquetarEstado() });
+      }
+    }
   } catch(err){
     console.warn('Error en Cabezones, se recupera el siguiente frame:', err);
   }
@@ -4530,8 +4800,8 @@ document.addEventListener('keydown', (e)=>{
 document.addEventListener('keyup', (e)=>{ czTeclas[e.code] = false; });
 
 function czActualizarBotonEmpezar(){
-  const esTorneo = czModo === 'temporada' || czModo === 'copa';
-  document.getElementById('cz-empezar-btn').disabled = esTorneo ? !czNombreJ1 : !(czNombreJ1 && czNombreJ2);
+  const esTorneoOOnline = czModo === 'temporada' || czModo === 'copa' || czModo === 'online';
+  document.getElementById('cz-empezar-btn').disabled = esTorneoOOnline ? !czNombreJ1 : !(czNombreJ1 && czNombreJ2);
 }
 
 document.getElementById('cz-input-j1').addEventListener('change', (e)=>{
@@ -4553,18 +4823,22 @@ document.querySelectorAll('#cz-armado [data-modo]').forEach(btn=>{
     document.querySelectorAll('#cz-armado [data-modo]').forEach(b => b.classList.toggle('active', b === btn));
     const esLocal = czModo === 'local';
     const esTorneo = czModo === 'temporada' || czModo === 'copa';
+    const esOnline = czModo === 'online';
     document.getElementById('cz-label-j2').textContent = esLocal ? 'Jugador 2' : 'GrilloBOT';
     document.getElementById('cz-input-j2').placeholder = esLocal ? 'Buscá la cabeza del Jugador 2…' : 'Buscá la cabeza rival…';
     document.getElementById('cz-controles-j2').style.display = esLocal ? 'inline' : 'none';
-    document.getElementById('cz-dificultad-col').style.display = (esLocal || esTorneo) ? 'none' : 'block';
-    document.getElementById('cz-elegir-col-j2').style.display = esTorneo ? 'none' : 'block';
-    document.getElementById('cz-torneo-intro').style.display = esTorneo ? 'block' : 'none';
+    document.getElementById('cz-dificultad-col').style.display = (esLocal || esTorneo || esOnline) ? 'none' : 'block';
+    document.getElementById('cz-elegir-col-j2').style.display = (esTorneo || esOnline) ? 'none' : 'block';
+    document.getElementById('cz-torneo-intro').style.display = (esTorneo || esOnline) ? 'block' : 'none';
     if(esTorneo){
       const cantidad = DATA.estadisticas.filter(r => r.PJ >= 5).length;
       document.getElementById('cz-torneo-intro').textContent = czModo === 'temporada'
         ? `Vas a jugar un partido contra cada uno de los ${cantidad} jugadores con 5 o más partidos en la Grillo Liga. Los cruces entre ellos se simulan solos. Antes de cada partido elegís la dificultad.`
         : `Cuadro de eliminación directa contra los ${cantidad} jugadores con 5 o más partidos en la Grillo Liga (con algún "bye" si no cierra parejo). Si empatás, hay tiempo extra hasta el primer gol. Antes de cada partido elegís la dificultad.`;
       czCargarHistorialTorneo();
+    } else if(esOnline){
+      document.getElementById('cz-torneo-intro').textContent = 'Vas a entrar a la sala de espera. Si hay alguien más ahí, podés desafiarlo — si no, esperá a que entre alguien y desafiate vos.';
+      document.getElementById('cz-historial-torneo').style.display = 'none';
     } else {
       document.getElementById('cz-historial-torneo').style.display = 'none';
     }
@@ -4588,10 +4862,20 @@ document.querySelectorAll('#cz-armado [data-duracion]').forEach(btn=>{
 document.getElementById('cz-empezar-btn').addEventListener('click', ()=>{
   if(czModo === 'temporada') czIniciarTemporada();
   else if(czModo === 'copa') czIniciarCopa();
+  else if(czModo === 'online') czEntrarSalaEspera();
   else czIniciarPartido();
+});
+document.getElementById('cz-online-salir-btn').addEventListener('click', ()=>{
+  czSalirModoOnline();
+  document.getElementById('cz-armado').style.display = 'block';
 });
 document.getElementById('cz-jugar-de-nuevo').addEventListener('click', ()=>{
   if(czTorneo){ czMostrarPantallaTorneo(); }
+  else if(czModo === 'online'){
+    czSalirModoOnline();
+    document.getElementById('cz-cancha-wrap').style.display = 'none';
+    document.getElementById('cz-armado').style.display = 'block';
+  }
   else { czIniciarPartido(); }
 });
 document.getElementById('cz-torneo-siguiente-btn').addEventListener('click', ()=>{
@@ -4623,6 +4907,7 @@ document.getElementById('cz-iniciar-reloj-btn').addEventListener('click', ()=>{
 const CZ_ES_TACTIL = window.matchMedia('(hover:none) and (pointer:coarse)').matches;
 
 document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
+  czSalirModoOnline();
   document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-cabezones').style.display = 'block';
@@ -4648,15 +4933,18 @@ document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
     document.getElementById('cz-modo-local').style.display = 'none';
     document.getElementById('cz-modo-temporada').style.display = 'none';
     document.getElementById('cz-modo-copa').style.display = 'none';
+    document.getElementById('cz-modo-online').style.display = 'none';
   } else {
     document.getElementById('cz-modo-local').style.display = 'block';
     document.getElementById('cz-modo-temporada').style.display = 'block';
     document.getElementById('cz-modo-copa').style.display = 'block';
+    document.getElementById('cz-modo-online').style.display = 'block';
   }
 });
 document.getElementById('cabezones-volver').addEventListener('click', ()=>{
   czPartidoActivo = false;
   czTorneo = null;
+  czSalirModoOnline();
   document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-cabezones').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
