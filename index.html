@@ -314,7 +314,7 @@
   touch-action:none;
 }
 #cz-canvas{ display:block; width:100%; height:auto; background:#3a6b2f; }
-#mini-cabezones .mg-canvas-container{ max-width:760px; }
+#mini-cabezones .mg-canvas-container{ max-width:960px; }
 #mini-metegol .mg-canvas-container{ max-width:800px; }
 .mg-nota{ text-align:center; font-size:11.5px; color:var(--text-dimmer); margin-top:10px; }
 .mg-opciones{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
@@ -443,6 +443,7 @@
 @media (hover:none) and (pointer:coarse){
   .cz-touch-controles{ display:flex; }
 }
+.cz-layout-desktop{ display:block; }
 .cz-controles-pc{
   display:flex; justify-content:center; gap:24px; margin-top:16px;
   padding:12px 20px; background:var(--card2); border:1px solid var(--line); border-radius:8px;
@@ -456,6 +457,15 @@
 }
 @media (hover:none) and (pointer:coarse){
   .cz-controles-pc{ display:none; }
+}
+@media (hover:hover) and (pointer:fine){
+  .cz-layout-desktop{ display:flex; align-items:flex-start; gap:18px; }
+  .cz-controles-pc{
+    flex-direction:column; gap:18px; margin-top:0; width:150px; flex-shrink:0;
+    align-self:flex-start;
+  }
+  .cz-controles-pc-col{ gap:6px; }
+  .cz-columna-juego{ flex:1; min-width:0; }
 }
 @media (max-width:700px){
   #mini-cabezones #cz-canvas-container,
@@ -487,7 +497,7 @@ body.cz-pantalla-completa .cz-rotar-aviso{ padding:5px 10px; margin-bottom:6px; 
 body.cz-pantalla-completa .pen-marcador{ margin-bottom:6px; }
 body.cz-pantalla-completa #cz-canvas{
   width:100% !important; height:auto !important;
-  aspect-ratio:760/460;
+  aspect-ratio:960/580;
   max-width:100%; max-height:50vh;
   margin:0 auto; display:block;
 }
@@ -1560,42 +1570,46 @@ footer{
 
       <div id="cz-cancha-wrap" style="display:none;">
         <div class="cz-rotar-aviso" id="cz-rotar-aviso" style="display:none;">📱 Para jugar más cómodo, girá el teléfono en horizontal</div>
-        <div class="pen-marcador">
-          <div id="cz-nombre-j1">JUGADOR 1<br><b id="cz-score-j1">0</b></div>
-          <div class="pen-ronda">⏱ <b id="cz-tiempo">90</b>s</div>
-          <div id="cz-nombre-j2">RIVAL<br><b id="cz-score-j2">0</b></div>
-        </div>
-        <button class="auth-btn" id="cz-iniciar-reloj-btn" style="max-width:220px; margin:0 auto 10px; display:block;">▶ Iniciar partido</button>
-        <div class="mg-canvas-container" id="cz-canvas-container">
-          <canvas id="cz-canvas" width="760" height="460"></canvas>
-        </div>
-        <div class="cz-touch-controles" id="cz-touch-controles">
-          <div class="cz-touch-mover">
-            <button data-tecla="KeyA">◀</button>
-            <button data-tecla="KeyD">▶</button>
+        <div class="cz-layout-desktop">
+          <div class="cz-controles-pc" id="cz-controles-pc">
+            <div class="cz-controles-pc-col">
+              <b>🔴 Jugador 1</b>
+              <span><i>A</i> / <i>D</i> mover</span>
+              <span><i>W</i> saltar</span>
+              <span><i>Espacio</i> patear</span>
+            </div>
+            <div class="cz-controles-pc-col" id="cz-controles-pc-j2" style="display:none;">
+              <b>⚫ Jugador 2</b>
+              <span><i>←</i> / <i>→</i> mover</span>
+              <span><i>↑</i> saltar</span>
+              <span><i>Enter</i> patear</span>
+            </div>
           </div>
-          <div class="cz-touch-acciones">
-            <button class="cz-touch-saltar" data-tecla="KeyW">⬆<span>saltar</span></button>
-            <button class="cz-touch-patear" data-tecla="Space">⚡<span>patear</span></button>
+          <div class="cz-columna-juego">
+            <div class="pen-marcador">
+              <div id="cz-nombre-j1">JUGADOR 1<br><b id="cz-score-j1">0</b></div>
+              <div class="pen-ronda">⏱ <b id="cz-tiempo">90</b>s</div>
+              <div id="cz-nombre-j2">RIVAL<br><b id="cz-score-j2">0</b></div>
+            </div>
+            <button class="auth-btn" id="cz-iniciar-reloj-btn" style="max-width:220px; margin:0 auto 10px; display:block;">▶ Iniciar partido</button>
+            <div class="mg-canvas-container" id="cz-canvas-container">
+              <canvas id="cz-canvas" width="960" height="580"></canvas>
+            </div>
+            <div class="cz-touch-controles" id="cz-touch-controles">
+              <div class="cz-touch-mover">
+                <button data-tecla="KeyA">◀</button>
+                <button data-tecla="KeyD">▶</button>
+              </div>
+              <div class="cz-touch-acciones">
+                <button class="cz-touch-saltar" data-tecla="KeyW">⬆<span>saltar</span></button>
+                <button class="cz-touch-patear" data-tecla="Space">⚡<span>patear</span></button>
+              </div>
+            </div>
+            <div id="cz-final" style="display:none;">
+              <div class="pen-final-titulo" id="cz-final-titulo"></div>
+              <button class="auth-btn" id="cz-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+            </div>
           </div>
-        </div>
-        <div class="cz-controles-pc" id="cz-controles-pc">
-          <div class="cz-controles-pc-col">
-            <b>🔴 Jugador 1</b>
-            <span><i>A</i> / <i>D</i> mover</span>
-            <span><i>W</i> saltar</span>
-            <span><i>Espacio</i> patear</span>
-          </div>
-          <div class="cz-controles-pc-col" id="cz-controles-pc-j2" style="display:none;">
-            <b>⚫ Jugador 2</b>
-            <span><i>←</i> / <i>→</i> mover</span>
-            <span><i>↑</i> saltar</span>
-            <span><i>Enter</i> patear</span>
-          </div>
-        </div>
-        <div id="cz-final" style="display:none;">
-          <div class="pen-final-titulo" id="cz-final-titulo"></div>
-          <button class="auth-btn" id="cz-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
         </div>
       </div>
     </div>
