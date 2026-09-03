@@ -1537,8 +1537,8 @@ footer{
         </div>
 
         <div class="cz-controles-info" id="cz-controles-info">
-          <b>Controles Jugador 1:</b> A/D moverse · W saltar · Espacio patear · S levantar (control suave)<br>
-          <span id="cz-controles-j2" style="display:none;"><b>Controles Jugador 2:</b> ←/→ moverse · ↑ saltar · Enter patear · ↓ levantar (control suave)</span>
+          <b>Controles Jugador 1:</b> A/D moverse · W saltar · Espacio patear<br>
+          <span id="cz-controles-j2" style="display:none;"><b>Controles Jugador 2:</b> ←/→ moverse · ↑ saltar · Enter patear</span>
         </div>
 
         <button class="auth-btn" id="cz-empezar-btn" style="max-width:260px; margin:18px auto 0;" disabled>Empezar partido</button>
@@ -1561,7 +1561,6 @@ footer{
             <button data-tecla="KeyD">▶</button>
           </div>
           <div class="cz-touch-acciones">
-            <button class="cz-touch-levantar" data-tecla="KeyS">⤴<span>control</span></button>
             <button class="cz-touch-saltar" data-tecla="KeyW">⬆<span>saltar</span></button>
             <button class="cz-touch-patear" data-tecla="Space">⚡<span>patear</span></button>
           </div>
@@ -3724,7 +3723,8 @@ function czCrearJugador(nombre, lado, esBot){
     mirandoDerecha: lado === 'izq',
     velocidad: CZ_VEL_MOV,
     kickPresionado: false,
-    levantarPresionado: false,
+    pateando: false,
+    pateoProgreso: 0,
     efectoCabezaHasta: 0,
     efectoRayoHasta: 0
   };
@@ -3791,21 +3791,14 @@ function czColisionCabezaPelota(jugador){
 }
 
 function czIntentarPatear(jugador){
+  jugador.pateando = true;
+  jugador.pateoProgreso = 0;
   const dx = czPelota.x - jugador.x, dy = czPelota.y - jugador.y;
   const dist = Math.hypot(dx,dy);
   if(dist < jugador.radio + czPelota.radio + 24){
     const dir = jugador.mirandoDerecha ? 1 : -1;
     czPelota.vx = dir*15 + jugador.vx*0.45;
     czPelota.vy = -12;
-  }
-}
-
-function czIntentarLevantar(jugador){
-  const dx = czPelota.x - jugador.x, dy = czPelota.y - jugador.y;
-  const dist = Math.hypot(dx,dy);
-  if(dist < jugador.radio + czPelota.radio + 26){
-    czPelota.vy = -6.2;
-    czPelota.vx = czPelota.vx*0.25 + jugador.vx*0.3;
   }
 }
 
@@ -3831,15 +3824,19 @@ function czActualizarEfectos(){
   });
 }
 
-function czControlarHumano(jugador, izq, der, arriba, patear, levantar){
+function czActualizarAnimacionPatada(jugador){
+  if(!jugador.pateando) return;
+  jugador.pateoProgreso += 0.16;
+  if(jugador.pateoProgreso >= 1){ jugador.pateoProgreso = 0; jugador.pateando = false; }
+}
+
+function czControlarHumano(jugador, izq, der, arriba, patear){
   jugador.vx = 0;
   if(czTeclas[izq]){ jugador.vx = -jugador.velocidad; jugador.mirandoDerecha = false; }
   if(czTeclas[der]){ jugador.vx = jugador.velocidad; jugador.mirandoDerecha = true; }
   if(czTeclas[arriba] && jugador.enSuelo){ jugador.vy = CZ_VEL_SALTO; jugador.enSuelo = false; }
   if(czTeclas[patear] && !jugador.kickPresionado){ czIntentarPatear(jugador); jugador.kickPresionado = true; }
   if(!czTeclas[patear]) jugador.kickPresionado = false;
-  if(czTeclas[levantar] && !jugador.levantarPresionado){ czIntentarLevantar(jugador); jugador.levantarPresionado = true; }
-  if(!czTeclas[levantar]) jugador.levantarPresionado = false;
 }
 
 function czControlarBot(jugador){
@@ -3916,8 +3913,10 @@ function czPaso(dtMs){
   });
 
   if(czModo === 'bot') czControlarBot(czJugador2);
-  else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter', 'ArrowDown');
-  czControlarHumano(czJugador1, 'KeyA', 'KeyD', 'KeyW', 'Space', 'KeyS');
+  else czControlarHumano(czJugador2, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'Enter');
+  czControlarHumano(czJugador1, 'KeyA', 'KeyD', 'KeyW', 'Space');
+  czActualizarAnimacionPatada(czJugador1);
+  czActualizarAnimacionPatada(czJugador2);
 
   czAplicarGravedadYSuelo(czJugador1, czJugador1.radio);
   czAplicarGravedadYSuelo(czJugador2, czJugador2.radio);
@@ -3938,10 +3937,34 @@ function czPaso(dtMs){
 
 function czDibujarBotin(j){
   const dir = j.mirandoDerecha ? 1 : -1;
-  const baseX = j.x + dir*(j.radio*0.35);
-  const baseY = j.y + j.radio*0.85;
+  // curva de la patada: 0 → 1 → 0 (barrido único, sube y baja)
+  const barrido = j.pateando ? Math.sin(j.pateoProgreso * Math.PI) : 0;
+  const anguloPierna = -0.35 + barrido*0.95; // pierna levemente atrás en reposo, se extiende al patear
+  const largoPierna = j.radio*0.75 + barrido*10;
+
+  const caderaX = j.x + dir*(j.radio*0.15);
+  const caderaY = j.y + j.radio*0.7;
+  const rodillaX = caderaX + dir*Math.cos(anguloPierna)*largoPierna*0.55;
+  const rodillaY = caderaY + Math.sin(anguloPierna)*largoPierna*0.4 + largoPierna*0.4;
+  const pieX = caderaX + dir*Math.cos(anguloPierna)*largoPierna;
+  const pieY = caderaY + Math.sin(anguloPierna)*largoPierna*0.5 + largoPierna*0.55;
+
+  // pierna (medias + pantorrilla), trazo grueso con punta redonda
   czCtx.save();
-  czCtx.translate(baseX, baseY);
+  czCtx.lineCap = 'round';
+  czCtx.lineWidth = j.radio*0.34;
+  czCtx.strokeStyle = j.lado === 'izq' ? '#F0E7D2' : '#2a2318';
+  czCtx.beginPath();
+  czCtx.moveTo(caderaX, caderaY);
+  czCtx.lineTo(rodillaX, rodillaY);
+  czCtx.lineTo(pieX, pieY);
+  czCtx.stroke();
+  czCtx.restore();
+
+  // botín, en la punta de la pierna
+  czCtx.save();
+  czCtx.translate(pieX, pieY);
+  czCtx.rotate(anguloPierna*0.5);
   czCtx.scale(dir, 1);
   // suela blanca (atrás, para que quede debajo del botín)
   czCtx.beginPath();
@@ -4145,7 +4168,7 @@ setInterval(()=>{
   if(czTiempoRestante <= 0){ czTerminarPartido(); }
 }, 1000);
 
-const CZ_TECLAS_JUEGO = ['KeyA','KeyD','KeyW','KeyS','Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
+const CZ_TECLAS_JUEGO = ['KeyA','KeyD','KeyW','Space','ArrowLeft','ArrowRight','ArrowUp','Enter'];
 document.addEventListener('keydown', (e)=>{
   czTeclas[e.code] = true;
   if(document.getElementById('cz-cancha-wrap').style.display !== 'none' && CZ_TECLAS_JUEGO.includes(e.code)){
