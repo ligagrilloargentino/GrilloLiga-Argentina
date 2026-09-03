@@ -101,6 +101,14 @@
 .foro-msg .fm-fecha{ font-size:10px; color:var(--text-dimmer); font-family:'IBM Plex Mono',monospace; }
 .foro-msg .fm-texto{ font-size:13px; color:var(--text); line-height:1.4; white-space:pre-wrap; }
 .foro-msg .fm-responder{ font-size:11px; color:var(--text-dimmer); cursor:pointer; text-decoration:underline; margin-top:6px; display:inline-block; }
+.fm-reacciones{ display:flex; gap:5px; margin-top:8px; }
+.fm-reaccion{
+  background:var(--card2); border:1px solid var(--line); border-radius:12px;
+  padding:2px 8px; font-size:12px; cursor:pointer; color:var(--text-dim);
+  transition:border-color .15s, background .15s;
+}
+.fm-reaccion:hover{ border-color:var(--red); }
+.fm-reaccion-mia{ background:rgba(179,59,34,.15); border-color:var(--red); color:var(--text); }
 .foro-respuestas{ margin-left:22px; margin-top:8px; border-left:2px solid var(--line); padding-left:12px; }
 .foro-reply-box{ margin-top:8px; display:none; }
 .foro-reply-box textarea{
@@ -624,6 +632,17 @@ header.top{
 .cz-online-esperando{
   text-align:center; padding:16px; color:var(--text-dim); font-size:13px;
 }
+#perfil-publico-overlay{
+  position:fixed; inset:0; background:rgba(20,17,12,.6); z-index:10040;
+}
+#perfil-publico-modal{
+  position:fixed; inset:0; z-index:10041; display:none;
+  align-items:center; justify-content:center; padding:20px;
+}
+.pp-fila{ font-family:'Lora',serif; font-size:13px; color:var(--text); margin-top:10px; line-height:1.4; }
+.pp-fila b{ color:var(--text-dim); font-weight:700; }
+.fm-user-clickeable{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
+.fm-user-clickeable:hover{ color:var(--red); }
 
 .drawer-menu{
   position:fixed; top:0; left:0; bottom:0; width:290px; max-width:84vw;
@@ -1154,6 +1173,17 @@ footer{
   <div class="stitch-line"></div>
 </header>
 
+<div id="perfil-publico-overlay" style="display:none;"></div>
+<div id="perfil-publico-modal" style="display:none;">
+  <div class="auth-card" style="max-width:300px;">
+    <button class="drawer-cerrar" id="perfil-publico-cerrar-btn" style="float:right;">✕</button>
+    <h1 id="pp-username" style="font-size:19px;"></h1>
+    <div class="pp-fila"><b>⚽ Jugador favorito:</b> <span id="pp-jugador">—</span></div>
+    <div class="pp-fila"><b>🛡️ Hincha de:</b> <span id="pp-club">—</span></div>
+    <div class="pp-fila"><b>📅 En la GrilloLiga desde:</b> <span id="pp-fecha">—</span></div>
+  </div>
+</div>
+
 <div class="drawer-overlay" id="drawer-overlay"></div>
 <nav class="drawer-menu" id="drawer-menu">
   <div class="drawer-header">
@@ -1189,6 +1219,11 @@ footer{
       <h2>Líderes</h2>
     </div>
     <div class="leader-grid" id="leader-grid"></div>
+
+    <div class="section-head" style="margin-top:26px;">
+      <h2>🎉 La hinchada de la GrilloLiga</h2>
+    </div>
+    <div class="leader-grid" id="hinchada-grid"></div>
   </section>
 
   <!-- ESTADISTICAS -->
@@ -2297,6 +2332,31 @@ async function obtenerUsernameActual(){
   return usuarioActualUsername;
 }
 
+async function mostrarPerfilPublico(username){
+  const { data } = await sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito, creado_en').eq('username', username).maybeSingle();
+  document.getElementById('pp-username').textContent = username;
+  if(data){
+    document.getElementById('pp-jugador').textContent = data.jugador_favorito || '—';
+    document.getElementById('pp-club').textContent = data.club_favorito || '—';
+    document.getElementById('pp-fecha').textContent = data.creado_en ? formatearFechaForo(data.creado_en).split(' ')[0] : '—';
+  } else {
+    document.getElementById('pp-jugador').textContent = '—';
+    document.getElementById('pp-club').textContent = '—';
+    document.getElementById('pp-fecha').textContent = '—';
+  }
+  document.getElementById('perfil-publico-overlay').style.display = 'block';
+  document.getElementById('perfil-publico-modal').style.display = 'flex';
+}
+document.getElementById('perfil-publico-cerrar-btn').addEventListener('click', ()=>{
+  document.getElementById('perfil-publico-overlay').style.display = 'none';
+  document.getElementById('perfil-publico-modal').style.display = 'none';
+});
+document.getElementById('perfil-publico-overlay').addEventListener('click', ()=>{
+  document.getElementById('perfil-publico-overlay').style.display = 'none';
+  document.getElementById('perfil-publico-modal').style.display = 'none';
+});
+
+
 function construirArbolComentarios(mensajes){
   const porId = {};
   mensajes.forEach(m => { porId[m.id] = { ...m, hijos: [] }; });
@@ -2316,17 +2376,26 @@ function formatearFechaForo(iso){
   return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
 }
 
-function renderNodoComentario(nodo, tipo, partidoId){
+const FORO_EMOJIS = ['👍','❤️','😂','🔥','👏'];
+
+function renderNodoComentario(nodo, tipo, partidoId, reacciones){
   const respuestasHtml = nodo.hijos.length
-    ? `<div class="foro-respuestas">${nodo.hijos.map(h => renderNodoComentario(h, tipo, partidoId)).join('')}</div>`
+    ? `<div class="foro-respuestas">${nodo.hijos.map(h => renderNodoComentario(h, tipo, partidoId, reacciones)).join('')}</div>`
     : '';
+  const r = reacciones[nodo.id] || { conteos:{}, mia:null };
+  const reaccionesHtml = FORO_EMOJIS.map(e => {
+    const cant = r.conteos[e] || 0;
+    const activa = r.mia === e;
+    return `<button class="fm-reaccion${activa ? ' fm-reaccion-mia' : ''}" data-id="${nodo.id}" data-emoji="${e}">${e}${cant ? ' '+cant : ''}</button>`;
+  }).join('');
   return `
     <div class="foro-msg" data-id="${nodo.id}">
       <div class="fm-head">
-        <span class="fm-user">${nodo.username}</span>
+        <span class="fm-user fm-user-clickeable" data-username="${nodo.username}">${nodo.username}</span>
         <span class="fm-fecha">${formatearFechaForo(nodo.creado_en)}</span>
       </div>
       <div class="fm-texto">${nodo.contenido.replace(/</g,'&lt;')}</div>
+      <div class="fm-reacciones">${reaccionesHtml}</div>
       <span class="fm-responder" data-id="${nodo.id}">Responder</span>
       <div class="foro-reply-box" id="reply-box-${nodo.id}">
         <textarea placeholder="Tu respuesta…"></textarea>
@@ -2335,6 +2404,17 @@ function renderNodoComentario(nodo, tipo, partidoId){
       ${respuestasHtml}
     </div>
   `;
+}
+
+async function czToggleReaccion(mensajeId, emoji, miUserId){
+  const { data: existente } = await sbClient.from('foro_reacciones').select('*').eq('mensaje_id', mensajeId).eq('usuario_id', miUserId).maybeSingle();
+  if(existente && existente.emoji === emoji){
+    await sbClient.from('foro_reacciones').delete().eq('id', existente.id);
+  } else if(existente){
+    await sbClient.from('foro_reacciones').update({ emoji }).eq('id', existente.id);
+  } else {
+    await sbClient.from('foro_reacciones').insert({ mensaje_id: mensajeId, usuario_id: miUserId, emoji });
+  }
 }
 
 async function cargarYRenderizarComentarios(tipo, partidoId, container){
@@ -2346,6 +2426,20 @@ async function cargarYRenderizarComentarios(tipo, partidoId, container){
 
   if(error){ container.innerHTML = '<div class="foro-vacio">No se pudieron cargar los comentarios.</div>'; return; }
 
+  const { data: { user } } = await sbClient.auth.getUser();
+  const miUserId = user ? user.id : null;
+
+  const reacciones = {};
+  if(data && data.length){
+    const ids = data.map(m => m.id);
+    const { data: reaccionesData } = await sbClient.from('foro_reacciones').select('*').in('mensaje_id', ids);
+    (reaccionesData || []).forEach(r=>{
+      if(!reacciones[r.mensaje_id]) reacciones[r.mensaje_id] = { conteos:{}, mia:null };
+      reacciones[r.mensaje_id].conteos[r.emoji] = (reacciones[r.mensaje_id].conteos[r.emoji]||0) + 1;
+      if(r.usuario_id === miUserId) reacciones[r.mensaje_id].mia = r.emoji;
+    });
+  }
+
   const arbol = construirArbolComentarios(data || []);
 
   container.innerHTML = `
@@ -2354,9 +2448,17 @@ async function cargarYRenderizarComentarios(tipo, partidoId, container){
       <button id="foro-nuevo-btn-${tipo}-${partidoId||'gen'}">Publicar</button>
     </div>
     <div id="foro-lista-${tipo}-${partidoId||'gen'}">
-      ${arbol.length ? arbol.map(n => renderNodoComentario(n, tipo, partidoId)).join('') : '<div class="foro-vacio">Todavía no hay comentarios. ¡Sé el primero!</div>'}
+      ${arbol.length ? arbol.map(n => renderNodoComentario(n, tipo, partidoId, reacciones)).join('') : '<div class="foro-vacio">Todavía no hay comentarios. ¡Sé el primero!</div>'}
     </div>
   `;
+
+  container.querySelectorAll('.fm-reaccion').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!miUserId){ alert('Necesitás estar logueado para reaccionar.'); return; }
+      await czToggleReaccion(parseInt(btn.dataset.id), btn.dataset.emoji, miUserId);
+      cargarYRenderizarComentarios(tipo, partidoId, container);
+    });
+  });
 
   document.getElementById(`foro-nuevo-btn-${tipo}-${partidoId||'gen'}`).addEventListener('click', async ()=>{
     const ta = document.getElementById(`foro-nuevo-texto-${tipo}-${partidoId||'gen'}`);
@@ -2364,6 +2466,10 @@ async function cargarYRenderizarComentarios(tipo, partidoId, container){
     if(!texto) return;
     await publicarComentarioForo(tipo, partidoId, texto, null);
     cargarYRenderizarComentarios(tipo, partidoId, container);
+  });
+
+  container.querySelectorAll('.fm-user-clickeable').forEach(el=>{
+    el.addEventListener('click', ()=> mostrarPerfilPublico(el.dataset.username));
   });
 
   container.querySelectorAll('.fm-responder').forEach(el=>{
@@ -5418,9 +5524,44 @@ function renderLeaderGrid(){
   });
 }
 
+async function renderHinchadaGrilloliga(){
+  const grid = document.getElementById('hinchada-grid');
+  if(!grid) return;
+  const { data, error } = await sbClient.from('perfiles_usuario').select('club_favorito, jugador_favorito');
+  if(error || !data || !data.length){ grid.innerHTML = ''; return; }
+
+  const contarMax = (campo) => {
+    const conteo = {};
+    data.forEach(r => { const v = (r[campo]||'').trim(); if(v) conteo[v] = (conteo[v]||0)+1; });
+    let mejorNombre = null, mejorCant = 0;
+    Object.entries(conteo).forEach(([nombre, cant])=>{ if(cant > mejorCant){ mejorNombre = nombre; mejorCant = cant; } });
+    return { nombre: mejorNombre, cant: mejorCant };
+  };
+
+  const club = contarMax('club_favorito');
+  const jugador = contarMax('jugador_favorito');
+  const totalUsuarios = data.length;
+
+  const tarjetas = [];
+  if(club.nombre) tarjetas.push({ icono:'🛡️', cat:'Club más popular', nombre:club.nombre, val:`${club.cant}/${totalUsuarios}` });
+  if(jugador.nombre) tarjetas.push({ icono:'⭐', cat:'Jugador con más hinchas', nombre:jugador.nombre, val:`${jugador.cant}/${totalUsuarios}` });
+
+  grid.innerHTML = tarjetas.map(t => `
+    <div class="leader-card">
+      <div class="lc-icon">${t.icono}</div>
+      <div class="lc-body">
+        <div class="lc-cat">${t.cat}</div>
+        <div class="lc-name">${t.nombre}</div>
+      </div>
+      <div class="lc-val">${t.val}</div>
+    </div>
+  `).join('');
+}
+
 renderStatGrid();
 renderHighlightGrid();
 renderLeaderGrid();
+renderHinchadaGrilloliga();
 
 /* ---------- PARTIDOS HISTORICOS ---------- */
 const historicos = DATA.partidos.filter(p => p.nota);
