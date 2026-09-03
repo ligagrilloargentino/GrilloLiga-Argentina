@@ -4928,17 +4928,16 @@ document.getElementById('mini-card-cabezones').addEventListener('click', ()=>{
   czModo = 'bot';
   document.querySelectorAll('#cz-armado [data-modo]').forEach(b => b.classList.toggle('active', b.dataset.modo === 'bot'));
   document.getElementById('cz-dificultad-col').style.display = 'block';
+  document.getElementById('cz-modo-online').style.display = 'block';
   if(CZ_ES_TACTIL){
-    // en celular, solo modo GrilloBOT (el resto queda para PC)
+    // en celular, GrilloBOT y Online (Local/Temporada/Copa quedan para PC)
     document.getElementById('cz-modo-local').style.display = 'none';
     document.getElementById('cz-modo-temporada').style.display = 'none';
     document.getElementById('cz-modo-copa').style.display = 'none';
-    document.getElementById('cz-modo-online').style.display = 'none';
   } else {
     document.getElementById('cz-modo-local').style.display = 'block';
     document.getElementById('cz-modo-temporada').style.display = 'block';
     document.getElementById('cz-modo-copa').style.display = 'block';
-    document.getElementById('cz-modo-online').style.display = 'block';
   }
 });
 document.getElementById('cabezones-volver').addEventListener('click', ()=>{
