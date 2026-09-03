@@ -643,6 +643,19 @@ header.top{
 .pp-fila b{ color:var(--text-dim); font-weight:700; }
 .fm-user-clickeable{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
 .fm-user-clickeable:hover{ color:var(--red); }
+#votos-overlay{
+  position:fixed; inset:0; background:rgba(20,17,12,.6); z-index:10040;
+}
+#votos-modal{
+  position:fixed; inset:0; z-index:10041; display:none;
+  align-items:center; justify-content:center; padding:20px;
+}
+.votos-fila{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 0; border-bottom:1px solid var(--line); font-family:'Lora',serif; font-size:13px;
+}
+.votos-fila:last-child{ border-bottom:none; }
+.votos-fila b{ color:var(--red); font-family:'IBM Plex Mono',monospace; }
 
 .drawer-menu{
   position:fixed; top:0; left:0; bottom:0; width:290px; max-width:84vw;
@@ -1181,6 +1194,15 @@ footer{
     <div class="pp-fila"><b>⚽ Jugador favorito:</b> <span id="pp-jugador">—</span></div>
     <div class="pp-fila"><b>🛡️ Hincha de:</b> <span id="pp-club">—</span></div>
     <div class="pp-fila"><b>📅 En la GrilloLiga desde:</b> <span id="pp-fecha">—</span></div>
+  </div>
+</div>
+
+<div id="votos-overlay" style="display:none;"></div>
+<div id="votos-modal" style="display:none;">
+  <div class="auth-card" style="max-width:320px; max-height:80vh; overflow-y:auto;">
+    <button class="drawer-cerrar" id="votos-cerrar-btn" style="float:right;">✕</button>
+    <h1 id="votos-titulo" style="font-size:17px;"></h1>
+    <div id="votos-lista" style="margin-top:10px;"></div>
   </div>
 </div>
 
@@ -2354,6 +2376,23 @@ document.getElementById('perfil-publico-cerrar-btn').addEventListener('click', (
 document.getElementById('perfil-publico-overlay').addEventListener('click', ()=>{
   document.getElementById('perfil-publico-overlay').style.display = 'none';
   document.getElementById('perfil-publico-modal').style.display = 'none';
+});
+
+function mostrarListaVotos(titulo, lista){
+  document.getElementById('votos-titulo').textContent = titulo;
+  document.getElementById('votos-lista').innerHTML = lista.map(v => `
+    <div class="votos-fila"><span>${v.nombre}</span><b>${v.cant} voto${v.cant===1?'':'s'}</b></div>
+  `).join('');
+  document.getElementById('votos-overlay').style.display = 'block';
+  document.getElementById('votos-modal').style.display = 'flex';
+}
+document.getElementById('votos-cerrar-btn').addEventListener('click', ()=>{
+  document.getElementById('votos-overlay').style.display = 'none';
+  document.getElementById('votos-modal').style.display = 'none';
+});
+document.getElementById('votos-overlay').addEventListener('click', ()=>{
+  document.getElementById('votos-overlay').style.display = 'none';
+  document.getElementById('votos-modal').style.display = 'none';
 });
 
 
@@ -5530,24 +5569,22 @@ async function renderHinchadaGrilloliga(){
   const { data, error } = await sbClient.from('perfiles_usuario').select('club_favorito, jugador_favorito');
   if(error || !data || !data.length){ grid.innerHTML = ''; return; }
 
-  const contarMax = (campo) => {
+  const contarTodos = (campo) => {
     const conteo = {};
     data.forEach(r => { const v = (r[campo]||'').trim(); if(v) conteo[v] = (conteo[v]||0)+1; });
-    let mejorNombre = null, mejorCant = 0;
-    Object.entries(conteo).forEach(([nombre, cant])=>{ if(cant > mejorCant){ mejorNombre = nombre; mejorCant = cant; } });
-    return { nombre: mejorNombre, cant: mejorCant };
+    return Object.entries(conteo).map(([nombre, cant]) => ({ nombre, cant })).sort((a,b) => b.cant - a.cant);
   };
 
-  const club = contarMax('club_favorito');
-  const jugador = contarMax('jugador_favorito');
+  const clubes = contarTodos('club_favorito');
+  const jugadores = contarTodos('jugador_favorito');
   const totalUsuarios = data.length;
 
   const tarjetas = [];
-  if(club.nombre) tarjetas.push({ icono:'🛡️', cat:'Club más popular', nombre:club.nombre, val:`${club.cant}/${totalUsuarios}` });
-  if(jugador.nombre) tarjetas.push({ icono:'⭐', cat:'Jugador con más hinchas', nombre:jugador.nombre, val:`${jugador.cant}/${totalUsuarios}` });
+  if(clubes.length) tarjetas.push({ icono:'🛡️', cat:'Club más popular', nombre:clubes[0].nombre, val:`${clubes[0].cant}/${totalUsuarios}`, lista:clubes });
+  if(jugadores.length) tarjetas.push({ icono:'⭐', cat:'Jugador del pueblo', nombre:jugadores[0].nombre, val:`${jugadores[0].cant}/${totalUsuarios}`, lista:jugadores, titulo:'⭐ Jugador del pueblo — votos' });
 
-  grid.innerHTML = tarjetas.map(t => `
-    <div class="leader-card">
+  grid.innerHTML = tarjetas.map((t,i) => `
+    <div class="leader-card" data-hinchada-idx="${i}" style="cursor:pointer;">
       <div class="lc-icon">${t.icono}</div>
       <div class="lc-body">
         <div class="lc-cat">${t.cat}</div>
@@ -5556,6 +5593,13 @@ async function renderHinchadaGrilloliga(){
       <div class="lc-val">${t.val}</div>
     </div>
   `).join('');
+
+  grid.querySelectorAll('[data-hinchada-idx]').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const t = tarjetas[parseInt(card.dataset.hinchadaIdx)];
+      mostrarListaVotos(t.cat, t.lista);
+    });
+  });
 }
 
 renderStatGrid();
