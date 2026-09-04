@@ -576,6 +576,10 @@
 .tr-config-fila b{ width:26px; text-align:center; font-family:'IBM Plex Mono',monospace; color:var(--red); }
 .tr-config-fila input{ flex:1; }
 .tr-acciones{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:14px; }
+#tr-log{ max-width:520px; margin:14px auto 0; }
+.tr-historial-lista{ max-height:150px; overflow-y:auto; margin-top:6px; }
+.tr-historial-lista div{ font-size:11.5px; padding:3px 0; border-bottom:1px solid var(--line); color:var(--text-dim); }
+.tr-historial-lista div:first-child{ color:var(--text); font-weight:700; }
 .tr-btn-chico{ max-width:140px; margin:0; padding:9px 12px; font-size:12.5px; }
 .pm-touch-cruz{
   position:relative; width:150px; height:150px; margin:0 auto;
@@ -5206,6 +5210,7 @@ let trMazoConfig = {}; // { 1:'Chiappe', 2:'Pablo', ... } — se carga de Supaba
 let trMazo = [];
 let trManoYo = [], trManoRival = [];
 let trJugadasRonda = [];
+let trCartasMesaYo = [], trCartasMesaRival = [];
 let trPuntosYo = 0, trPuntosRival = 0;
 let trQuienEsMano = 'yo';
 let trTurno = 'yo';
@@ -5280,16 +5285,19 @@ function trHtmlCarta(carta){
   return `<div class="tr-carta"><div class="tr-carta-num">${carta.numero}</div>${fotoHtml}<div class="tr-carta-palo">${carta.palo}</div></div>`;
 }
 
+let trHistorialPartida = [];
 function trLog(msg){
+  trHistorialPartida.push(msg);
   const el = document.getElementById('tr-log');
-  el.innerHTML = `<b>Último:</b> ${msg}` + (el.dataset.prev ? `<br><span style="color:var(--text-dimmer);">${el.dataset.prev}</span>` : '');
-  el.dataset.prev = msg;
+  el.innerHTML = `<b>Historial de la partida</b><div class="tr-historial-lista">` +
+    trHistorialPartida.slice().reverse().map(m => `<div>${m}</div>`).join('') + `</div>`;
 }
 
 function trIniciarPartida(){
   trPuntosYo = 0; trPuntosRival = 0;
   trQuienEsMano = 'yo';
   trJuegoActivo = true;
+  trHistorialPartida = [];
   document.getElementById('tr-armado').style.display = 'none';
   document.getElementById('tr-final').style.display = 'none';
   document.getElementById('tr-mesa-wrap').style.display = 'block';
@@ -5306,6 +5314,8 @@ function trIniciarMano(){
   trManoYo = trMazo.slice(0,3);
   trManoRival = trMazo.slice(3,6);
   trJugadasRonda = [];
+  trCartasMesaYo = [];
+  trCartasMesaRival = [];
   trRondaActual = 0;
   trResultadosRondas = [];
   trTrucoNivel = 0;
@@ -5352,10 +5362,8 @@ function trRenderizarBase(){
 
   document.getElementById('tr-mano-rival').innerHTML = trManoRival.map(() => `<div class="tr-carta tr-dorso"></div>`).join('');
 
-  const jY = trJugadasRonda.find(j => j.quien === 'yo');
-  const jR = trJugadasRonda.find(j => j.quien === 'rival');
-  document.getElementById('tr-jugadas-yo').innerHTML = jY ? trHtmlCarta(jY.carta) : '';
-  document.getElementById('tr-jugadas-rival').innerHTML = jR ? trHtmlCarta(jR.carta) : '';
+  document.getElementById('tr-jugadas-yo').innerHTML = trCartasMesaYo.map(c => trHtmlCarta(c)).join('');
+  document.getElementById('tr-jugadas-rival').innerHTML = trCartasMesaRival.map(c => trHtmlCarta(c)).join('');
 
   document.getElementById('tr-puntos-yo').textContent = trPuntosYo;
   document.getElementById('tr-puntos-riv').textContent = trPuntosRival;
@@ -5534,6 +5542,7 @@ function trJugarCarta(quien, idx){
   const mano = quien === 'yo' ? trManoYo : trManoRival;
   const carta = mano.splice(idx, 1)[0];
   trJugadasRonda.push({ quien, carta });
+  (quien === 'yo' ? trCartasMesaYo : trCartasMesaRival).push(carta);
   trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} jugó ${trNombreCarta(carta)}.`);
 
   if(trJugadasRonda.length === 1){
@@ -5897,6 +5906,8 @@ function trEmpaquetarEstado(){
     turno: trTurno === 'yo' ? 'rival' : 'yo', pendiente: trPendiente, trucoNivel: trTrucoNivel,
     envidoCadena: trEnvidoCadena, nombreInvitado: trNombreRivalTr, nombreHost: trNombreJugadorTr,
     manoTerminada: trManoTerminada, juegoActivo: trJuegoActivo,
+    cartasMesaInvitado: trCartasMesaRival, cartasMesaHost: trCartasMesaYo,
+    historial: trHistorialPartida,
     tituloFinal: document.getElementById('tr-final-titulo').textContent,
     finalVisible: document.getElementById('tr-final').style.display === 'block'
   };
@@ -5912,6 +5923,11 @@ function trAplicarEstadoRemotoTruco(estado){
   trEnvidoCadena = estado.envidoCadena;
   trNombreJugadorTr = estado.nombreInvitado; trNombreRivalTr = estado.nombreHost;
   trManoTerminada = estado.manoTerminada; trJuegoActivo = estado.juegoActivo;
+  trCartasMesaYo = estado.cartasMesaInvitado; trCartasMesaRival = estado.cartasMesaHost;
+  trHistorialPartida = estado.historial;
+  const elLog = document.getElementById('tr-log');
+  elLog.innerHTML = `<b>Historial de la partida</b><div class="tr-historial-lista">` +
+    trHistorialPartida.slice().reverse().map(m => `<div>${m}</div>`).join('') + `</div>`;
   document.getElementById('tr-nombre-yo').innerHTML = `${trNombreJugadorTr}<br><b id="tr-puntos-yo">${trPuntosYo}</b>`;
   document.getElementById('tr-nombre-riv').innerHTML = `${trNombreRivalTr}<br><b id="tr-puntos-riv">${trPuntosRival}</b>`;
   const fotoYo = czObtenerImagen(trNombreJugadorTr), fotoRiv = czObtenerImagen(trNombreRivalTr);
