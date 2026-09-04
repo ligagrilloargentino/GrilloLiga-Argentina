@@ -477,7 +477,8 @@
 .cz-touch-controles button:active{ transform:scale(0.92); }
 
 /* ---------- MINIJUEGO: GRILLOMAN (Pac-Man) ---------- */
-#pm-canvas{ display:block; width:100%; height:auto; background:#14110c; }
+#pm-canvas{ display:block; width:100%; height:auto; background:#0d1117; }
+#pm-touch-controles{ justify-content:center; }
 .pm-touch-cruz{
   position:relative; width:150px; height:150px; margin:0 auto;
 }
@@ -4510,9 +4511,7 @@ function pmPaso(){
 
 function pmDibujarPared(ctx, r, c){
   const x = c*PM_TAM_CELDA, y = r*PM_TAM_CELDA;
-  const esPared = (rr,cc) => !pmLaberinto[rr] || pmLaberinto[rr][cc] !== 1;
-  // radio solo en las esquinas que dan hacia un camino (efecto "bloque redondeado" prolijo)
-  const rad = 5;
+  const rad = 6;
   ctx.beginPath();
   ctx.moveTo(x+rad, y);
   ctx.lineTo(x+PM_TAM_CELDA-rad, y);
@@ -4524,13 +4523,10 @@ function pmDibujarPared(ctx, r, c){
   ctx.lineTo(x, y+rad);
   ctx.quadraticCurveTo(x, y, x+rad, y);
   ctx.closePath();
-  const grad = ctx.createLinearGradient(x, y, x, y+PM_TAM_CELDA);
-  grad.addColorStop(0, '#5a4632');
-  grad.addColorStop(1, '#382c1e');
-  ctx.fillStyle = grad;
+  ctx.fillStyle = '#B33B22';
   ctx.fill();
-  ctx.strokeStyle = 'rgba(212,175,55,.35)';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#e2603f';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 }
 
@@ -4539,18 +4535,8 @@ function pmDibujar(){
   const ctx = pmCtx;
   const anchoPx = pmAnchoGrilla*PM_TAM_CELDA, altoPx = pmAltoGrilla*PM_TAM_CELDA;
   ctx.clearRect(0,0, anchoPx, altoPx);
-  const fondo = ctx.createLinearGradient(0,0,0,altoPx);
-  fondo.addColorStop(0, '#1c1810');
-  fondo.addColorStop(1, '#100d08');
-  ctx.fillStyle = fondo;
+  ctx.fillStyle = '#0d1117';
   ctx.fillRect(0,0, anchoPx, altoPx);
-
-  // caminos con una textura sutil de "pasto de cancha" en franjas
-  for(let c=0; c<pmAnchoGrilla; c++){
-    if(c % 2 === 0) continue;
-    ctx.fillStyle = 'rgba(58,107,47,.06)';
-    ctx.fillRect(c*PM_TAM_CELDA, 0, PM_TAM_CELDA, altoPx);
-  }
 
   for(let r=0; r<pmAltoGrilla; r++){
     for(let c=0; c<pmAnchoGrilla; c++){
@@ -4575,7 +4561,7 @@ function pmDibujar(){
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(pulso, pulso);
-    ctx.shadowColor = 'rgba(212,175,55,.8)'; ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255,255,255,.8)'; ctx.shadowBlur = 8;
     ctx.font = (PM_TAM_CELDA*0.8)+'px sans-serif';
     ctx.fillText('🏆', 0, 0);
     ctx.restore();
