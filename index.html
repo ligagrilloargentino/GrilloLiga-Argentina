@@ -547,7 +547,12 @@
   cursor:pointer; transition:transform .12s;
 }
 .tr-carta:hover{ transform:translateY(-4px); }
-.tr-carta .tr-carta-num{ font-size:16px; }
+.tr-carta .tr-carta-num{ font-size:20px; }
+.tr-carta .tr-carta-foto{
+  width:24px; height:24px; border-radius:50%; background:var(--card2) center/cover;
+  border:1px solid #161310; margin-bottom:2px;
+}
+.tr-carta .tr-carta-palo{ font-size:8px; text-transform:uppercase; letter-spacing:0.3px; color:var(--text-dim); }
 .tr-carta.tr-dorso{
   background:repeating-linear-gradient(45deg, #B33B22, #B33B22 4px, #8A2C19 4px, #8A2C19 8px);
   cursor:default;
@@ -559,6 +564,17 @@
   font-family:'Playfair Display',Georgia,serif; font-weight:900; color:#F7F1E1;
   text-shadow:0 2px 4px rgba(0,0,0,.4); font-size:14px; text-align:center; min-height:18px;
 }
+.tr-config-link{
+  display:block; text-align:center; margin-top:6px; font-size:12px; color:var(--text-dim);
+  text-decoration:underline; cursor:pointer;
+}
+.tr-config-link:hover{ color:var(--red); }
+.tr-config-fila{
+  display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid var(--line);
+  max-width:420px; margin:0 auto;
+}
+.tr-config-fila b{ width:26px; text-align:center; font-family:'IBM Plex Mono',monospace; color:var(--red); }
+.tr-config-fila input{ flex:1; }
 .tr-acciones{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:14px; }
 .tr-btn-chico{ max-width:140px; margin:0; padding:9px 12px; font-size:12.5px; }
 .pm-touch-cruz{
@@ -2020,6 +2036,16 @@ footer{
           </div>
         </div>
         <button class="auth-btn" id="tr-empezar-btn" style="max-width:220px; margin:10px auto 18px;" disabled>Empezar a jugar</button>
+        <span class="tr-config-link" id="tr-config-link">⚙️ Configurar el mazo (qué jugador va en cada número)</span>
+      </div>
+
+      <div id="tr-config-wrap" style="display:none;">
+        <div class="gd-intro">Elegí qué jugador de la Grillo Liga representa a cada número del mazo (el mazo español no tiene 8 ni 9).</div>
+        <div id="tr-config-filas"></div>
+        <div style="text-align:center; margin-top:14px;">
+          <button class="auth-btn" id="tr-config-guardar-btn" style="max-width:200px; margin:0 auto 8px;">Guardar</button>
+          <span class="tr-config-link" id="tr-config-volver-link">← Volver</span>
+        </div>
       </div>
 
       <div id="tr-online-lobby" style="display:none;">
@@ -5175,7 +5201,7 @@ document.getElementById('sudoku-volver').addEventListener('click', ()=>{
 
 const TR_PALOS = ['espada','basto','oro','copa'];
 const TR_NUMEROS = [1,2,3,4,5,6,7,10,11,12];
-const TR_NOMBRES_NUM = { 1:'As', 10:'Sota', 11:'Caballo', 12:'Rey' };
+let trMazoConfig = {}; // { 1:'Chiappe', 2:'Pablo', ... } — se carga de Supabase
 
 let trMazo = [];
 let trManoYo = [], trManoRival = [];
@@ -5243,9 +5269,15 @@ function trTieneFlor(cartas){ return cartas[0].palo === cartas[1].palo && cartas
 function trValorFlor(cartas){ return cartas.reduce((s,c) => s + (c.numero >= 10 ? 0 : c.numero), 0) + 20; }
 
 function trNombreCarta(carta){
-  const num = TR_NOMBRES_NUM[carta.numero] || carta.numero;
   const palos = { espada:'de espada', basto:'de basto', oro:'de oro', copa:'de copa' };
-  return `${num} ${palos[carta.palo]}`;
+  return `${carta.numero} ${palos[carta.palo]}`;
+}
+
+function trHtmlCarta(carta){
+  const jugador = trMazoConfig[carta.numero];
+  const foto = jugador ? czObtenerImagen(jugador) : null;
+  const fotoHtml = foto ? `<div class="tr-carta-foto" style="background-image:url(${foto.src});"></div>` : '';
+  return `<div class="tr-carta"><div class="tr-carta-num">${carta.numero}</div>${fotoHtml}<div class="tr-carta-palo">${carta.palo}</div></div>`;
 }
 
 function trLog(msg){
@@ -5308,11 +5340,10 @@ function trAccionesDisponibles(){
 
 function trRenderizarBase(){
   const contMano = document.getElementById('tr-mano-yo');
-  contMano.innerHTML = trManoYo.map((c,i) => `
-    <div class="tr-carta" data-idx="${i}">
-      <div class="tr-carta-num">${TR_NOMBRES_NUM[c.numero] || c.numero}</div>
-      <div>${c.palo}</div>
-    </div>`).join('');
+  contMano.innerHTML = trManoYo.map((c,i) => {
+    const html = trHtmlCarta(c);
+    return html.replace('class="tr-carta"', `class="tr-carta" data-idx="${i}"`);
+  }).join('');
   if(trTurno === 'yo' && !trPendiente && trJugadasRonda.every(j => j.quien !== 'yo')){
     contMano.querySelectorAll('.tr-carta').forEach(el=>{
       el.addEventListener('click', () => trJugarCarta('yo', parseInt(el.dataset.idx)));
@@ -5323,8 +5354,8 @@ function trRenderizarBase(){
 
   const jY = trJugadasRonda.find(j => j.quien === 'yo');
   const jR = trJugadasRonda.find(j => j.quien === 'rival');
-  document.getElementById('tr-jugadas-yo').innerHTML = jY ? `<div class="tr-carta"><div class="tr-carta-num">${TR_NOMBRES_NUM[jY.carta.numero]||jY.carta.numero}</div><div>${jY.carta.palo}</div></div>` : '';
-  document.getElementById('tr-jugadas-rival').innerHTML = jR ? `<div class="tr-carta"><div class="tr-carta-num">${TR_NOMBRES_NUM[jR.carta.numero]||jR.carta.numero}</div><div>${jR.carta.palo}</div></div>` : '';
+  document.getElementById('tr-jugadas-yo').innerHTML = jY ? trHtmlCarta(jY.carta) : '';
+  document.getElementById('tr-jugadas-rival').innerHTML = jR ? trHtmlCarta(jR.carta) : '';
 
   document.getElementById('tr-puntos-yo').textContent = trPuntosYo;
   document.getElementById('tr-puntos-riv').textContent = trPuntosRival;
@@ -5585,6 +5616,42 @@ async function trTerminarPartida(gane){
   trCargarRanking();
 }
 
+async function trCargarMazoConfig(){
+  const { data } = await sbClient.from('truco_mazo_config').select('numero, jugador');
+  if(data){
+    trMazoConfig = {};
+    data.forEach(fila => { trMazoConfig[fila.numero] = fila.jugador; });
+    Object.values(trMazoConfig).forEach(nombre => czObtenerImagen(nombre));
+  }
+}
+
+function trRenderizarConfig(){
+  const cont = document.getElementById('tr-config-filas');
+  cont.innerHTML = TR_NUMEROS.map(n => `
+    <div class="tr-config-fila">
+      <b>${n}</b>
+      <input type="text" data-num="${n}" value="${trMazoConfig[n] || ''}" placeholder="Buscá un jugador…">
+    </div>
+  `).join('');
+  cont.querySelectorAll('input').forEach(inp => crearAutocompletado(inp));
+}
+
+async function trGuardarMazoConfig(){
+  const filas = Array.from(document.querySelectorAll('#tr-config-filas input')).map(inp=>{
+    const nombre = normalizarTexto(inp.value);
+    const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+    return { numero: parseInt(inp.dataset.num), jugador: encontrado ? encontrado.Jugador : null };
+  });
+  if(filas.some(f => !f.jugador)){
+    alert('Elegí un jugador válido para cada número antes de guardar.');
+    return;
+  }
+  await sbClient.from('truco_mazo_config').upsert(filas).then(()=>{}, ()=>{});
+  await trCargarMazoConfig();
+  document.getElementById('tr-config-wrap').style.display = 'none';
+  document.getElementById('tr-armado').style.display = 'block';
+}
+
 async function trCargarRanking(){
   const cont = document.getElementById('tr-ranking-lista');
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
@@ -5685,12 +5752,14 @@ document.getElementById('mini-card-truco').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-truco').style.display = 'block';
   document.getElementById('tr-armado').style.display = 'block';
+  document.getElementById('tr-config-wrap').style.display = 'none';
   document.getElementById('tr-online-lobby').style.display = 'none';
   document.getElementById('tr-mesa-wrap').style.display = 'none';
   document.getElementById('tr-final').style.display = 'none';
   trNombreJugadorTr = null;
   document.getElementById('tr-input-jugador').value = '';
   document.getElementById('tr-empezar-btn').disabled = true;
+  trCargarMazoConfig();
 });
 document.getElementById('truco-volver').addEventListener('click', ()=>{
   trJuegoActivo = false;
@@ -5702,6 +5771,16 @@ document.getElementById('tr-empezar-btn').addEventListener('click', ()=>{
   if(trModoJuego === 'online'){ trEntrarSalaEsperaTruco(); }
   else { trNombreRivalTr = 'GrilloBOT'; trIniciarPartida(); }
 });
+document.getElementById('tr-config-link').addEventListener('click', ()=>{
+  document.getElementById('tr-armado').style.display = 'none';
+  document.getElementById('tr-config-wrap').style.display = 'block';
+  trRenderizarConfig();
+});
+document.getElementById('tr-config-volver-link').addEventListener('click', ()=>{
+  document.getElementById('tr-config-wrap').style.display = 'none';
+  document.getElementById('tr-armado').style.display = 'block';
+});
+document.getElementById('tr-config-guardar-btn').addEventListener('click', trGuardarMazoConfig);
 
 /* --- Modo Online (reutiliza el mismo patrón de sala de espera de Cabezones) --- */
 let trLobbyChannel = null, trMatchChannel = null;
