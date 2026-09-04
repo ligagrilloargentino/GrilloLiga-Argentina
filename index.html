@@ -475,6 +475,33 @@
 .cz-touch-acciones button.cz-touch-saltar{ background:rgba(55,80,48,.85); }
 .cz-touch-acciones button.cz-touch-levantar{ background:rgba(156,122,46,.85); }
 .cz-touch-controles button:active{ transform:scale(0.92); }
+
+/* ---------- MINIJUEGO: GRILLOMAN (Pac-Man) ---------- */
+#pm-canvas{ display:block; width:100%; height:auto; background:#14110c; }
+.pm-touch-cruz{
+  position:relative; width:150px; height:150px; margin:0 auto;
+}
+.pm-touch-cruz button{
+  position:absolute; width:46px; height:46px; border-radius:10px;
+  border:2px solid var(--line-strong); background:var(--card2); color:var(--text);
+  font-size:18px; touch-action:none; user-select:none;
+}
+.pm-touch-arriba{ top:0; left:52px; }
+.pm-touch-izq{ top:52px; left:0; }
+.pm-touch-der{ top:52px; left:104px; }
+.pm-touch-abajo{ top:104px; left:52px; }
+@media (hover:none) and (pointer:coarse){
+  #pm-controles-info{ display:none; }
+}
+@media (hover:hover) and (pointer:fine){
+  .pm-touch-cruz{ display:none; }
+}
+.pm-ranking-fila{
+  display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line);
+  font-family:'Lora',serif; font-size:12.5px; color:var(--text);
+}
+.pm-ranking-fila:last-child{ border-bottom:none; }
+.pm-ranking-fila b{ color:var(--red); font-family:'IBM Plex Mono',monospace; }
 @media (hover:none) and (pointer:coarse){
   .cz-touch-controles{ display:flex; }
 }
@@ -1455,6 +1482,10 @@ footer{
         <h3>📰 Crucigrillo</h3>
         <p>Crucigrama de fútbol y cultura general.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-pacman">
+        <h3>🦗 GrilloMan</h3>
+        <p>Comé pelotitas y esquivá a los rivales por el laberinto.</p>
+      </div>
     </div>
 
     <div class="cg-pistas-col" style="margin-top:24px;">
@@ -1780,6 +1811,47 @@ footer{
             <ul id="cg-pistas-verticales"></ul>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="mini-pacman" style="display:none;">
+      <span class="rps-volver" id="pacman-volver">← Volver a Minijuegos</span>
+      <div class="gd-intro">Comé todas las pelotitas ⚽ esquivando a los rivales. Los 🏆 los vuelven vulnerables por unos segundos — ¡comételos también! Los laberintos se generan solos y se ponen más difíciles a medida que avanzás.</div>
+
+      <div id="pm-armado">
+        <button class="auth-btn" id="pm-empezar-btn" style="max-width:220px; margin:10px auto 18px;">Empezar a jugar</button>
+        <div class="cg-pistas-col" id="pm-ranking-wrap">
+          <div class="gd-pista-titulo">🏆 Mejores puntajes</div>
+          <div id="pm-ranking-lista" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <div id="pm-juego-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>Puntaje<br><b id="pm-puntaje">0</b></div>
+          <div class="pen-ronda">Nivel <b id="pm-nivel">1</b></div>
+          <div>Vidas<br><b id="pm-vidas">🦗🦗🦗</b></div>
+        </div>
+        <div class="mg-canvas-container" id="pm-canvas-container">
+          <canvas id="pm-canvas"></canvas>
+        </div>
+        <div class="cz-touch-controles" id="pm-touch-controles">
+          <div class="pm-touch-cruz">
+            <button class="pm-touch-arriba" data-dir="arriba">⬆</button>
+            <button class="pm-touch-izq" data-dir="izquierda">⬅</button>
+            <button class="pm-touch-der" data-dir="derecha">➡</button>
+            <button class="pm-touch-abajo" data-dir="abajo">⬇</button>
+          </div>
+        </div>
+        <div class="cz-controles-info" id="pm-controles-info">
+          <b>Controles:</b> flechas del teclado para moverte
+        </div>
+      </div>
+
+      <div id="pm-final" style="display:none;">
+        <div class="pen-final-titulo" id="pm-final-titulo"></div>
+        <div class="gd-intro" id="pm-final-detalle" style="text-align:center;"></div>
+        <button class="auth-btn" id="pm-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
       </div>
     </div>
   </section>
@@ -4234,6 +4306,352 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
   document.body.classList.remove('cz-pantalla-completa');
   document.getElementById('mini-metegol').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: GRILLOMAN (Pac-Man temático) ---------- */
+const PM_TAM_CELDA = 24;
+const PM_COLORES_RIVALES = ['#B33B22', '#3a6b2f', '#3a6ea5', '#a87d1f'];
+
+let pmCtx = null;
+let pmLaberinto = null;       // grilla [fila][col], 1=camino 0=pared
+let pmAnchoGrilla = 0, pmAltoGrilla = 0;
+let pmPellets = new Set();
+let pmPowerPellets = new Set();
+let pmJugador = null;
+let pmFantasmas = [];
+let pmPuntaje = 0;
+let pmVidas = 3;
+let pmNivel = 1;
+let pmJuegoActivo = false;
+let pmUltimoTick = 0;
+let pmMejorPropio = 0;
+let pmDirTecla = null;
+
+function pmGenerarLaberinto(cols, filas){
+  const anchoGrilla = 2*cols+1, altoGrilla = 2*filas+1;
+  const grilla = Array.from({length:altoGrilla}, ()=> Array(anchoGrilla).fill(0));
+  const visitado = Array.from({length:filas}, ()=> Array(cols).fill(false));
+
+  function vecinos(r,c){
+    return [[0,1],[0,-1],[1,0],[-1,0]]
+      .map(([dr,dc])=>[r+dr,c+dc])
+      .filter(([nr,nc])=> nr>=0 && nr<filas && nc>=0 && nc<cols && !visitado[nr][nc])
+      .sort(()=>Math.random()-0.5);
+  }
+  function tallar(r,c){
+    visitado[r][c] = true;
+    grilla[2*r+1][2*c+1] = 1;
+    vecinos(r,c).forEach(([nr,nc])=>{
+      if(visitado[nr][nc]) return;
+      grilla[r+nr+1][c+nc+1] = 1;
+      tallar(nr,nc);
+    });
+  }
+  tallar(0,0);
+
+  // agrega algunos loops rompiendo paredes internas al azar (para que no sea un único camino)
+  const romper = Math.floor(cols*filas*0.18);
+  for(let i=0; i<romper; i++){
+    const r = 1 + Math.floor(Math.random()*(altoGrilla-2));
+    const c = 1 + Math.floor(Math.random()*(anchoGrilla-2));
+    if(grilla[r][c] === 0){
+      const abiertos = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([rr,cc]) => grilla[rr] && grilla[rr][cc] === 1).length;
+      if(abiertos >= 2) grilla[r][c] = 1;
+    }
+  }
+  return { grilla, anchoGrilla, altoGrilla };
+}
+
+function pmCeldasAbiertas(){
+  const abiertas = [];
+  for(let r=0; r<pmAltoGrilla; r++) for(let c=0; c<pmAnchoGrilla; c++) if(pmLaberinto[r][c] === 1) abiertas.push([r,c]);
+  return abiertas;
+}
+
+function pmDistancia(r1,c1,r2,c2){ return Math.abs(r1-r2)+Math.abs(c1-c2); }
+
+function pmIniciarNivel(){
+  const cols = 5 + Math.min(pmNivel, 4);   // crece hasta un tope razonable
+  const filas = 4 + Math.min(pmNivel, 3);
+  const { grilla, anchoGrilla, altoGrilla } = pmGenerarLaberinto(cols, filas);
+  pmLaberinto = grilla; pmAnchoGrilla = anchoGrilla; pmAltoGrilla = altoGrilla;
+
+  const abiertas = pmCeldasAbiertas();
+  abiertas.sort((a,b) => (a[0]+a[1]) - (b[0]+b[1]));
+  const spawnJugador = abiertas[0];
+
+  pmPellets = new Set();
+  pmPowerPellets = new Set();
+  abiertas.forEach(([r,c])=>{
+    if(r === spawnJugador[0] && c === spawnJugador[1]) return;
+    pmPellets.add(r+','+c);
+  });
+  // 4 power pellets en las celdas abiertas más lejanas al jugador
+  const porLejania = [...abiertas].sort((a,b) => pmDistancia(b[0],b[1],spawnJugador[0],spawnJugador[1]) - pmDistancia(a[0],a[1],spawnJugador[0],spawnJugador[1]));
+  let agregados = 0;
+  for(const [r,c] of porLejania){
+    if(agregados >= 4) break;
+    const key = r+','+c;
+    if(pmPellets.has(key)){ pmPellets.delete(key); pmPowerPellets.add(key); agregados++; }
+  }
+
+  pmJugador = { r:spawnJugador[0], c:spawnJugador[1], dir:'derecha' };
+
+  const cantFantasmas = Math.min(2 + Math.floor((pmNivel-1)/2), 4);
+  const spawnsFantasmas = porLejania.slice(0, cantFantasmas);
+  pmFantasmas = spawnsFantasmas.map((pos,i) => ({
+    r:pos[0], c:pos[1], dir:'arriba', color:PM_COLORES_RIVALES[i % PM_COLORES_RIVALES.length],
+    asustadoHasta:0, casaR:pos[0], casaC:pos[1]
+  }));
+
+  const canvas = document.getElementById('pm-canvas');
+  canvas.width = pmAnchoGrilla * PM_TAM_CELDA;
+  canvas.height = pmAltoGrilla * PM_TAM_CELDA;
+
+  document.getElementById('pm-nivel').textContent = pmNivel;
+  pmActualizarVidasHUD();
+}
+
+function pmActualizarVidasHUD(){
+  document.getElementById('pm-vidas').textContent = '🦗'.repeat(Math.max(pmVidas,0)) || '—';
+}
+
+function pmCeldaLibre(r,c){
+  return pmLaberinto[r] && pmLaberinto[r][c] === 1;
+}
+
+function pmSiguienteCelda(r,c,dir){
+  if(dir === 'arriba') return [r-1,c];
+  if(dir === 'abajo') return [r+1,c];
+  if(dir === 'izquierda') return [r,c-1];
+  if(dir === 'derecha') return [r,c+1];
+  return [r,c];
+}
+
+function pmMoverJugador(){
+  if(pmDirTecla){
+    const [nr,nc] = pmSiguienteCelda(pmJugador.r, pmJugador.c, pmDirTecla);
+    if(pmCeldaLibre(nr,nc)){ pmJugador.dir = pmDirTecla; }
+  }
+  const [nr,nc] = pmSiguienteCelda(pmJugador.r, pmJugador.c, pmJugador.dir);
+  if(pmCeldaLibre(nr,nc)){ pmJugador.r = nr; pmJugador.c = nc; }
+
+  const key = pmJugador.r+','+pmJugador.c;
+  if(pmPellets.has(key)){ pmPellets.delete(key); pmPuntaje += 10; }
+  if(pmPowerPellets.has(key)){
+    pmPowerPellets.delete(key); pmPuntaje += 50;
+    const hasta = Date.now() + 6000;
+    pmFantasmas.forEach(f => { f.asustadoHasta = hasta; });
+  }
+  document.getElementById('pm-puntaje').textContent = pmPuntaje;
+}
+
+function pmMoverFantasmas(){
+  pmFantasmas.forEach(f=>{
+    const asustado = f.asustadoHasta > Date.now();
+    const direcciones = ['arriba','abajo','izquierda','derecha'];
+    const candidatas = direcciones
+      .map(dir => ({ dir, pos: pmSiguienteCelda(f.r, f.c, dir) }))
+      .filter(o => pmCeldaLibre(o.pos[0], o.pos[1]));
+    if(!candidatas.length) return;
+    let elegido;
+    if(Math.random() < 0.2){
+      elegido = candidatas[Math.floor(Math.random()*candidatas.length)];
+    } else {
+      candidatas.sort((a,b)=>{
+        const da = pmDistancia(a.pos[0],a.pos[1], pmJugador.r, pmJugador.c);
+        const db = pmDistancia(b.pos[0],b.pos[1], pmJugador.r, pmJugador.c);
+        return asustado ? db-da : da-db;
+      });
+      elegido = candidatas[0];
+    }
+    f.dir = elegido.dir; f.r = elegido.pos[0]; f.c = elegido.pos[1];
+  });
+}
+
+function pmRevisarColisiones(){
+  pmFantasmas.forEach(f=>{
+    if(f.r === pmJugador.r && f.c === pmJugador.c){
+      if(f.asustadoHasta > Date.now()){
+        pmPuntaje += 200;
+        document.getElementById('pm-puntaje').textContent = pmPuntaje;
+        f.r = f.casaR; f.c = f.casaC; f.asustadoHasta = 0;
+      } else {
+        pmPerderVida();
+      }
+    }
+  });
+}
+
+function pmPerderVida(){
+  pmVidas--;
+  pmActualizarVidasHUD();
+  if(pmVidas <= 0){ pmFinDelJuego(); return; }
+  const abiertas = pmCeldasAbiertas();
+  abiertas.sort((a,b) => (a[0]+a[1]) - (b[0]+b[1]));
+  pmJugador.r = abiertas[0][0]; pmJugador.c = abiertas[0][1];
+  pmDirTecla = null;
+  pmFantasmas.forEach(f => { f.r = f.casaR; f.c = f.casaC; f.asustadoHasta = 0; });
+}
+
+function pmPaso(){
+  if(!pmJuegoActivo) return;
+  pmMoverJugador();
+  pmMoverFantasmas();
+  pmRevisarColisiones();
+  if(pmJuegoActivo && pmPellets.size === 0 && pmPowerPellets.size === 0){
+    guardarResultadoMinijuego('pacman', 'victoria');
+    pmNivel++;
+    pmIniciarNivel();
+  }
+}
+
+function pmDibujar(){
+  if(!pmCtx) return;
+  const ctx = pmCtx;
+  ctx.clearRect(0,0, pmAnchoGrilla*PM_TAM_CELDA, pmAltoGrilla*PM_TAM_CELDA);
+  ctx.fillStyle = '#14110c';
+  ctx.fillRect(0,0, pmAnchoGrilla*PM_TAM_CELDA, pmAltoGrilla*PM_TAM_CELDA);
+
+  ctx.fillStyle = '#3a3226';
+  for(let r=0; r<pmAltoGrilla; r++){
+    for(let c=0; c<pmAnchoGrilla; c++){
+      if(pmLaberinto[r][c] === 0){
+        ctx.fillRect(c*PM_TAM_CELDA, r*PM_TAM_CELDA, PM_TAM_CELDA, PM_TAM_CELDA);
+      }
+    }
+  }
+
+  ctx.font = (PM_TAM_CELDA*0.55)+'px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  pmPellets.forEach(key=>{
+    const [r,c] = key.split(',').map(Number);
+    ctx.fillText('⚽', c*PM_TAM_CELDA+PM_TAM_CELDA/2, r*PM_TAM_CELDA+PM_TAM_CELDA/2);
+  });
+  ctx.font = (PM_TAM_CELDA*0.8)+'px sans-serif';
+  pmPowerPellets.forEach(key=>{
+    const [r,c] = key.split(',').map(Number);
+    ctx.fillText('🏆', c*PM_TAM_CELDA+PM_TAM_CELDA/2, r*PM_TAM_CELDA+PM_TAM_CELDA/2);
+  });
+
+  pmFantasmas.forEach(f=>{
+    const asustado = f.asustadoHasta > Date.now();
+    const cx = f.c*PM_TAM_CELDA+PM_TAM_CELDA/2, cy = f.r*PM_TAM_CELDA+PM_TAM_CELDA/2;
+    const rad = PM_TAM_CELDA*0.42;
+    ctx.fillStyle = asustado ? '#3a5fa0' : f.color;
+    ctx.beginPath();
+    ctx.arc(cx, cy-rad*0.15, rad, Math.PI, 0);
+    ctx.lineTo(cx+rad, cy+rad*0.7);
+    for(let i=0;i<3;i++){
+      const x1 = cx+rad - (i*2+1)*(rad*2/6);
+      ctx.lineTo(x1, cy+rad*0.35);
+      ctx.lineTo(x1-(rad*2/6)/2, cy+rad*0.7);
+    }
+    ctx.lineTo(cx-rad, cy+rad*0.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx-rad*0.35, cy-rad*0.2, rad*0.22, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+rad*0.35, cy-rad*0.2, rad*0.22, 0, Math.PI*2); ctx.fill();
+  });
+
+  ctx.font = (PM_TAM_CELDA*0.85)+'px sans-serif';
+  ctx.fillText('🦗', pmJugador.c*PM_TAM_CELDA+PM_TAM_CELDA/2, pmJugador.r*PM_TAM_CELDA+PM_TAM_CELDA/2);
+}
+
+async function pmFinDelJuego(){
+  pmJuegoActivo = false;
+  document.getElementById('pm-juego-wrap').style.display = 'none';
+  document.getElementById('pm-final').style.display = 'block';
+  document.getElementById('pm-final-titulo').textContent = `Game over — ${pmPuntaje} puntos`;
+  const mejoraste = pmPuntaje > pmMejorPropio;
+  document.getElementById('pm-final-detalle').textContent = `Llegaste al nivel ${pmNivel}.${mejoraste ? ' ¡Nuevo mejor puntaje personal!' : ''}`;
+
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('pacman_puntajes').insert({ usuario_id:user.id, puntaje:pmPuntaje, nivel_alcanzado:pmNivel }).then(()=>{}, ()=>{});
+  }
+}
+
+async function pmCargarRanking(){
+  const cont = document.getElementById('pm-ranking-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: puntajes }, { data: perfiles }] = await Promise.all([
+    sbClient.from('pacman_puntajes').select('usuario_id, puntaje'),
+    sbClient.from('perfiles_usuario').select('id, username')
+  ]);
+  if(!puntajes || !perfiles){ cont.innerHTML = ''; return; }
+  const nombrePorId = {};
+  perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
+  const mejorPorUsuario = {};
+  puntajes.forEach(p=>{
+    if(!mejorPorUsuario[p.usuario_id] || p.puntaje > mejorPorUsuario[p.usuario_id]) mejorPorUsuario[p.usuario_id] = p.puntaje;
+  });
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user && mejorPorUsuario[user.id]) pmMejorPropio = mejorPorUsuario[user.id];
+
+  const lista = Object.entries(mejorPorUsuario)
+    .map(([id, puntaje]) => ({ nombre: nombrePorId[id] || '???', puntaje }))
+    .sort((a,b) => b.puntaje - a.puntaje)
+    .slice(0, 10);
+  cont.innerHTML = lista.length
+    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${f.puntaje} pts</b></div>`).join('')
+    : '<div class="cz-online-esperando">Todavía nadie jugó. ¡Arrancá vos!</div>';
+}
+
+function pmIniciarJuego(){
+  document.getElementById('pm-armado').style.display = 'none';
+  document.getElementById('pm-final').style.display = 'none';
+  document.getElementById('pm-juego-wrap').style.display = 'block';
+  if(!pmCtx) pmCtx = document.getElementById('pm-canvas').getContext('2d');
+  pmPuntaje = 0; pmVidas = 3; pmNivel = 1; pmDirTecla = null;
+  document.getElementById('pm-puntaje').textContent = '0';
+  pmIniciarNivel();
+  pmJuegoActivo = true;
+  pmUltimoTick = 0;
+  requestAnimationFrame(pmLoop);
+}
+
+function pmLoop(ts){
+  if(document.getElementById('mini-pacman').style.display === 'none') return;
+  const intervalo = Math.max(160 - pmNivel*8, 90);
+  if(pmJuegoActivo){
+    if(!pmUltimoTick) pmUltimoTick = ts;
+    if(ts - pmUltimoTick >= intervalo){
+      pmPaso();
+      pmUltimoTick = ts;
+    }
+    pmDibujar();
+    requestAnimationFrame(pmLoop);
+  }
+}
+
+document.addEventListener('keydown', (e)=>{
+  if(document.getElementById('mini-pacman').style.display === 'none') return;
+  const mapa = { ArrowUp:'arriba', ArrowDown:'abajo', ArrowLeft:'izquierda', ArrowRight:'derecha' };
+  if(mapa[e.key]){ pmDirTecla = mapa[e.key]; e.preventDefault(); }
+});
+document.querySelectorAll('.pm-touch-cruz button').forEach(btn=>{
+  btn.addEventListener('pointerdown', (e)=>{ pmDirTecla = btn.dataset.dir; e.preventDefault(); });
+});
+
+document.getElementById('mini-card-pacman').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-pacman').style.display = 'block';
+  document.getElementById('pm-armado').style.display = 'block';
+  document.getElementById('pm-juego-wrap').style.display = 'none';
+  document.getElementById('pm-final').style.display = 'none';
+  pmCargarRanking();
+});
+document.getElementById('pacman-volver').addEventListener('click', ()=>{
+  pmJuegoActivo = false;
+  document.getElementById('mini-pacman').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+document.getElementById('pm-empezar-btn').addEventListener('click', pmIniciarJuego);
+document.getElementById('pm-jugar-de-nuevo').addEventListener('click', ()=>{
+  document.getElementById('pm-final').style.display = 'none';
+  pmCargarRanking().then(pmIniciarJuego);
 });
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
