@@ -1237,7 +1237,6 @@ footer{
   <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
   <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
   <button class="tab-btn" data-tab="simulador">🔮 Simulador</button>
-  <button class="tab-btn" data-tab="usuarios">🙋 Usuarios</button>
 </nav>
 
 <main>
@@ -1476,7 +1475,7 @@ footer{
 
     <div id="mini-grillodle" style="display:none;">
       <span class="rps-volver" id="grillodle-volver">← Volver a Minijuegos</span>
-      <div class="gd-intro">Adiviná qué jugador de la Grillo Liga es el misterioso. Escribí un nombre y fijate las pistas.</div>
+      <div class="gd-intro">Adiviná qué jugador de la Grillo Liga es el misterioso. Escribí un nombre y fijate las pistas. El misterioso siempre es alguien con 2 partidos jugados o más.</div>
       <div class="gd-input-row">
         <input type="text" id="gd-input" list="gd-lista-jugadores" placeholder="Escribí un nombre…">
         <datalist id="gd-lista-jugadores"></datalist>
@@ -1747,15 +1746,6 @@ footer{
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- USUARIOS -->
-  <section id="panel-usuarios" class="panel">
-    <div class="section-head">
-      <h2>Usuarios registrados</h2>
-      <span class="pill-count" id="usuarios-count"></span>
-    </div>
-    <div id="usuarios-lista"></div>
   </section>
 
   <section id="panel-simulador" class="panel">
@@ -2144,7 +2134,6 @@ tabBtns.forEach(btn=>{
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     cerrarCajonMenu();
-    if(btn.dataset.tab === 'usuarios') cargarListaUsuarios();
     if(btn.dataset.tab === 'simulador') simAbrirPantalla();
     if(btn.dataset.tab === 'minijuegos') renderRankingMinijuegos();
   });
@@ -2427,26 +2416,6 @@ async function obtenerUsernameActual(){
   if(!user) return null;
   usuarioActualUsername = user.email.replace(DOMINIO_FALSO, '');
   return usuarioActualUsername;
-}
-
-let usuariosListaCargada = false;
-async function cargarListaUsuarios(){
-  const lista = document.getElementById('usuarios-lista');
-  if(usuariosListaCargada) return;
-  lista.innerHTML = '<div class="cz-online-esperando">Cargando usuarios…</div>';
-  const { data, error } = await sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito').order('username');
-  if(error || !data){ lista.innerHTML = '<div class="cz-online-esperando">No se pudo cargar la lista.</div>'; return; }
-  document.getElementById('usuarios-count').textContent = data.length + ' usuarios';
-  lista.innerHTML = data.map(u => `
-    <div class="cz-online-fila fm-user-clickeable" data-username="${u.username}" style="cursor:pointer;">
-      <b>${u.username}</b>
-      <span style="font-size:11.5px; color:var(--text-dimmer);">${u.jugador_favorito ? '⭐ '+u.jugador_favorito : ''} ${u.club_favorito ? '🛡️ '+u.club_favorito : ''}</span>
-    </div>
-  `).join('');
-  lista.querySelectorAll('[data-username]').forEach(fila=>{
-    fila.addEventListener('click', ()=> mostrarPerfilPublico(fila.dataset.username));
-  });
-  usuariosListaCargada = true;
 }
 
 async function mostrarPerfilPublico(username){
@@ -3178,8 +3147,11 @@ async function renderRankingMinijuegos(){
     return;
   }
   cont.innerHTML = lista.map((f,i) => `
-    <div class="votos-fila"><span>${i+1}. ${f.nombre}</span><b>${f.cant} victoria${f.cant===1?'':'s'}</b></div>
+    <div class="votos-fila fm-user-clickeable" data-username="${f.nombre}" style="cursor:pointer;"><span>${i+1}. ${f.nombre}</span><b>${f.cant} victoria${f.cant===1?'':'s'}</b></div>
   `).join('');
+  cont.querySelectorAll('[data-username]').forEach(fila=>{
+    fila.addEventListener('click', ()=> mostrarPerfilPublico(fila.dataset.username));
+  });
 }
 
 function rpsElegirLinea(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -3391,7 +3363,7 @@ function gdNuevoJuego(){
   gdGanado = false;
   gdReveladasSi = [];
   gdReveladasNo = [];
-  const candidatos = DATA.estadisticas.filter(r => r.PJ > 0);
+  const candidatos = DATA.estadisticas.filter(r => r.PJ >= 2);
   gdJugadorMisterio = candidatos[Math.floor(Math.random()*candidatos.length)];
 
   gdPoolSi = [];
