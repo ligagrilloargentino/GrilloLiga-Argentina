@@ -1506,12 +1506,12 @@ footer{
         <h3>🦗 GrilloMan</h3>
         <p>Comé pelotitas y esquivá a los rivales por el laberinto.</p>
       </div>
-    </div>
 
-    <div class="cg-pistas-col" style="margin-top:24px;">
-      <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
-      <div class="gd-intro" style="margin:6px 0 10px;">Los que más victorias sumaron contra el GrilloBOT, entre todos los minijuegos.</div>
-      <div id="ranking-minijuegos-lista"></div>
+      <div class="cg-pistas-col" style="margin-top:10px;">
+        <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
+        <div class="gd-intro" style="margin:6px 0 10px;">Los que más victorias sumaron contra el GrilloBOT, entre todos los minijuegos.</div>
+        <div id="ranking-minijuegos-lista"></div>
+      </div>
     </div>
 
     <div id="mini-rps" style="display:none;">
@@ -3319,7 +3319,7 @@ async function renderRankingMinijuegos(){
   if(!cont) return;
   cont.innerHTML = '<div class="cz-online-esperando">Cargando ranking…</div>';
   const [{ data: resultados }, { data: perfiles }] = await Promise.all([
-    sbClient.from('minijuegos_resultados').select('usuario_id, resultado'),
+    sbClient.from('minijuegos_resultados').select('usuario_id, juego, resultado').neq('juego', 'pacman'),
     sbClient.from('perfiles_usuario').select('id, username')
   ]);
   if(!resultados || !perfiles){ cont.innerHTML = ''; return; }
