@@ -1847,10 +1847,6 @@ footer{
           </div>
         </div>
         <button class="auth-btn" id="pm-empezar-btn" style="max-width:220px; margin:10px auto 18px;" disabled>Empezar a jugar</button>
-        <div class="cg-pistas-col" id="pm-ranking-wrap">
-          <div class="gd-pista-titulo">🏆 Mejores puntajes</div>
-          <div id="pm-ranking-lista" style="margin-top:8px;"></div>
-        </div>
       </div>
 
       <div id="pm-juego-wrap" style="display:none;">
@@ -1879,6 +1875,10 @@ footer{
         <div class="pen-final-titulo" id="pm-final-titulo"></div>
         <div class="gd-intro" id="pm-final-detalle" style="text-align:center;"></div>
         <button class="auth-btn" id="pm-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+        <div class="cg-pistas-col" id="pm-ranking-wrap" style="margin-top:20px;">
+          <div class="gd-pista-titulo">🏆 Mejores puntajes</div>
+          <div id="pm-ranking-lista" style="margin-top:8px;"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -4336,7 +4336,7 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
 });
 
 /* ---------- MINIJUEGO: GRILLOMAN (Pac-Man temático) ---------- */
-const PM_TAM_CELDA = 24;
+let PM_TAM_CELDA = 24; // se recalcula por nivel según el ancho real de pantalla, para que no se vea pixelado
 const PM_COLORES_RIVALES = ['#B33B22', '#161310', '#9C7A2E', '#57503F'];
 const PM_COLORES_RIVALES_OSCURO = ['#8A2C19', '#000000', '#725A22', '#3a352a'];
 
@@ -4435,8 +4435,16 @@ function pmIniciarNivel(){
   }));
 
   const canvas = document.getElementById('pm-canvas');
-  canvas.width = pmAnchoGrilla * PM_TAM_CELDA;
-  canvas.height = pmAltoGrilla * PM_TAM_CELDA;
+  // el tamaño de celda se calcula para que el canvas apunte a un ancho fijo de referencia
+  // (así siempre queda nítido sin importar cuántas celdas tenga el laberinto de este nivel)
+  const anchoReferencia = 640;
+  PM_TAM_CELDA = Math.max(22, Math.min(48, Math.round(anchoReferencia / pmAnchoGrilla)));
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width = pmAnchoGrilla * PM_TAM_CELDA * dpr;
+  canvas.height = pmAltoGrilla * PM_TAM_CELDA * dpr;
+  canvas.style.width = (pmAnchoGrilla * PM_TAM_CELDA) + 'px';
+  canvas.style.height = 'auto';
+  pmCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   document.getElementById('pm-nivel').textContent = pmNivel;
   pmActualizarVidasHUD();
@@ -4668,6 +4676,7 @@ async function pmFinDelJuego(){
   if(user){
     await sbClient.from('pacman_puntajes').insert({ usuario_id:user.id, puntaje:pmPuntaje, nivel_alcanzado:pmNivel }).then(()=>{}, ()=>{});
   }
+  pmCargarRanking();
 }
 
 async function pmCargarRanking(){
@@ -4741,7 +4750,6 @@ document.getElementById('mini-card-pacman').addEventListener('click', ()=>{
   pmNombreJugador = null;
   document.getElementById('pm-input-jugador').value = '';
   document.getElementById('pm-empezar-btn').disabled = true;
-  pmCargarRanking();
 });
 document.getElementById('pm-input-jugador').addEventListener('change', (e)=>{
   const nombre = normalizarTexto(e.target.value);
@@ -4756,10 +4764,7 @@ document.getElementById('pacman-volver').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'flex';
 });
 document.getElementById('pm-empezar-btn').addEventListener('click', pmIniciarJuego);
-document.getElementById('pm-jugar-de-nuevo').addEventListener('click', ()=>{
-  document.getElementById('pm-final').style.display = 'none';
-  pmCargarRanking().then(pmIniciarJuego);
-});
+document.getElementById('pm-jugar-de-nuevo').addEventListener('click', pmIniciarJuego);
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
 const CZ_ANCHO = 960, CZ_ALTO = 580, CZ_CENTRO_X = 480;
