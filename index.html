@@ -498,6 +498,34 @@
 }
 #pm-canvas{ display:block; width:100%; height:auto; background:#EDE2C7; }
 #pm-touch-controles{ justify-content:center; }
+
+/* ---------- MINIJUEGO: SUDOKU GRILLERO ---------- */
+#sk-tablero{
+  display:grid; grid-template-columns:repeat(9, 1fr); gap:1px;
+  max-width:420px; margin:16px auto; background:var(--text);
+  border:3px solid var(--text); border-radius:4px; overflow:hidden;
+  aspect-ratio:1/1;
+}
+.sk-celda{
+  position:relative; background:var(--card); display:flex; align-items:center; justify-content:center;
+  font-size:clamp(14px, 3.4vw, 22px); cursor:pointer; user-select:none;
+}
+.sk-celda.sk-fija{ background:var(--card2); cursor:default; }
+.sk-celda.sk-seleccionada{ background:rgba(179,59,34,.18); }
+.sk-celda.sk-error{ background:rgba(179,59,34,.32); }
+.sk-celda:nth-child(3n){ border-right:2.5px solid var(--text); }
+.sk-celda:nth-child(9n){ border-right:none; }
+.sk-celda:nth-child(n+19):nth-child(-n+27),
+.sk-celda:nth-child(n+46):nth-child(-n+54){ border-bottom:2.5px solid var(--text); }
+#sk-paleta{
+  display:flex; justify-content:center; flex-wrap:wrap; gap:8px; max-width:420px; margin:0 auto;
+}
+#sk-paleta button{
+  width:44px; height:44px; border-radius:8px; border:1px solid var(--line-strong);
+  background:var(--card); font-size:20px; cursor:pointer; transition:border-color .15s, transform .1s;
+}
+#sk-paleta button:hover{ border-color:var(--red); transform:scale(1.06); }
+#sk-paleta button.sk-borrar{ font-size:15px; color:var(--text-dim); }
 .pm-touch-cruz{
   position:relative; width:150px; height:150px; margin:0 auto;
 }
@@ -1506,6 +1534,10 @@ footer{
         <h3>🦗 GrilloMan</h3>
         <p>Comé pelotitas y esquivá a los rivales por el laberinto.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-sudoku">
+        <h3>⚽ Sudoku Grillero</h3>
+        <p>El clásico sudoku, pero con 9 emojis de fútbol en vez de números.</p>
+      </div>
 
       <div class="cg-pistas-col" style="margin-top:10px;">
         <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
@@ -1878,6 +1910,44 @@ footer{
         <div class="cg-pistas-col" id="pm-ranking-wrap" style="margin-top:20px;">
           <div class="gd-pista-titulo">🏆 Mejores puntajes</div>
           <div id="pm-ranking-lista" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mini-sudoku" style="display:none;">
+      <span class="rps-volver" id="sudoku-volver">← Volver a Minijuegos</span>
+      <h2 class="pm-titulo-juego">⚽ Sudoku Grillero</h2>
+      <div class="gd-intro">Completá el tablero para que cada fila, columna y cuadro de 3x3 tenga los 9 emojis, sin repetir.</div>
+
+      <div id="sk-armado">
+        <div class="mg-opciones-col">
+          <div class="mg-opciones-titulo">Dificultad</div>
+          <div class="mg-toggle-row">
+            <button class="mg-toggle active" data-dif="facil">😌 Sencillo</button>
+            <button class="mg-toggle" data-dif="medio">🙂 Medio</button>
+            <button class="mg-toggle" data-dif="dificil">🔥 Difícil</button>
+          </div>
+        </div>
+        <button class="auth-btn" id="sk-empezar-btn" style="max-width:220px; margin:16px auto 0;">Empezar a jugar</button>
+      </div>
+
+      <div id="sk-juego-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>Tiempo<br><b id="sk-tiempo">00:00</b></div>
+          <div class="pen-ronda">Dificultad <b id="sk-dificultad-label">Sencillo</b></div>
+          <div>Errores<br><b id="sk-errores">0</b></div>
+        </div>
+        <div id="sk-tablero"></div>
+        <div id="sk-paleta"></div>
+      </div>
+
+      <div id="sk-final" style="display:none;">
+        <div class="pen-final-titulo" id="sk-final-titulo"></div>
+        <div class="gd-intro" id="sk-final-detalle" style="text-align:center;"></div>
+        <button class="auth-btn" id="sk-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+        <div class="cg-pistas-col" id="sk-ranking-wrap" style="margin-top:20px;">
+          <div class="gd-pista-titulo">🏆 Mejores tiempos</div>
+          <div id="sk-ranking-lista" style="margin-top:8px;"></div>
         </div>
       </div>
     </div>
@@ -4765,6 +4835,214 @@ document.getElementById('pacman-volver').addEventListener('click', ()=>{
 });
 document.getElementById('pm-empezar-btn').addEventListener('click', pmIniciarJuego);
 document.getElementById('pm-jugar-de-nuevo').addEventListener('click', pmIniciarJuego);
+
+/* ---------- MINIJUEGO: SUDOKU GRILLERO ---------- */
+const SK_EMOJIS = ['⚽','🥅','🏆','🟨','🟥','🧤','👟','🎽','🏟️'];
+const SK_PISTAS_POR_DIFICULTAD = { facil:40, medio:32, dificil:26 };
+
+let skSolucion = null;
+let skTablero = null;
+let skFijas = null;
+let skSeleccion = null;
+let skErrores = 0;
+let skDificultad = 'facil';
+let skSegundos = 0;
+let skIntervaloTimer = null;
+let skGanado = false;
+
+function skEsValido(grid, fila, col, val){
+  for(let i=0; i<9; i++){
+    if(grid[fila][i] === val) return false;
+    if(grid[i][col] === val) return false;
+  }
+  const br = Math.floor(fila/3)*3, bc = Math.floor(col/3)*3;
+  for(let r=br; r<br+3; r++) for(let c=bc; c<bc+3; c++) if(grid[r][c] === val) return false;
+  return true;
+}
+
+function skGenerarCompleto(){
+  const grid = Array.from({length:9}, () => Array(9).fill(0));
+  function llenar(pos){
+    if(pos === 81) return true;
+    const fila = Math.floor(pos/9), col = pos % 9;
+    const valores = [1,2,3,4,5,6,7,8,9].sort(() => Math.random()-0.5);
+    for(const v of valores){
+      if(skEsValido(grid, fila, col, v)){
+        grid[fila][col] = v;
+        if(llenar(pos+1)) return true;
+        grid[fila][col] = 0;
+      }
+    }
+    return false;
+  }
+  llenar(0);
+  return grid;
+}
+
+function skGenerarPuzzle(dificultad){
+  const completo = skGenerarCompleto();
+  const puzzle = completo.map(fila => [...fila]);
+  const celdas = [];
+  for(let r=0; r<9; r++) for(let c=0; c<9; c++) celdas.push([r,c]);
+  celdas.sort(() => Math.random()-0.5);
+  const pistas = SK_PISTAS_POR_DIFICULTAD[dificultad];
+  const aQuitar = 81 - pistas;
+  for(let i=0; i<aQuitar; i++){
+    const [r,c] = celdas[i];
+    puzzle[r][c] = 0;
+  }
+  return { puzzle, completo };
+}
+
+function skFormatearTiempo(seg){
+  const m = Math.floor(seg/60), s = seg%60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function skIniciarJuego(){
+  const { puzzle, completo } = skGenerarPuzzle(skDificultad);
+  skTablero = puzzle.map(fila => [...fila]);
+  skSolucion = completo;
+  skFijas = puzzle.map(fila => fila.map(v => v !== 0));
+  skSeleccion = null;
+  skErrores = 0;
+  skSegundos = 0;
+  skGanado = false;
+
+  document.getElementById('sk-armado').style.display = 'none';
+  document.getElementById('sk-final').style.display = 'none';
+  document.getElementById('sk-juego-wrap').style.display = 'block';
+  document.getElementById('sk-errores').textContent = '0';
+  document.getElementById('sk-tiempo').textContent = '00:00';
+  const etiquetas = { facil:'Sencillo', medio:'Medio', dificil:'Difícil' };
+  document.getElementById('sk-dificultad-label').textContent = etiquetas[skDificultad];
+
+  skRenderTablero();
+  skRenderPaleta();
+
+  if(skIntervaloTimer) clearInterval(skIntervaloTimer);
+  skIntervaloTimer = setInterval(()=>{
+    skSegundos++;
+    document.getElementById('sk-tiempo').textContent = skFormatearTiempo(skSegundos);
+  }, 1000);
+}
+
+function skRenderTablero(){
+  const cont = document.getElementById('sk-tablero');
+  cont.innerHTML = '';
+  for(let r=0; r<9; r++){
+    for(let c=0; c<9; c++){
+      const div = document.createElement('div');
+      div.className = 'sk-celda' + (skFijas[r][c] ? ' sk-fija' : '');
+      if(skSeleccion && skSeleccion[0] === r && skSeleccion[1] === c) div.classList.add('sk-seleccionada');
+      const val = skTablero[r][c];
+      div.textContent = val ? SK_EMOJIS[val-1] : '';
+      if(!skFijas[r][c]){
+        div.addEventListener('click', () => { skSeleccion = [r,c]; skRenderTablero(); });
+      }
+      cont.appendChild(div);
+    }
+  }
+}
+
+function skRenderPaleta(){
+  const cont = document.getElementById('sk-paleta');
+  cont.innerHTML = SK_EMOJIS.map((e,i) => `<button data-val="${i+1}">${e}</button>`).join('')
+    + '<button class="sk-borrar" data-val="0">✕</button>';
+  cont.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', () => skColocar(parseInt(btn.dataset.val)));
+  });
+}
+
+function skMarcarError(idx){
+  const celdas = document.querySelectorAll('#sk-tablero .sk-celda');
+  if(celdas[idx]) celdas[idx].classList.add('sk-error');
+}
+
+function skColocar(valor){
+  if(!skSeleccion || skGanado) return;
+  const [r,c] = skSeleccion;
+  if(skFijas[r][c]) return;
+  skTablero[r][c] = valor;
+
+  const esError = valor !== 0 && valor !== skSolucion[r][c];
+  skRenderTablero();
+  if(esError){
+    skErrores++;
+    document.getElementById('sk-errores').textContent = skErrores;
+    skMarcarError(r*9+c);
+  }
+  skRevisarVictoria();
+}
+
+function skRevisarVictoria(){
+  for(let r=0; r<9; r++) for(let c=0; c<9; c++) if(skTablero[r][c] !== skSolucion[r][c]) return;
+  skGanado = true;
+  clearInterval(skIntervaloTimer);
+  document.getElementById('sk-juego-wrap').style.display = 'none';
+  document.getElementById('sk-final').style.display = 'block';
+  document.getElementById('sk-final-titulo').textContent = `🎉 ¡Completado en ${skFormatearTiempo(skSegundos)}!`;
+  document.getElementById('sk-final-detalle').textContent = `Dificultad: ${document.getElementById('sk-dificultad-label').textContent} — ${skErrores} error${skErrores===1?'':'es'}.`;
+  guardarResultadoMinijuego('sudoku', 'victoria');
+  skGuardarTiempo();
+}
+
+async function skGuardarTiempo(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  await sbClient.from('sudoku_tiempos').insert({ usuario_id:user.id, tiempo_segundos:skSegundos, dificultad:skDificultad }).then(()=>{}, ()=>{});
+  skCargarRanking();
+}
+
+async function skCargarRanking(){
+  const cont = document.getElementById('sk-ranking-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: tiempos }, { data: perfiles }] = await Promise.all([
+    sbClient.from('sudoku_tiempos').select('usuario_id, tiempo_segundos, dificultad'),
+    sbClient.from('perfiles_usuario').select('id, username')
+  ]);
+  if(!tiempos || !perfiles){ cont.innerHTML = ''; return; }
+  const nombrePorId = {};
+  perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
+  const mejorPorUsuario = {};
+  tiempos.forEach(t=>{
+    const actual = mejorPorUsuario[t.usuario_id];
+    if(!actual || t.tiempo_segundos < actual.tiempo_segundos) mejorPorUsuario[t.usuario_id] = t;
+  });
+  const etiquetas = { facil:'Sencillo', medio:'Medio', dificil:'Difícil' };
+  const lista = Object.entries(mejorPorUsuario)
+    .map(([id, t]) => ({ nombre: nombrePorId[id] || '???', tiempo: t.tiempo_segundos, dificultad: etiquetas[t.dificultad] }))
+    .sort((a,b) => a.tiempo - b.tiempo)
+    .slice(0, 10);
+  cont.innerHTML = lista.length
+    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre} <span style="color:var(--text-dimmer); font-size:11px;">(${f.dificultad})</span></span><b>${skFormatearTiempo(f.tiempo)}</b></div>`).join('')
+    : '<div class="cz-online-esperando">Todavía nadie completó uno. ¡Arrancá vos!</div>';
+}
+
+document.querySelectorAll('#sk-armado [data-dif]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    skDificultad = btn.dataset.dif;
+    document.querySelectorAll('#sk-armado [data-dif]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.getElementById('sk-empezar-btn').addEventListener('click', skIniciarJuego);
+document.getElementById('sk-jugar-de-nuevo').addEventListener('click', ()=>{
+  document.getElementById('sk-final').style.display = 'none';
+  document.getElementById('sk-armado').style.display = 'block';
+});
+document.getElementById('mini-card-sudoku').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-sudoku').style.display = 'block';
+  document.getElementById('sk-armado').style.display = 'block';
+  document.getElementById('sk-juego-wrap').style.display = 'none';
+  document.getElementById('sk-final').style.display = 'none';
+  skCargarRanking();
+});
+document.getElementById('sudoku-volver').addEventListener('click', ()=>{
+  if(skIntervaloTimer) clearInterval(skIntervaloTimer);
+  document.getElementById('mini-sudoku').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
 const CZ_ANCHO = 960, CZ_ALTO = 580, CZ_CENTRO_X = 480;
