@@ -568,6 +568,15 @@ header.top{
 .umm-fila{ font-family:'Lora',serif; font-size:12px; color:var(--text); margin-bottom:8px; line-height:1.4; }
 .umm-fila:last-child{ margin-bottom:0; }
 .umm-fila b{ color:var(--text-dim); font-weight:700; margin-right:4px; }
+.umm-editar-toggle{
+  display:block; margin-top:10px; padding-top:8px; border-top:1px solid var(--line);
+  font-size:11.5px; color:var(--text-dim); cursor:pointer; text-align:center;
+}
+.umm-editar-toggle:hover{ color:var(--red); }
+.umm-editar{ margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
+.umm-editar .auth-field{ margin-bottom:8px; }
+.umm-editar .auth-field label{ font-size:10.5px; }
+.umm-editar select, .umm-editar input{ font-size:12px; padding:6px 8px; }
 .brand{
   display:flex; align-items:baseline; gap:12px; margin-bottom:8px;
 }
@@ -1167,8 +1176,14 @@ footer{
         <span id="usuario-actual-nombre" style="display:none;"></span>
         <div class="usuario-mini-menu" id="usuario-mini-menu">
           <div class="umm-fila"><b>Usuario:</b> <span id="umm-usuario">—</span></div>
-          <div class="umm-fila"><b>Hincha de:</b> <span id="umm-club">—</span></div>
-          <div class="umm-fila"><b>Jugador favorito:</b> <span id="umm-jugador">—</span></div>
+          <div class="umm-fila" id="umm-club-fila"><b>Hincha de:</b> <span id="umm-club">—</span></div>
+          <div class="umm-fila" id="umm-jugador-fila"><b>Jugador favorito:</b> <span id="umm-jugador">—</span></div>
+          <div class="umm-editar" id="umm-editar-form" style="display:none;">
+            <div class="auth-field"><label>Jugador favorito</label><select id="umm-editar-jugador"></select></div>
+            <div class="auth-field"><label>Club de fútbol favorito</label><input type="text" id="umm-editar-club"></div>
+            <button class="auth-btn" id="umm-guardar-btn" style="margin-top:6px;">Guardar</button>
+          </div>
+          <span class="umm-editar-toggle" id="umm-editar-toggle">✏️ Editar mi perfil</span>
         </div>
       </div>
       <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:12px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
@@ -1221,6 +1236,7 @@ footer{
   <button class="tab-btn" data-tab="foro">💬 Foro general</button>
   <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
   <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
+  <button class="tab-btn" data-tab="usuarios">🙋 Usuarios</button>
 </nav>
 
 <main>
@@ -1771,6 +1787,15 @@ footer{
     </div>
   </section>
 
+  <!-- USUARIOS -->
+  <section id="panel-usuarios" class="panel">
+    <div class="section-head">
+      <h2>Usuarios registrados</h2>
+      <span class="pill-count" id="usuarios-count"></span>
+    </div>
+    <div id="usuarios-lista"></div>
+  </section>
+
 </main>
 
 <footer>Datos cargados desde la planilla de Los Pibes · Grilloliga 2026</footer>
@@ -2019,8 +2044,50 @@ if(LOGIN_REQUERIDO && !modoInvitado){
             document.getElementById('umm-usuario').textContent = perfil.username || usuario;
             document.getElementById('umm-club').textContent = perfil.club_favorito || '—';
             document.getElementById('umm-jugador').textContent = perfil.jugador_favorito || '—';
+            document.getElementById('umm-editar-club').value = perfil.club_favorito || '';
+            document.getElementById('umm-editar-jugador').value = perfil.jugador_favorito || '';
           }
         });
+
+      const selEditarJugador = document.getElementById('umm-editar-jugador');
+      if(selEditarJugador.options.length === 0){
+        selEditarJugador.innerHTML = '<option value="">Elegí un jugador…</option>' +
+          DATA.estadisticas.map(r => `<option value="${r.Jugador}">${r.Jugador}</option>`).join('');
+      }
+
+      document.getElementById('umm-editar-toggle').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const form = document.getElementById('umm-editar-form');
+        form.style.display = form.style.display === 'block' ? 'none' : 'block';
+      });
+      document.getElementById('umm-guardar-btn').addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const nuevoJugador = document.getElementById('umm-editar-jugador').value;
+        const nuevoClub = document.getElementById('umm-editar-club').value.trim();
+        const clubViejo = document.getElementById('umm-club').textContent;
+        const jugadorViejo = document.getElementById('umm-jugador').textContent;
+
+        await sbClient.from('perfiles_usuario').update({
+          club_favorito: nuevoClub, jugador_favorito: nuevoJugador
+        }).eq('id', data.user.id);
+
+        document.getElementById('umm-club').textContent = nuevoClub || '—';
+        document.getElementById('umm-jugador').textContent = nuevoJugador || '—';
+        document.getElementById('umm-editar-form').style.display = 'none';
+
+        if(clubViejo !== (nuevoClub || '—')){
+          fetch('https://dpygypfcdriaojgleutr.supabase.co/functions/v1/actualizar-perfil', {
+            method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+SUPABASE_ANON_KEY },
+            body: JSON.stringify({ usuario, campo:'club_favorito', valor_anterior:clubViejo, valor_nuevo:nuevoClub })
+          }).catch(()=>{});
+        }
+        if(jugadorViejo !== (nuevoJugador || '—')){
+          fetch('https://dpygypfcdriaojgleutr.supabase.co/functions/v1/actualizar-perfil', {
+            method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+SUPABASE_ANON_KEY },
+            body: JSON.stringify({ usuario, campo:'jugador_favorito', valor_anterior:jugadorViejo, valor_nuevo:nuevoJugador })
+          }).catch(()=>{});
+        }
+      });
 
       _labelUsuario.addEventListener('click', (e)=>{
         e.stopPropagation();
@@ -2072,6 +2139,7 @@ tabBtns.forEach(btn=>{
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     cerrarCajonMenu();
+    if(btn.dataset.tab === 'usuarios') cargarListaUsuarios();
   });
 });
 const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
@@ -2352,6 +2420,26 @@ async function obtenerUsernameActual(){
   if(!user) return null;
   usuarioActualUsername = user.email.replace(DOMINIO_FALSO, '');
   return usuarioActualUsername;
+}
+
+let usuariosListaCargada = false;
+async function cargarListaUsuarios(){
+  const lista = document.getElementById('usuarios-lista');
+  if(usuariosListaCargada) return;
+  lista.innerHTML = '<div class="cz-online-esperando">Cargando usuarios…</div>';
+  const { data, error } = await sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito').order('username');
+  if(error || !data){ lista.innerHTML = '<div class="cz-online-esperando">No se pudo cargar la lista.</div>'; return; }
+  document.getElementById('usuarios-count').textContent = data.length + ' usuarios';
+  lista.innerHTML = data.map(u => `
+    <div class="cz-online-fila fm-user-clickeable" data-username="${u.username}" style="cursor:pointer;">
+      <b>${u.username}</b>
+      <span style="font-size:11.5px; color:var(--text-dimmer);">${u.jugador_favorito ? '⭐ '+u.jugador_favorito : ''} ${u.club_favorito ? '🛡️ '+u.club_favorito : ''}</span>
+    </div>
+  `).join('');
+  lista.querySelectorAll('[data-username]').forEach(fila=>{
+    fila.addEventListener('click', ()=> mostrarPerfilPublico(fila.dataset.username));
+  });
+  usuariosListaCargada = true;
 }
 
 async function mostrarPerfilPublico(username){
@@ -3916,7 +4004,7 @@ const CZ_PROFUNDIDAD_ARCO = CZ_RADIO_CABEZA*4; // arco con profundidad de 2 juga
 const CZ_GOL_Y = 403; // desde esta altura hacia abajo, en los extremos, es arco
 const CZ_GRAVEDAD = 0.55;
 const CZ_VEL_MOV = 5.4, CZ_VEL_SALTO = -14.5;
-const CZ_FRICCION_PELOTA_AIRE = 0.978, CZ_REBOTE_PELOTA = 0.68;
+const CZ_FRICCION_PELOTA_AIRE = 0.968, CZ_REBOTE_PELOTA = 0.65;
 let CZ_DURACION_PARTIDO = 60;
 const CZ_DURACION_POWERUP = 8000;
 
@@ -4065,8 +4153,8 @@ function czIntentarPatear(jugador){
   const dist = Math.hypot(dx,dy);
   if(dist < jugador.radio + czPelota.radio + 24){
     const dir = jugador.mirandoDerecha ? 1 : -1;
-    czPelota.vx = dir*19 + jugador.vx*0.45;
-    czPelota.vy = -15;
+    czPelota.vx = dir*16 + jugador.vx*0.45;
+    czPelota.vy = -13;
   }
 }
 
@@ -4507,18 +4595,20 @@ function czIniciarPartidoOnline(esHost, roomId, nombreRival, cabezaRival){
     });
     czIniciarPartido();
   } else {
-    czNombreJ2 = cabezaRival; // la cabeza del host, se dibuja como "Jugador 1" en esta pantalla
+    const miPropioNombre = czNombreJ1; // mi cabeza, elegida antes de entrar a la sala
+    czNombreJ1 = cabezaRival;   // Jugador 1 (izquierda) siempre es el host
+    czNombreJ2 = miPropioNombre; // Jugador 2 (derecha) soy yo, el invitado
     document.getElementById('cz-armado').style.display = 'none';
     document.getElementById('cz-torneo-wrap').style.display = 'none';
     document.getElementById('cz-cancha-wrap').style.display = 'block';
     document.getElementById('cz-iniciar-reloj-btn').style.display = 'none';
     document.getElementById('cz-final').style.display = 'none';
-    document.getElementById('cz-nombre-j1').innerHTML = `${cabezaRival}<br><b id="cz-score-j1">0</b>`;
-    document.getElementById('cz-nombre-j2').innerHTML = `${czNombreJ1}<br><b id="cz-score-j2">0</b>`;
+    document.getElementById('cz-nombre-j1').innerHTML = `${czNombreJ1}<br><b id="cz-score-j1">0</b>`;
+    document.getElementById('cz-nombre-j2').innerHTML = `${czNombreJ2}<br><b id="cz-score-j2">0</b>`;
     if(!czCtx){ czCtx = document.getElementById('cz-canvas').getContext('2d'); }
-    czJugador1 = czCrearJugador(cabezaRival, 'izq', false);
-    czJugador2 = czCrearJugador(czNombreJ1, 'der', false);
-    czObtenerImagen(cabezaRival); czObtenerImagen(czNombreJ1);
+    czJugador1 = czCrearJugador(czNombreJ1, 'izq', false);
+    czJugador2 = czCrearJugador(czNombreJ2, 'der', false);
+    czObtenerImagen(czNombreJ1); czObtenerImagen(czNombreJ2);
     czPelota = { x:CZ_CENTRO_X, y:CZ_TRIBUNA_ALTO+100, vx:0, vy:0, radio:CZ_RADIO_PELOTA, efectoHasta:0, rotacion:0 };
     czMarcadorJ1 = 0; czMarcadorJ2 = 0;
     czActualizarAvisoRotar();
