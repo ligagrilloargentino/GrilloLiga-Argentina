@@ -526,6 +526,41 @@
 }
 #sk-paleta button:hover{ border-color:var(--red); transform:scale(1.06); }
 #sk-paleta button.sk-borrar{ font-size:15px; color:var(--text-dim); }
+
+/* ---------- MINIJUEGO: TRUCO GRILLERO ---------- */
+#tr-mesa{
+  background:linear-gradient(180deg, #4A6B43, #375030); border-radius:12px;
+  padding:16px; max-width:520px; margin:0 auto; box-shadow:0 4px 14px rgba(0,0,0,.25);
+}
+.tr-fila-rival, .tr-fila-yo{ display:flex; align-items:center; gap:10px; }
+.tr-fila-rival{ margin-bottom:10px; }
+.tr-fila-yo{ margin-top:10px; }
+.tr-cabeza{
+  width:44px; height:44px; border-radius:50%; overflow:hidden; flex-shrink:0;
+  border:2px solid #F7F1E1; background:#EDE2C7 center/cover;
+}
+.tr-mano{ display:flex; gap:6px; flex:1; justify-content:center; flex-wrap:wrap; }
+.tr-carta{
+  width:46px; height:66px; border-radius:5px; background:#F7F1E1; border:1px solid #161310;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#161310; box-shadow:0 2px 4px rgba(0,0,0,.25);
+  cursor:pointer; transition:transform .12s;
+}
+.tr-carta:hover{ transform:translateY(-4px); }
+.tr-carta .tr-carta-num{ font-size:16px; }
+.tr-carta.tr-dorso{
+  background:repeating-linear-gradient(45deg, #B33B22, #B33B22 4px, #8A2C19 4px, #8A2C19 8px);
+  cursor:default;
+}
+.tr-carta.tr-dorso:hover{ transform:none; }
+.tr-centro{ display:flex; flex-direction:column; align-items:center; gap:6px; min-height:70px; justify-content:center; }
+.tr-jugadas{ display:flex; gap:8px; min-height:66px; align-items:center; }
+.tr-canto-actual{
+  font-family:'Playfair Display',Georgia,serif; font-weight:900; color:#F7F1E1;
+  text-shadow:0 2px 4px rgba(0,0,0,.4); font-size:14px; text-align:center; min-height:18px;
+}
+.tr-acciones{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:14px; }
+.tr-btn-chico{ max-width:140px; margin:0; padding:9px 12px; font-size:12.5px; }
 .pm-touch-cruz{
   position:relative; width:150px; height:150px; margin:0 auto;
 }
@@ -1538,6 +1573,10 @@ footer{
         <h3>⚽ Sudoku Grillero</h3>
         <p>El clásico sudoku, pero con 9 emojis de fútbol en vez de números.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-truco">
+        <h3>🃏 Truco Grillero</h3>
+        <p>El truco argentino de siempre, contra el GrilloBOT o contra otro usuario online.</p>
+      </div>
 
       <div class="cg-pistas-col" style="margin-top:10px;">
         <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
@@ -1948,6 +1987,90 @@ footer{
         <div class="cg-pistas-col" id="sk-ranking-wrap" style="margin-top:20px;">
           <div class="gd-pista-titulo">🏆 Mejores tiempos</div>
           <div id="sk-ranking-lista" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mini-truco" style="display:none;">
+      <span class="rps-volver" id="truco-volver">← Volver a Minijuegos</span>
+      <h2 class="pm-titulo-juego">🃏 Truco Grillero</h2>
+
+      <div id="tr-armado">
+        <div class="gd-intro">Truco argentino de toda la vida, a 30 puntos. Elegí tu cabeza de la Grillo Liga para jugar.</div>
+        <div class="cz-elegir-fila" style="margin-bottom:6px;">
+          <div class="cz-elegir-col" style="max-width:320px; margin:0 auto;">
+            <div class="mg-opciones-titulo">Elegí tu jugador</div>
+            <input type="text" id="tr-input-jugador" placeholder="Buscá tu cabeza de la Grillo Liga…">
+          </div>
+        </div>
+        <div class="mg-opciones">
+          <div class="mg-opciones-col">
+            <div class="mg-opciones-titulo">¿Contra quién jugás?</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle active" id="tr-modo-bot" data-modo="bot">🦗 Contra el GrilloBOT</button>
+              <button class="mg-toggle" id="tr-modo-online" data-modo="online">🌐 Online (1vs1 real)</button>
+            </div>
+          </div>
+          <div class="mg-opciones-col">
+            <div class="mg-opciones-titulo">¿Se juega con Flor?</div>
+            <div class="mg-toggle-row">
+              <button class="mg-toggle active" data-flor="si">🌼 Con Flor</button>
+              <button class="mg-toggle" data-flor="no">🚫 Sin Flor</button>
+            </div>
+          </div>
+        </div>
+        <button class="auth-btn" id="tr-empezar-btn" style="max-width:220px; margin:10px auto 18px;" disabled>Empezar a jugar</button>
+      </div>
+
+      <div id="tr-online-lobby" style="display:none;">
+        <div class="gd-intro">Estás en la sala de espera del Truco. Si hay alguien más, elegilo para desafiarlo — si no, esperá a que entre alguien.</div>
+        <div id="tr-online-lista"></div>
+        <button class="auth-btn" id="tr-online-salir-btn" style="max-width:220px; margin:18px auto 0; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Salir de la sala</button>
+      </div>
+
+      <div id="tr-mesa-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div id="tr-nombre-riv">Rival<br><b id="tr-puntos-riv">0</b></div>
+          <div class="pen-ronda">a 30</div>
+          <div id="tr-nombre-yo">Vos<br><b id="tr-puntos-yo">0</b></div>
+        </div>
+
+        <div id="tr-mesa">
+          <div class="tr-fila-rival">
+            <div class="tr-cabeza" id="tr-cabeza-rival"></div>
+            <div class="tr-mano" id="tr-mano-rival"></div>
+          </div>
+          <div class="tr-centro">
+            <div class="tr-jugadas" id="tr-jugadas-rival"></div>
+            <div class="tr-canto-actual" id="tr-canto-actual"></div>
+            <div class="tr-jugadas" id="tr-jugadas-yo"></div>
+          </div>
+          <div class="tr-fila-yo">
+            <div class="tr-cabeza" id="tr-cabeza-yo"></div>
+            <div class="tr-mano" id="tr-mano-yo"></div>
+          </div>
+        </div>
+
+        <div id="tr-acciones-canto" class="tr-acciones"></div>
+        <div id="tr-acciones-jugar" class="tr-acciones">
+          <button class="auth-btn tr-btn-chico" id="tr-btn-truco">Truco</button>
+          <button class="auth-btn tr-btn-chico" id="tr-btn-envido">Envido</button>
+          <button class="auth-btn tr-btn-chico" id="tr-btn-real-envido">Real Envido</button>
+          <button class="auth-btn tr-btn-chico" id="tr-btn-falta-envido">Falta Envido</button>
+          <button class="auth-btn tr-btn-chico" id="tr-btn-flor">Flor</button>
+          <button class="auth-btn tr-btn-chico" id="tr-btn-irse-mazo" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Irse al mazo</button>
+        </div>
+
+        <div id="tr-log" class="cz-controles-info"></div>
+      </div>
+
+      <div id="tr-final" style="display:none;">
+        <div class="pen-final-titulo" id="tr-final-titulo"></div>
+        <div class="gd-intro" id="tr-final-detalle" style="text-align:center;"></div>
+        <button class="auth-btn" id="tr-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+        <div class="cg-pistas-col" id="tr-ranking-wrap" style="margin-top:20px;">
+          <div class="gd-pista-titulo">🏆 Más partidas ganadas</div>
+          <div id="tr-ranking-lista" style="margin-top:8px;"></div>
         </div>
       </div>
     </div>
@@ -5042,6 +5165,713 @@ document.getElementById('sudoku-volver').addEventListener('click', ()=>{
   if(skIntervaloTimer) clearInterval(skIntervaloTimer);
   document.getElementById('mini-sudoku').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MINIJUEGO: TRUCO GRILLERO ---------- */
+// Motor de reglas de Truco Argentino (2 jugadores, 30 puntos).
+// Simplificaciones conocidas y avisadas: la Flor, cuando los dos jugadores la tienen,
+// se resuelve comparando valores automáticamente (sin la cadena completa de Contraflor/
+// Contraflor al resto interactiva). El Envido no se puede cantar una vez que ya se cantó Truco.
+
+const TR_PALOS = ['espada','basto','oro','copa'];
+const TR_NUMEROS = [1,2,3,4,5,6,7,10,11,12];
+const TR_NOMBRES_NUM = { 1:'As', 10:'Sota', 11:'Caballo', 12:'Rey' };
+
+let trMazo = [];
+let trManoYo = [], trManoRival = [];
+let trJugadasRonda = [];
+let trPuntosYo = 0, trPuntosRival = 0;
+let trQuienEsMano = 'yo';
+let trTurno = 'yo';
+let trRondaActual = 0;
+let trResultadosRondas = [];
+let trTrucoNivel = 0;
+let trTrucoCantadoPor = null;
+let trEnvidoJugado = false;
+let trEnvidoCadena = [];
+let trFlorHabilitada = true;
+let trFlorYaCantada = false;
+let trNombreJugadorTr = null, trNombreRivalTr = null;
+let trModoJuego = 'bot';
+let trJuegoActivo = false;
+let trPendiente = null;
+let trManoTerminada = false;
+
+function trCrearMazo(){
+  const mazo = [];
+  TR_PALOS.forEach(p => TR_NUMEROS.forEach(n => mazo.push({palo:p, numero:n})));
+  return mazo.sort(() => Math.random()-0.5);
+}
+
+function trValorTruco(carta){
+  const { palo, numero } = carta;
+  if(palo==='espada' && numero===1) return 14;
+  if(palo==='basto' && numero===1) return 13;
+  if(palo==='espada' && numero===7) return 12;
+  if(palo==='oro' && numero===7) return 11;
+  if(numero===3) return 10;
+  if(numero===2) return 9;
+  if(numero===1) return 8;
+  if(numero===12) return 7;
+  if(numero===11) return 6;
+  if(numero===10) return 5;
+  if(numero===7) return 4;
+  if(numero===6) return 3;
+  if(numero===5) return 2;
+  return 1; // 4
+}
+
+function trValorEnvido(cartas){
+  const porPalo = {};
+  cartas.forEach(c=>{
+    const val = c.numero >= 10 ? 0 : c.numero;
+    (porPalo[c.palo] = porPalo[c.palo] || []).push(val);
+  });
+  let mejor = null;
+  Object.values(porPalo).forEach(vals=>{
+    if(vals.length >= 2){
+      vals.sort((a,b)=>b-a);
+      const total = vals[0]+vals[1]+20;
+      if(mejor === null || total > mejor) mejor = total;
+    }
+  });
+  if(mejor === null) mejor = Math.max(...cartas.map(c => c.numero >= 10 ? 0 : c.numero));
+  return mejor;
+}
+
+function trTieneFlor(cartas){ return cartas[0].palo === cartas[1].palo && cartas[1].palo === cartas[2].palo; }
+function trValorFlor(cartas){ return cartas.reduce((s,c) => s + (c.numero >= 10 ? 0 : c.numero), 0) + 20; }
+
+function trNombreCarta(carta){
+  const num = TR_NOMBRES_NUM[carta.numero] || carta.numero;
+  const palos = { espada:'de espada', basto:'de basto', oro:'de oro', copa:'de copa' };
+  return `${num} ${palos[carta.palo]}`;
+}
+
+function trLog(msg){
+  const el = document.getElementById('tr-log');
+  el.innerHTML = `<b>Último:</b> ${msg}` + (el.dataset.prev ? `<br><span style="color:var(--text-dimmer);">${el.dataset.prev}</span>` : '');
+  el.dataset.prev = msg;
+}
+
+function trIniciarPartida(){
+  trPuntosYo = 0; trPuntosRival = 0;
+  trQuienEsMano = 'yo';
+  trJuegoActivo = true;
+  document.getElementById('tr-armado').style.display = 'none';
+  document.getElementById('tr-final').style.display = 'none';
+  document.getElementById('tr-mesa-wrap').style.display = 'block';
+  document.getElementById('tr-nombre-yo').innerHTML = `${trNombreJugadorTr}<br><b id="tr-puntos-yo">0</b>`;
+  document.getElementById('tr-nombre-riv').innerHTML = `${trNombreRivalTr}<br><b id="tr-puntos-riv">0</b>`;
+  const fotoYo = czObtenerImagen(trNombreJugadorTr), fotoRiv = czObtenerImagen(trNombreRivalTr);
+  document.getElementById('tr-cabeza-yo').style.backgroundImage = fotoYo ? `url(${fotoYo.src})` : '';
+  document.getElementById('tr-cabeza-rival').style.backgroundImage = fotoRiv ? `url(${fotoRiv.src})` : '';
+  trIniciarMano();
+}
+
+function trIniciarMano(){
+  trMazo = trCrearMazo();
+  trManoYo = trMazo.slice(0,3);
+  trManoRival = trMazo.slice(3,6);
+  trJugadasRonda = [];
+  trRondaActual = 0;
+  trResultadosRondas = [];
+  trTrucoNivel = 0;
+  trTrucoCantadoPor = null;
+  trEnvidoJugado = false;
+  trEnvidoCadena = [];
+  trFlorYaCantada = false;
+  trPendiente = null;
+  trManoTerminada = false;
+  trTurno = trQuienEsMano;
+  trLog('Nueva mano — reparte ' + (trQuienEsMano==='yo' ? trNombreJugadorTr : trNombreRivalTr) + '.');
+  trRenderizar();
+  if(trTurno === 'rival' && trModoJuego === 'bot') setTimeout(trTurnoBot, 900);
+}
+
+function trAccionesDisponibles(){
+  if(!trJuegoActivo || trManoTerminada) return [];
+  const disponibles = [];
+  const rondaLibre = trRondaActual === 0 && trJugadasRonda.length === 0;
+  if(trTrucoNivel === 0) disponibles.push('truco');
+  else if(trTrucoNivel === 1 && trTrucoCantadoPor !== trTurno) disponibles.push('retruco');
+  else if(trTrucoNivel === 2 && trTrucoCantadoPor !== trTurno) disponibles.push('vale_cuatro');
+  if(rondaLibre && !trEnvidoJugado && trTrucoNivel === 0){
+    disponibles.push('envido', 'real_envido', 'falta_envido');
+  }
+  if(rondaLibre && trFlorHabilitada && !trFlorYaCantada){
+    const mano = trTurno === 'yo' ? trManoYo : trManoRival;
+    if(trTieneFlor(mano)) disponibles.push('flor');
+  }
+  return disponibles;
+}
+
+function trRenderizarBase(){
+  const contMano = document.getElementById('tr-mano-yo');
+  contMano.innerHTML = trManoYo.map((c,i) => `
+    <div class="tr-carta" data-idx="${i}">
+      <div class="tr-carta-num">${TR_NOMBRES_NUM[c.numero] || c.numero}</div>
+      <div>${c.palo}</div>
+    </div>`).join('');
+  if(trTurno === 'yo' && !trPendiente && trJugadasRonda.every(j => j.quien !== 'yo')){
+    contMano.querySelectorAll('.tr-carta').forEach(el=>{
+      el.addEventListener('click', () => trJugarCarta('yo', parseInt(el.dataset.idx)));
+    });
+  }
+
+  document.getElementById('tr-mano-rival').innerHTML = trManoRival.map(() => `<div class="tr-carta tr-dorso"></div>`).join('');
+
+  const jY = trJugadasRonda.find(j => j.quien === 'yo');
+  const jR = trJugadasRonda.find(j => j.quien === 'rival');
+  document.getElementById('tr-jugadas-yo').innerHTML = jY ? `<div class="tr-carta"><div class="tr-carta-num">${TR_NOMBRES_NUM[jY.carta.numero]||jY.carta.numero}</div><div>${jY.carta.palo}</div></div>` : '';
+  document.getElementById('tr-jugadas-rival').innerHTML = jR ? `<div class="tr-carta"><div class="tr-carta-num">${TR_NOMBRES_NUM[jR.carta.numero]||jR.carta.numero}</div><div>${jR.carta.palo}</div></div>` : '';
+
+  document.getElementById('tr-puntos-yo').textContent = trPuntosYo;
+  document.getElementById('tr-puntos-riv').textContent = trPuntosRival;
+
+  const textoCanto = [];
+  if(trTrucoNivel > 0) textoCanto.push(['Truco','Retruco','Vale Cuatro'][trTrucoNivel-1] + ' cantado');
+  if(trEnvidoCadena.length) textoCanto.push(trEnvidoCadena.map(e=>e.etiqueta).join(' → '));
+  document.getElementById('tr-canto-actual').textContent = textoCanto.join(' · ');
+
+  const accJugar = document.getElementById('tr-acciones-jugar');
+  const accCanto = document.getElementById('tr-acciones-canto');
+  if(trPendiente){
+    accJugar.style.display = 'none';
+    accCanto.style.display = 'flex';
+    trRenderizarRespuestas();
+  } else {
+    accCanto.style.display = 'none';
+    accJugar.style.display = trTurno === 'yo' ? 'flex' : 'none';
+    if(trTurno === 'yo'){
+      const disp = trAccionesDisponibles();
+      const etiquetas = { truco:'Truco', retruco:'Retruco', vale_cuatro:'Vale Cuatro' };
+      const btnTruco = document.getElementById('tr-btn-truco');
+      const tipoTruco = disp.find(d => ['truco','retruco','vale_cuatro'].includes(d));
+      btnTruco.style.display = tipoTruco ? 'inline-block' : 'none';
+      if(tipoTruco) btnTruco.textContent = etiquetas[tipoTruco];
+      btnTruco.dataset.tipo = tipoTruco || '';
+      document.getElementById('tr-btn-envido').style.display = disp.includes('envido') ? 'inline-block' : 'none';
+      document.getElementById('tr-btn-real-envido').style.display = disp.includes('real_envido') ? 'inline-block' : 'none';
+      document.getElementById('tr-btn-falta-envido').style.display = disp.includes('falta_envido') ? 'inline-block' : 'none';
+      document.getElementById('tr-btn-flor').style.display = disp.includes('flor') ? 'inline-block' : 'none';
+    }
+  }
+}
+
+function trRenderizarRespuestas(){
+  const cont = document.getElementById('tr-acciones-canto');
+  const p = trPendiente;
+  let botones = `<button class="auth-btn tr-btn-chico" data-resp="quiero">Quiero</button><button class="auth-btn tr-btn-chico" data-resp="no_quiero" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">No quiero</button>`;
+  if(p.tipo === 'truco'){
+    if(p.nivel === 1) botones += `<button class="auth-btn tr-btn-chico" data-resp="retruco">Retruco</button>`;
+    if(p.nivel === 2) botones += `<button class="auth-btn tr-btn-chico" data-resp="vale_cuatro">Vale Cuatro</button>`;
+  }
+  if(p.tipo === 'envido' && p.escalable){
+    if(p.ultimoTipo === 'envido') botones += `<button class="auth-btn tr-btn-chico" data-resp="envido_envido">Envido Envido</button>`;
+    if(['envido','envido_envido'].includes(p.ultimoTipo)) botones += `<button class="auth-btn tr-btn-chico" data-resp="real_envido">Real Envido</button>`;
+    botones += `<button class="auth-btn tr-btn-chico" data-resp="falta_envido">Falta Envido</button>`;
+  }
+  cont.innerHTML = botones;
+  cont.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', () => trResponder(btn.dataset.resp));
+  });
+}
+
+function trCantar(tipo){
+  if(trTurno !== 'yo' || trPendiente) return;
+  if(trModoJuego === 'online' && !trEsHostOnline){ trEnviarAccionInvitado('cantar', tipo); return; }
+  trIniciarCanto(tipo, 'yo');
+}
+
+function trIniciarCanto(tipo, quien){
+  if(tipo === 'flor'){
+    trFlorYaCantada = true;
+    const mano = quien === 'yo' ? trManoYo : trManoRival;
+    const rivalMano = quien === 'yo' ? trManoRival : trManoYo;
+    trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} cantó ¡Flor!`);
+    if(trTieneFlor(rivalMano)){
+      const valMano = trValorFlor(mano), valRival = trValorFlor(rivalMano);
+      const gana = valMano >= valRival ? quien : (quien==='yo'?'rival':'yo');
+      trSumarPuntos(gana, 6);
+      trLog(`Los dos tenían Flor (${valMano} vs ${valRival}). Se lleva 6 puntos ${gana==='yo'?trNombreJugadorTr:trNombreRivalTr}.`);
+    } else {
+      trSumarPuntos(quien, 3);
+    }
+    trPendiente = null;
+    trContinuarTurnoTrasCanto();
+    return;
+  }
+  if(['truco','retruco','vale_cuatro'].includes(tipo)){
+    trTrucoNivel = tipo==='truco'?1:tipo==='retruco'?2:3;
+    trTrucoCantadoPor = quien;
+    trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} cantó ${ {truco:'Truco',retruco:'Retruco',vale_cuatro:'Vale Cuatro'}[tipo] }.`);
+    trPendiente = { tipo:'truco', nivel:trTrucoNivel, quienCanto:quien };
+    trTurno = quien === 'yo' ? 'rival' : 'yo';
+    trRenderizar();
+    if(trTurno === 'rival' && trModoJuego === 'bot') setTimeout(trTurnoBot, 900);
+    return;
+  }
+  const etiquetas = { envido:'Envido', envido_envido:'Envido Envido', real_envido:'Real Envido', falta_envido:'Falta Envido' };
+  const valores = { envido:2, envido_envido:2, real_envido:3 };
+  trEnvidoCadena.push({ tipo, etiqueta:etiquetas[tipo], quien, valor:valores[tipo] || 0 });
+  trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} cantó ${etiquetas[tipo]}.`);
+  trPendiente = { tipo:'envido', ultimoTipo:tipo, quienCanto:quien, escalable: tipo !== 'falta_envido' };
+  trTurno = quien === 'yo' ? 'rival' : 'yo';
+  trRenderizar();
+  if(trTurno === 'rival' && trModoJuego === 'bot') setTimeout(trTurnoBot, 900);
+}
+
+function trResponder(resp){
+  if(trModoJuego === 'online' && !trEsHostOnline){ trEnviarAccionInvitado('responder', resp); return; }
+  trAplicarRespuesta(resp, trTurno);
+}
+
+function trAplicarRespuesta(resp, quien){
+  const p = trPendiente;
+  if(resp === 'no_quiero'){
+    if(p.tipo === 'truco'){
+      const puntosPrevios = p.nivel;
+      trSumarPuntos(p.quienCanto, puntosPrevios);
+      trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} dijo No Quiero. Se lleva ${puntosPrevios} ${p.quienCanto==='yo'?trNombreJugadorTr:trNombreRivalTr}.`);
+      trPendiente = null;
+      trManoTerminada = true;
+      setTimeout(() => trSiguienteManoOFin(), 1400);
+      return;
+    } else {
+      const previos = trEnvidoCadena.slice(0, -1).reduce((s,e)=>s+e.valor, 0);
+      const puntos = Math.max(previos, 1);
+      trSumarPuntos(p.quienCanto, puntos);
+      trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} dijo No Quiero al envido. Se lleva ${puntos} ${p.quienCanto==='yo'?trNombreJugadorTr:trNombreRivalTr}.`);
+      trEnvidoJugado = true;
+      trPendiente = null;
+      trContinuarTurnoTrasCanto();
+      return;
+    }
+  }
+  if(resp === 'quiero'){
+    if(p.tipo === 'truco'){
+      trPendiente = null;
+      trContinuarTurnoTrasCanto();
+    } else {
+      trResolverEnvido();
+    }
+    return;
+  }
+  trIniciarCanto(resp, quien);
+}
+
+function trContinuarTurnoTrasCanto(){
+  trTurno = trJugadasRonda.length === 0 ? trQuienEsRondaLibreTurno() : (trJugadasRonda[0].quien === 'yo' ? 'rival' : 'yo');
+  trRenderizar();
+  if(trTurno === 'rival' && trModoJuego === 'bot') setTimeout(trTurnoBot, 900);
+}
+function trQuienEsRondaLibreTurno(){
+  if(trResultadosRondas.length === 0) return trQuienEsMano;
+  const ultimo = trResultadosRondas[trResultadosRondas.length-1];
+  return ultimo === 'parda' ? trQuienEsMano : ultimo;
+}
+
+function trResolverEnvido(){
+  const valYo = trValorEnvido(trManoYo), valRival = trValorEnvido(trManoRival);
+  const gana = valYo >= valRival ? 'yo' : 'rival';
+  const totalPuntos = trEnvidoCadena.reduce((s,e)=> s + (e.tipo==='falta_envido' ? 0 : e.valor), 0);
+  const tieneFalta = trEnvidoCadena.some(e => e.tipo === 'falta_envido');
+  const puntos = tieneFalta ? (30 - (gana==='yo'?trPuntosYo:trPuntosRival)) : totalPuntos;
+  trSumarPuntos(gana, puntos);
+  trLog(`Envido: ${trNombreJugadorTr} ${valYo} - ${trNombreRivalTr} ${valRival}. Se lleva ${puntos} ${gana==='yo'?trNombreJugadorTr:trNombreRivalTr}.`);
+  trEnvidoJugado = true;
+  trPendiente = null;
+  trContinuarTurnoTrasCanto();
+}
+
+function trIrseAlMazo(){
+  if(trTurno !== 'yo' || trPendiente) return;
+  if(trModoJuego === 'online' && !trEsHostOnline){ trEnviarAccionInvitado('irse_mazo'); return; }
+  const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel;
+  trSumarPuntos('rival', puntos);
+  trLog(`${trNombreJugadorTr} se fue al mazo. Se lleva ${puntos} ${trNombreRivalTr}.`);
+  trManoTerminada = true;
+  setTimeout(() => trSiguienteManoOFin(), 1200);
+}
+
+function trJugarCarta(quien, idx){
+  if(trPendiente || trManoTerminada) return;
+  if(trTurno !== quien) return;
+  if(quien === 'yo' && trModoJuego === 'online' && !trEsHostOnline){ trEnviarAccionInvitado('jugar_carta', null, idx); return; }
+  if(trJugadasRonda.some(j => j.quien === quien)) return;
+  const mano = quien === 'yo' ? trManoYo : trManoRival;
+  const carta = mano.splice(idx, 1)[0];
+  trJugadasRonda.push({ quien, carta });
+  trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} jugó ${trNombreCarta(carta)}.`);
+
+  if(trJugadasRonda.length === 1){
+    trTurno = quien === 'yo' ? 'rival' : 'yo';
+    trRenderizar();
+    if(trTurno === 'rival' && trModoJuego === 'bot') setTimeout(trTurnoBot, 900);
+    return;
+  }
+  trResolverRonda();
+}
+
+function trResolverRonda(){
+  const [j1, j2] = trJugadasRonda;
+  const v1 = trValorTruco(j1.carta), v2 = trValorTruco(j2.carta);
+  let ganadorRonda;
+  if(v1 === v2) ganadorRonda = 'parda';
+  else ganadorRonda = v1 > v2 ? j1.quien : j2.quien;
+  trResultadosRondas.push(ganadorRonda);
+  trLog(ganadorRonda === 'parda' ? 'Ronda empatada (parda).' : `Ganó la ronda ${ganadorRonda==='yo'?trNombreJugadorTr:trNombreRivalTr}.`);
+
+  const ganadorMano = trEvaluarGanadorMano();
+  trJugadasRonda = [];
+  trRondaActual++;
+
+  if(ganadorMano){
+    trManoTerminada = true;
+    trTerminarMano(ganadorMano);
+    return;
+  }
+  trTurno = trQuienEsRondaLibreTurno();
+  trRenderizar();
+  if(trTurno === 'rival' && trModoJuego === 'bot') setTimeout(trTurnoBot, 900);
+}
+
+function trEvaluarGanadorMano(){
+  const r = trResultadosRondas;
+  const cuenta = { yo:0, rival:0 };
+  r.forEach(x => { if(x !== 'parda') cuenta[x]++; });
+  if(cuenta.yo >= 2) return 'yo';
+  if(cuenta.rival >= 2) return 'rival';
+  if(r.length === 3) return r[2] === 'parda' ? trQuienEsMano : r[2];
+  if(r.length === 2 && r[0] === 'parda' && r[1] !== 'parda') return r[1];
+  return null;
+}
+
+function trTerminarMano(ganador){
+  const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel;
+  trSumarPuntos(ganador, puntos);
+  trLog(`${ganador==='yo'?trNombreJugadorTr:trNombreRivalTr} se llevó la mano (${puntos} punto${puntos===1?'':'s'}).`);
+  setTimeout(() => trSiguienteManoOFin(), 1400);
+}
+
+function trSumarPuntos(quien, puntos){
+  if(quien === 'yo') trPuntosYo = Math.min(30, trPuntosYo + puntos);
+  else trPuntosRival = Math.min(30, trPuntosRival + puntos);
+  trRenderizar();
+}
+
+function trSiguienteManoOFin(){
+  if(trPuntosYo >= 30 || trPuntosRival >= 30){
+    trTerminarPartida(trPuntosYo >= 30);
+    return;
+  }
+  trQuienEsMano = trQuienEsMano === 'yo' ? 'rival' : 'yo';
+  trIniciarMano();
+}
+
+async function trTerminarPartida(gane){
+  trJuegoActivo = false;
+  document.getElementById('tr-mesa-wrap').style.display = 'none';
+  document.getElementById('tr-final').style.display = 'block';
+  document.getElementById('tr-final-titulo').textContent = gane ? `🏆 ¡Ganaste ${trPuntosYo} a ${trPuntosRival}!` : `😢 Perdiste ${trPuntosRival} a ${trPuntosYo}`;
+  document.getElementById('tr-final-detalle').textContent = '';
+  document.getElementById('tr-ranking-wrap').style.display = 'block';
+  guardarResultadoMinijuego('truco', gane ? 'victoria' : 'derrota');
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('truco_partidas').insert({ usuario_id:user.id, resultado: gane?'victoria':'derrota', modo:trModoJuego, con_flor:trFlorHabilitada }).then(()=>{}, ()=>{});
+  }
+  trCargarRanking();
+}
+
+async function trCargarRanking(){
+  const cont = document.getElementById('tr-ranking-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: partidas }, { data: perfiles }] = await Promise.all([
+    sbClient.from('truco_partidas').select('usuario_id, resultado'),
+    sbClient.from('perfiles_usuario').select('id, username')
+  ]);
+  if(!partidas || !perfiles){ cont.innerHTML = ''; return; }
+  const nombrePorId = {};
+  perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
+  const victorias = {};
+  partidas.forEach(p=>{ if(p.resultado==='victoria') victorias[p.usuario_id] = (victorias[p.usuario_id]||0)+1; });
+  const lista = Object.entries(victorias)
+    .map(([id,cant]) => ({ nombre:nombrePorId[id]||'???', cant }))
+    .sort((a,b) => b.cant-a.cant)
+    .slice(0,10);
+  cont.innerHTML = lista.length
+    ? lista.map((f,i)=> `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${f.cant} partida${f.cant===1?'':'s'}</b></div>`).join('')
+    : '<div class="cz-online-esperando">Todavía nadie ganó una. ¡Arrancá vos!</div>';
+}
+
+/* --- GrilloBOT como rival (lógica básica de cuándo cantar/aceptar/mentir) --- */
+function trTurnoBot(){
+  if(!trJuegoActivo || trManoTerminada) return;
+  if(trPendiente){ trBotResponder(); return; }
+  if(trTurno !== 'rival') return;
+
+  const disp = trAccionesDisponibles();
+  const valEnvido = trValorEnvido(trManoRival);
+  const sumaTruco = trManoRival.reduce((s,c)=> s+trValorTruco(c), 0);
+
+  if(disp.includes('flor') && Math.random() < 0.9){ trIniciarCanto('flor','rival'); return; }
+  if(disp.includes('envido') && valEnvido >= 27 && Math.random() < 0.6){ trIniciarCanto('envido','rival'); return; }
+  if((disp.includes('truco')||disp.includes('retruco')||disp.includes('vale_cuatro')) && sumaTruco >= 30 && Math.random() < 0.35){
+    const tipo = disp.find(d=>['truco','retruco','vale_cuatro'].includes(d));
+    trIniciarCanto(tipo, 'rival');
+    return;
+  }
+  const jugadaHumano = trJugadasRonda.find(j => j.quien === 'yo');
+  let idx;
+  if(jugadaHumano){
+    const valorAVencer = trValorTruco(jugadaHumano.carta);
+    const candidatos = trManoRival.map((c,i)=>({c,i,v:trValorTruco(c)})).filter(o=>o.v>valorAVencer).sort((a,b)=>a.v-b.v);
+    idx = candidatos.length ? candidatos[0].i : trManoRival.map((c,i)=>({c,i,v:trValorTruco(c)})).sort((a,b)=>a.v-b.v)[0].i;
+  } else {
+    idx = trManoRival.map((c,i)=>({c,i,v:trValorTruco(c)})).sort((a,b)=>a.v-b.v)[0].i;
+  }
+  trJugarCarta('rival', idx);
+}
+
+function trBotResponder(){
+  const p = trPendiente;
+  if(p.tipo === 'truco'){
+    const sumaTruco = trManoRival.reduce((s,c)=> s+trValorTruco(c), 0);
+    if(sumaTruco >= 32) trAplicarRespuesta('quiero','rival');
+    else if(sumaTruco >= 26 && Math.random()<0.4) trAplicarRespuesta('quiero','rival');
+    else trAplicarRespuesta('no_quiero','rival');
+  } else {
+    const valEnvido = trValorEnvido(trManoRival);
+    if(valEnvido >= 29) trAplicarRespuesta('quiero','rival');
+    else if(valEnvido >= 24 && Math.random()<0.5) trAplicarRespuesta('quiero','rival');
+    else trAplicarRespuesta('no_quiero','rival');
+  }
+}
+
+/* --- Armado / navegación --- */
+document.getElementById('tr-input-jugador').addEventListener('change', (e)=>{
+  const nombre = normalizarTexto(e.target.value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+  trNombreJugadorTr = encontrado ? encontrado.Jugador : null;
+  document.getElementById('tr-empezar-btn').disabled = !trNombreJugadorTr;
+  if(trNombreJugadorTr) czObtenerImagen(trNombreJugadorTr);
+});
+document.querySelectorAll('#tr-armado [data-modo]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    trModoJuego = btn.dataset.modo;
+    document.querySelectorAll('#tr-armado [data-modo]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.querySelectorAll('#tr-armado [data-flor]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    trFlorHabilitada = btn.dataset.flor === 'si';
+    document.querySelectorAll('#tr-armado [data-flor]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.getElementById('tr-btn-truco').addEventListener('click', (e)=> trCantar(e.target.dataset.tipo));
+document.getElementById('tr-btn-envido').addEventListener('click', ()=> trCantar('envido'));
+document.getElementById('tr-btn-real-envido').addEventListener('click', ()=> trCantar('real_envido'));
+document.getElementById('tr-btn-falta-envido').addEventListener('click', ()=> trCantar('falta_envido'));
+document.getElementById('tr-btn-flor').addEventListener('click', ()=> trCantar('flor'));
+document.getElementById('tr-btn-irse-mazo').addEventListener('click', trIrseAlMazo);
+document.getElementById('tr-jugar-de-nuevo').addEventListener('click', ()=>{
+  document.getElementById('tr-final').style.display = 'none';
+  document.getElementById('tr-armado').style.display = 'block';
+});
+
+document.getElementById('mini-card-truco').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-truco').style.display = 'block';
+  document.getElementById('tr-armado').style.display = 'block';
+  document.getElementById('tr-online-lobby').style.display = 'none';
+  document.getElementById('tr-mesa-wrap').style.display = 'none';
+  document.getElementById('tr-final').style.display = 'none';
+  trNombreJugadorTr = null;
+  document.getElementById('tr-input-jugador').value = '';
+  document.getElementById('tr-empezar-btn').disabled = true;
+});
+document.getElementById('truco-volver').addEventListener('click', ()=>{
+  trJuegoActivo = false;
+  trSalirModoOnlineTruco();
+  document.getElementById('mini-truco').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+document.getElementById('tr-empezar-btn').addEventListener('click', ()=>{
+  if(trModoJuego === 'online'){ trEntrarSalaEsperaTruco(); }
+  else { trNombreRivalTr = 'GrilloBOT'; trIniciarPartida(); }
+});
+
+/* --- Modo Online (reutiliza el mismo patrón de sala de espera de Cabezones) --- */
+let trLobbyChannel = null, trMatchChannel = null;
+let trEsHostOnline = false;
+let trMiUsernameOnlineTr = null, trOponenteOnlineTr = null;
+
+async function trEntrarSalaEsperaTruco(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user){ alert('Necesitás estar logueado para jugar online.'); return; }
+  trMiUsernameOnlineTr = user.email.replace(DOMINIO_FALSO, '');
+  document.getElementById('tr-armado').style.display = 'none';
+  document.getElementById('tr-online-lobby').style.display = 'block';
+  document.getElementById('tr-online-lista').innerHTML = '<div class="cz-online-esperando">Conectando a la sala…</div>';
+
+  trLobbyChannel = sbClient.channel('truco-lobby-online', { config:{ presence:{ key: trMiUsernameOnlineTr } } });
+  trLobbyChannel.on('presence', { event:'sync' }, ()=> trRenderizarSalaEsperaTruco());
+  trLobbyChannel.on('broadcast', { event:'desafio' }, (msg)=>{
+    if(msg.payload.para === trMiUsernameOnlineTr) trMostrarDesafioTruco(msg.payload);
+  });
+  trLobbyChannel.on('broadcast', { event:'desafio_aceptado' }, (msg)=>{
+    if(msg.payload.para === trMiUsernameOnlineTr) trIniciarOnline(false, msg.payload.roomId, msg.payload.de, msg.payload.cabezaDe);
+  });
+  trLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
+    if(msg.payload.para === trMiUsernameOnlineTr){ alert(msg.payload.de + ' rechazó tu desafío.'); trRenderizarSalaEsperaTruco(); }
+  });
+  trLobbyChannel.subscribe(async (status)=>{
+    if(status === 'SUBSCRIBED') await trLobbyChannel.track({ username: trMiUsernameOnlineTr, cabeza: trNombreJugadorTr });
+  });
+}
+
+function trRenderizarSalaEsperaTruco(){
+  if(!trLobbyChannel) return;
+  const estado = trLobbyChannel.presenceState();
+  const lista = document.getElementById('tr-online-lista');
+  const otros = [];
+  Object.values(estado).forEach(arr => arr.forEach(p=>{ if(p.username !== trMiUsernameOnlineTr) otros.push(p); }));
+  if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
+  lista.innerHTML = otros.map(p => `
+    <div class="cz-online-fila"><b>${p.username}</b><button class="auth-btn" style="max-width:130px; margin:0;" data-desafiar="${p.username}">Desafiar</button></div>
+  `).join('');
+  lista.querySelectorAll('[data-desafiar]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      trLobbyChannel.send({ type:'broadcast', event:'desafio', payload:{ de:trMiUsernameOnlineTr, cabezaDe:trNombreJugadorTr, para:btn.dataset.desafiar } });
+      lista.innerHTML = `<div class="cz-online-esperando">Esperando que ${btn.dataset.desafiar} responda…</div>`;
+    });
+  });
+}
+
+function trMostrarDesafioTruco(payload){
+  document.getElementById('cz-desafio-texto').textContent = `${payload.de} te quiere desafiar a un Truco online. ¿Aceptás?`;
+  document.getElementById('cz-desafio-overlay').style.display = 'block';
+  document.getElementById('cz-desafio-modal').style.display = 'flex';
+  const aceptarBtn = document.getElementById('cz-desafio-aceptar-btn');
+  const rechazarBtn = document.getElementById('cz-desafio-rechazar-btn');
+  const aceptarNuevo = aceptarBtn.cloneNode(true), rechazarNuevo = rechazarBtn.cloneNode(true);
+  aceptarBtn.replaceWith(aceptarNuevo); rechazarBtn.replaceWith(rechazarNuevo);
+  const limpiar = ()=>{ document.getElementById('cz-desafio-overlay').style.display='none'; document.getElementById('cz-desafio-modal').style.display='none'; };
+  aceptarNuevo.addEventListener('click', ()=>{
+    const roomId = 'truco-' + Math.random().toString(36).slice(2,10);
+    trLobbyChannel.send({ type:'broadcast', event:'desafio_aceptado', payload:{ de:trMiUsernameOnlineTr, cabezaDe:trNombreJugadorTr, para:payload.de, roomId } });
+    limpiar();
+    trIniciarOnline(true, roomId, payload.de, payload.cabezaDe);
+  });
+  rechazarNuevo.addEventListener('click', ()=>{
+    trLobbyChannel.send({ type:'broadcast', event:'desafio_rechazado', payload:{ de:trMiUsernameOnlineTr, para:payload.de } });
+    limpiar();
+  });
+}
+
+function trIniciarOnline(esHost, roomId, nombreRival, cabezaRival){
+  trEsHostOnline = esHost;
+  trOponenteOnlineTr = { username: nombreRival, cabeza: cabezaRival };
+  document.getElementById('tr-online-lobby').style.display = 'none';
+  if(trLobbyChannel){ trLobbyChannel.unsubscribe(); trLobbyChannel = null; }
+  trMatchChannel = sbClient.channel('truco-match-' + roomId);
+  trMatchChannel.on('presence', { event:'leave' }, ({ leftPresences })=>{
+    if(!trJuegoActivo) return;
+    if(leftPresences.some(p => p.username === trOponenteOnlineTr.username)){
+      trJuegoActivo = false;
+      document.getElementById('tr-mesa-wrap').style.display = 'none';
+      document.getElementById('tr-final-titulo').textContent = '⚠️ Se desconectó el rival. La partida no cuenta.';
+      document.getElementById('tr-final-detalle').textContent = '';
+      document.getElementById('tr-final').style.display = 'block';
+      document.getElementById('tr-ranking-wrap').style.display = 'none';
+    }
+  });
+  trMatchChannel.on('broadcast', { event:'estado' }, (msg)=> trAplicarEstadoRemotoTruco(msg.payload));
+  trMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{ if(trEsHostOnline) trProcesarAccionRemota(msg.payload); });
+  trMatchChannel.subscribe(async (status)=>{
+    if(status !== 'SUBSCRIBED') return;
+    await trMatchChannel.track({ username: trMiUsernameOnlineTr });
+    trModoJuego = 'online';
+    if(esHost){
+      trNombreRivalTr = cabezaRival;
+      trIniciarPartida();
+    } else {
+      document.getElementById('tr-armado').style.display = 'none';
+      document.getElementById('tr-mesa-wrap').style.display = 'block';
+    }
+  });
+}
+
+function trRenderizar(){
+  trRenderizarBase();
+  if(trModoJuego === 'online' && trEsHostOnline && trMatchChannel && trJuegoActivo){
+    trMatchChannel.send({ type:'broadcast', event:'estado', payload: trEmpaquetarEstado() });
+  }
+}
+
+function trEmpaquetarEstado(){
+  return {
+    manoInvitado: trManoRival, manoHostCant: trManoYo.length,
+    jugadasRonda: trJugadasRonda, puntosInvitado: trPuntosRival, puntosHost: trPuntosYo,
+    turno: trTurno === 'yo' ? 'rival' : 'yo', pendiente: trPendiente, trucoNivel: trTrucoNivel,
+    envidoCadena: trEnvidoCadena, nombreInvitado: trNombreRivalTr, nombreHost: trNombreJugadorTr,
+    manoTerminada: trManoTerminada, juegoActivo: trJuegoActivo,
+    tituloFinal: document.getElementById('tr-final-titulo').textContent,
+    finalVisible: document.getElementById('tr-final').style.display === 'block'
+  };
+}
+
+function trAplicarEstadoRemotoTruco(estado){
+  if(trEsHostOnline) return;
+  trManoYo = estado.manoInvitado;
+  trManoRival = Array(estado.manoHostCant).fill(null);
+  trJugadasRonda = estado.jugadasRonda;
+  trPuntosYo = estado.puntosInvitado; trPuntosRival = estado.puntosHost;
+  trTurno = estado.turno; trPendiente = estado.pendiente; trTrucoNivel = estado.trucoNivel;
+  trEnvidoCadena = estado.envidoCadena;
+  trNombreJugadorTr = estado.nombreInvitado; trNombreRivalTr = estado.nombreHost;
+  trManoTerminada = estado.manoTerminada; trJuegoActivo = estado.juegoActivo;
+  document.getElementById('tr-nombre-yo').innerHTML = `${trNombreJugadorTr}<br><b id="tr-puntos-yo">${trPuntosYo}</b>`;
+  document.getElementById('tr-nombre-riv').innerHTML = `${trNombreRivalTr}<br><b id="tr-puntos-riv">${trPuntosRival}</b>`;
+  const fotoYo = czObtenerImagen(trNombreJugadorTr), fotoRiv = czObtenerImagen(trNombreRivalTr);
+  document.getElementById('tr-cabeza-yo').style.backgroundImage = fotoYo ? `url(${fotoYo.src})` : '';
+  document.getElementById('tr-cabeza-rival').style.backgroundImage = fotoRiv ? `url(${fotoRiv.src})` : '';
+  trRenderizarBase();
+  if(!trJuegoActivo && estado.finalVisible){
+    document.getElementById('tr-mesa-wrap').style.display = 'none';
+    document.getElementById('tr-final-titulo').textContent = estado.tituloFinal;
+    document.getElementById('tr-final').style.display = 'block';
+    document.getElementById('tr-ranking-wrap').style.display = 'none';
+  }
+}
+
+function trProcesarAccionRemota(accion){
+  if(accion.tipo === 'jugar_carta') trJugarCarta('rival', accion.idx);
+  else if(accion.tipo === 'cantar') trIniciarCanto(accion.valor, 'rival');
+  else if(accion.tipo === 'responder') trAplicarRespuesta(accion.valor, 'rival');
+  else if(accion.tipo === 'irse_mazo'){
+    const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel;
+    trSumarPuntos('yo', puntos);
+    trManoTerminada = true;
+    setTimeout(() => trSiguienteManoOFin(), 1200);
+  }
+}
+
+function trEnviarAccionInvitado(tipo, valor, idx){
+  if(!trMatchChannel) return;
+  trMatchChannel.send({ type:'broadcast', event:'accion', payload:{ tipo, valor, idx } });
+}
+
+function trSalirModoOnlineTruco(){
+  if(trLobbyChannel){ trLobbyChannel.unsubscribe(); trLobbyChannel = null; }
+  if(trMatchChannel){ trMatchChannel.unsubscribe(); trMatchChannel = null; }
+  document.getElementById('tr-online-lobby').style.display = 'none';
+}
+document.getElementById('tr-online-salir-btn').addEventListener('click', ()=>{
+  trSalirModoOnlineTruco();
+  document.getElementById('tr-armado').style.display = 'block';
 });
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
