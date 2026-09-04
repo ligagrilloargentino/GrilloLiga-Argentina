@@ -226,8 +226,16 @@
   background-image:
     repeating-linear-gradient(45deg, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 1px, transparent 1px, transparent 11px),
     repeating-linear-gradient(-45deg, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 1px, transparent 1px, transparent 11px);
-  border:6px solid #fff; border-radius:2px;
-  box-shadow:0 6px 14px rgba(0,0,0,.28);
+  border-top:9px solid #fff;
+  border-left:7px solid #fff;
+  border-right:7px solid #fff;
+  border-bottom:none;
+  border-radius:12px 12px 0 0;
+  box-shadow:0 4px 10px rgba(0,0,0,.22), inset 0 26px 30px -18px rgba(0,0,0,.35);
+}
+.pen-arco::after{
+  content:''; position:absolute; left:-7px; right:-7px; bottom:-3px; height:3px;
+  background:#fff; border-radius:2px; box-shadow:0 2px 4px rgba(0,0,0,.3);
 }
 .pen-zona{
   background:transparent; border:none; cursor:pointer; transition:background .15s;
@@ -481,7 +489,7 @@
   font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:24px;
   text-align:center; color:var(--red); margin:4px 0 10px;
 }
-#pm-canvas{ display:block; width:100%; height:auto; background:#0d1117; }
+#pm-canvas{ display:block; width:100%; height:auto; background:#EDE2C7; }
 #pm-touch-controles{ justify-content:center; }
 .pm-touch-cruz{
   position:relative; width:150px; height:150px; margin:0 auto;
@@ -4322,8 +4330,8 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
 
 /* ---------- MINIJUEGO: GRILLOMAN (Pac-Man temático) ---------- */
 const PM_TAM_CELDA = 24;
-const PM_COLORES_RIVALES = ['#B33B22', '#3a6b2f', '#3a6ea5', '#a87d1f'];
-const PM_COLORES_RIVALES_OSCURO = ['#7a2415', '#26491f', '#254a6e', '#725415'];
+const PM_COLORES_RIVALES = ['#B33B22', '#4A6B43', '#9C7A2E', '#57503F'];
+const PM_COLORES_RIVALES_OSCURO = ['#8A2C19', '#375030', '#725A22', '#3a352a'];
 
 let pmCtx = null;
 let pmLaberinto = null;       // grilla [fila][col], 1=camino 0=pared
@@ -4535,9 +4543,9 @@ function pmDibujarPared(ctx, r, c){
   ctx.lineTo(x, y+rad);
   ctx.quadraticCurveTo(x, y, x+rad, y);
   ctx.closePath();
-  ctx.fillStyle = '#B33B22';
+  ctx.fillStyle = '#161310';
   ctx.fill();
-  ctx.strokeStyle = '#e2603f';
+  ctx.strokeStyle = '#3a352a';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 }
@@ -4547,7 +4555,7 @@ function pmDibujar(){
   const ctx = pmCtx;
   const anchoPx = pmAnchoGrilla*PM_TAM_CELDA, altoPx = pmAltoGrilla*PM_TAM_CELDA;
   ctx.clearRect(0,0, anchoPx, altoPx);
-  ctx.fillStyle = '#0d1117';
+  ctx.fillStyle = '#EDE2C7';
   ctx.fillRect(0,0, anchoPx, altoPx);
 
   for(let r=0; r<pmAltoGrilla; r++){
@@ -4573,7 +4581,7 @@ function pmDibujar(){
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(pulso, pulso);
-    ctx.shadowColor = 'rgba(255,255,255,.8)'; ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(179,59,34,.6)'; ctx.shadowBlur = 8;
     ctx.font = (PM_TAM_CELDA*0.8)+'px sans-serif';
     ctx.fillText('🏆', 0, 0);
     ctx.restore();
