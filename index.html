@@ -5351,7 +5351,7 @@ function trIniciarMano(){
 function trAccionesDisponibles(){
   if(!trJuegoActivo || trManoTerminada) return [];
   const disponibles = [];
-  const rondaLibre = trRondaActual === 0 && trJugadasRonda.length === 0;
+  const rondaLibre = trRondaActual === 0 && trJugadasRonda.length < 2;
   if(trTrucoNivel === 0) disponibles.push('truco');
   else if(trTrucoNivel === 1 && trTrucoCantadoPor !== trTurno) disponibles.push('retruco');
   else if(trTrucoNivel === 2 && trTrucoCantadoPor !== trTurno) disponibles.push('vale_cuatro');
