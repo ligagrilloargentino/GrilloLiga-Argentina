@@ -3869,7 +3869,7 @@ function gdAdivinar(){
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
 gdCargarListaJugadores();
-['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador'].forEach(id=>{
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) crearAutocompletado(el);
 });
