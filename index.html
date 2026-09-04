@@ -293,6 +293,8 @@
   color:var(--text-dim); cursor:pointer; white-space:nowrap;
 }
 .sim-auto-lista input[type="checkbox"]{ accent-color:var(--red); cursor:pointer; }
+.sim-auto-capitanes-fila{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+@media (max-width:500px){ .sim-auto-capitanes-fila{ grid-template-columns:1fr; } }
 .sim-buscador{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
 .autocomplete-dropdown{
   display:none; position:absolute; z-index:9500; max-height:220px; overflow-y:auto;
@@ -1416,12 +1418,6 @@ footer{
       <h2>Minijuegos</h2>
     </div>
 
-    <div class="cg-pistas-col" style="margin-bottom:20px;">
-      <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
-      <div class="gd-intro" style="margin:6px 0 10px;">Los que más victorias sumaron contra el GrilloBOT, entre todos los minijuegos.</div>
-      <div id="ranking-minijuegos-lista"></div>
-    </div>
-
     <div class="mini-juegos-lista" id="mini-lista">
       <div class="mini-juego-card" id="mini-card-rps">
         <h3>✊✋✌️ Piedra, papel o tijera</h3>
@@ -1447,6 +1443,12 @@ footer{
         <h3>📰 Crucigrillo</h3>
         <p>Crucigrama de fútbol y cultura general.</p>
       </div>
+    </div>
+
+    <div class="cg-pistas-col" style="margin-top:24px;">
+      <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
+      <div class="gd-intro" style="margin:6px 0 10px;">Los que más victorias sumaron contra el GrilloBOT, entre todos los minijuegos.</div>
+      <div id="ranking-minijuegos-lista"></div>
     </div>
 
     <div id="mini-rps" style="display:none;">
@@ -1782,6 +1784,13 @@ footer{
     <div class="sim-auto-wrap">
       <div class="mg-opciones-titulo">⚡ Armado automático — tildá quiénes van a jugar hoy</div>
       <div id="sim-auto-lista" class="sim-auto-lista"></div>
+      <div id="sim-auto-capitanes" class="sim-auto-capitanes" style="display:none;">
+        <div class="mg-opciones-titulo" style="margin-top:10px;">Con 12 o más, podés elegir un capitán fijo para cada lado (opcional)</div>
+        <div class="sim-auto-capitanes-fila">
+          <div class="auth-field"><label>⚪ Capitán Claro</label><select id="sim-capitan-claro"><option value="">Sin capitán fijo</option></select></div>
+          <div class="auth-field"><label>⚫ Capitán Oscuro</label><select id="sim-capitan-oscuro"><option value="">Sin capitán fijo</option></select></div>
+        </div>
+      </div>
       <button class="auth-btn" id="sim-auto-armar-btn" style="max-width:280px; margin:10px auto 0;">Armar equipos parejos con los tildados</button>
     </div>
 
@@ -3572,7 +3581,28 @@ function simPoblarListaAuto(){
   cont.innerHTML = [...DATA.estadisticas].sort((a,b)=> a.Jugador.localeCompare(b.Jugador)).map(r => `
     <label><input type="checkbox" value="${r.Jugador}"> ${r.Jugador}</label>
   `).join('');
+  cont.querySelectorAll('input[type="checkbox"]').forEach(chk=>{
+    chk.addEventListener('change', simActualizarCapitanesDisponibles);
+  });
   simAutoListaPoblada = true;
+}
+
+function simActualizarCapitanesDisponibles(){
+  const seleccionados = Array.from(document.querySelectorAll('#sim-auto-lista input:checked')).map(el => el.value);
+  const wrap = document.getElementById('sim-auto-capitanes');
+  const selClaro = document.getElementById('sim-capitan-claro');
+  const selOscuro = document.getElementById('sim-capitan-oscuro');
+  if(seleccionados.length < 12){
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  const valorClaroActual = selClaro.value, valorOscuroActual = selOscuro.value;
+  const opciones = '<option value="">Sin capitán fijo</option>' + seleccionados.map(n => `<option value="${n}">${n}</option>`).join('');
+  selClaro.innerHTML = opciones;
+  selOscuro.innerHTML = opciones;
+  if(seleccionados.includes(valorClaroActual)) selClaro.value = valorClaroActual;
+  if(seleccionados.includes(valorOscuroActual)) selOscuro.value = valorOscuroActual;
 }
 
 function simArmarEquiposAuto(){
@@ -3581,18 +3611,28 @@ function simArmarEquiposAuto(){
     alert('Tildá al menos 10 jugadores (mínimo 5 por equipo).');
     return;
   }
-  // ordena por nivel (goles+asistencias por partido) de mejor a peor
-  const conNivel = seleccionados
-    .map(nombre => simObtenerDatosJugador(nombre))
-    .filter(Boolean)
-    .sort((a,b) => b.ataque - a.ataque);
+  const capitanClaro = document.getElementById('sim-capitan-claro').value;
+  const capitanOscuro = document.getElementById('sim-capitan-oscuro').value;
+  const usaCapitanes = seleccionados.length >= 12 && capitanClaro && capitanOscuro && capitanClaro !== capitanOscuro;
 
-  // draft "serpiente": A,B,B,A,A,B,B,A... para que ambos equipos queden parejos en nivel
+  const conNivel = seleccionados.map(nombre => simObtenerDatosJugador(nombre)).filter(Boolean);
+
   const claro = [], oscuro = [];
-  conNivel.forEach((j,i)=>{
-    const vueltaPar = Math.floor(i/2) % 2 === 0;
-    const vaAClaro = (i % 2 === 0) === vueltaPar;
-    if(vaAClaro) claro.push(j.nombre); else oscuro.push(j.nombre);
+  let sumaClaro = 0, sumaOscuro = 0;
+  let resto = conNivel;
+
+  if(usaCapitanes){
+    const jc = conNivel.find(j => j.nombre === capitanClaro);
+    const jo = conNivel.find(j => j.nombre === capitanOscuro);
+    claro.push(jc.nombre); sumaClaro = jc.ataque;
+    oscuro.push(jo.nombre); sumaOscuro = jo.ataque;
+    resto = conNivel.filter(j => j.nombre !== capitanClaro && j.nombre !== capitanOscuro);
+  }
+
+  // reparto parejo: cada jugador que queda va al equipo con menor suma de nivel acumulada hasta el momento
+  resto.sort((a,b) => b.ataque - a.ataque).forEach(j=>{
+    if(sumaClaro <= sumaOscuro){ claro.push(j.nombre); sumaClaro += j.ataque; }
+    else { oscuro.push(j.nombre); sumaOscuro += j.ataque; }
   });
 
   simEquipoClaro = claro;
