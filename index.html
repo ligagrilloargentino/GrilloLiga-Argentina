@@ -1614,6 +1614,10 @@ footer{
         <h3>🃏 Truco Grillero</h3>
         <p>El truco argentino de siempre, contra el GrilloBOT o contra otro usuario online.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-carrera">
+        <h3>🌟 Modo Carrera</h3>
+        <p>Jugá tu partido de prueba y soñá con que te vea un ojeador. (En construcción — Fase 1)</p>
+      </div>
 
       <div class="cg-pistas-col" style="margin-top:10px;">
         <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
@@ -2119,6 +2123,51 @@ footer{
           <div class="gd-pista-titulo">🏆 Más partidas ganadas</div>
           <div id="tr-ranking-lista" style="margin-top:8px;"></div>
         </div>
+      </div>
+    </div>
+
+    <div id="mini-carrera" style="display:none;">
+      <span class="rps-volver" id="carrera-volver">← Volver a Minijuegos</span>
+      <h2 class="pm-titulo-juego">🌟 Modo Carrera</h2>
+      <div class="gd-intro" id="carrera-intro-fase">Jugá un partido de prueba tomando decisiones. Si tenés buen rendimiento, vas a un segundo partido — esta vez con un ojeador mirándote.</div>
+
+      <div id="cr-creacion">
+        <div class="cz-elegir-fila" style="margin-bottom:6px;">
+          <div class="cz-elegir-col" style="max-width:320px; margin:0 auto;">
+            <div class="mg-opciones-titulo">Elegí tu jugador</div>
+            <input type="text" id="cr-input-jugador" placeholder="Buscá tu cabeza de la Grillo Liga…">
+          </div>
+        </div>
+        <div class="mg-opciones-col" style="max-width:420px; margin:0 auto;">
+          <div class="mg-opciones-titulo">Tu posición</div>
+          <div class="mg-toggle-row">
+            <button class="mg-toggle active" data-pos="delantero">⚔️ Delantero</button>
+            <button class="mg-toggle" data-pos="mediocampista">🎯 Mediocampista</button>
+            <button class="mg-toggle" data-pos="defensor">🛡️ Defensor</button>
+            <button class="mg-toggle" data-pos="arquero">🧤 Arquero</button>
+          </div>
+        </div>
+        <button class="auth-btn" id="cr-empezar-btn" style="max-width:240px; margin:16px auto 0;" disabled>Jugar el partido de prueba</button>
+      </div>
+
+      <div id="cr-partido-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>Partido<br><b id="cr-num-partido">1</b></div>
+          <div class="pen-ronda">Decisión <b id="cr-num-decision">1</b>/<span id="cr-total-decisiones">9</span></div>
+          <div>Rendimiento<br><b id="cr-puntaje">0</b></div>
+        </div>
+        <div id="cr-situacion" class="cg-pistas-col" style="max-width:520px; margin:0 auto 14px;">
+          <div class="gd-pista-titulo" id="cr-situacion-titulo"></div>
+          <div class="gd-intro" id="cr-situacion-texto" style="margin-top:6px;"></div>
+        </div>
+        <div id="cr-opciones" class="tr-acciones"></div>
+        <div id="cr-feedback" class="pen-resultado"></div>
+      </div>
+
+      <div id="cr-final" style="display:none;">
+        <div class="pen-final-titulo" id="cr-final-titulo"></div>
+        <div class="gd-intro" id="cr-final-detalle" style="text-align:center;"></div>
+        <button class="auth-btn" id="cr-reintentar-btn" style="max-width:240px; margin:14px auto 0;"></button>
       </div>
     </div>
   </section>
@@ -3916,7 +3965,7 @@ function gdAdivinar(){
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
 gdCargarListaJugadores();
-['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador'].forEach(id=>{
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) crearAutocompletado(el);
 });
@@ -5984,6 +6033,190 @@ function trSalirModoOnlineTruco(){
 document.getElementById('tr-online-salir-btn').addEventListener('click', ()=>{
   trSalirModoOnlineTruco();
   document.getElementById('tr-armado').style.display = 'block';
+});
+
+/* ---------- MODO CARRERA (Fase 1: partidos de prueba + ojeador) ---------- */
+const CR_UMBRAL_PARTIDO1 = 90;
+const CR_UMBRAL_PARTIDO2 = 140;
+const CR_TOTAL_DECISIONES = 9;
+
+const CR_SITUACIONES = [
+  { titulo:'Recibís la pelota en el medio', texto:'Tenés espacio para jugar.', opciones:[
+    { etiqueta:'Pase simple', prob:0.85, puntosExito:5, puntosFallo:-2 },
+    { etiqueta:'Gambetear a un rival', prob:0.5, puntosExito:15, puntosFallo:-5 },
+    { etiqueta:'Pared con un compañero', prob:0.7, puntosExito:10, puntosFallo:-3 }
+  ]},
+  { titulo:'Mano a mano con el arquero', texto:'Quedaste solo frente al arco.', opciones:[
+    { etiqueta:'Definir cruzado', prob:0.55, puntosExito:25, puntosFallo:-8 },
+    { etiqueta:'Picarla por arriba', prob:0.4, puntosExito:30, puntosFallo:-10 },
+    { etiqueta:'Pasarla a un compañero solo', prob:0.75, puntosExito:15, puntosFallo:-3 }
+  ]},
+  { titulo:'Te marcan de cerca en el área rival', texto:'Un defensor te pisa los talones.', opciones:[
+    { etiqueta:'Aguantar la pelota', prob:0.6, puntosExito:10, puntosFallo:-5 },
+    { etiqueta:'Probar una rabona', prob:0.3, puntosExito:25, puntosFallo:-10 },
+    { etiqueta:'Devolverla atrás', prob:0.9, puntosExito:3, puntosFallo:0 }
+  ]},
+  { titulo:'Contraataque 2 contra 1', texto:'Salís rápido con un compañero.', opciones:[
+    { etiqueta:'Pasar al compañero libre', prob:0.7, puntosExito:18, puntosFallo:-5 },
+    { etiqueta:'Definir vos mismo', prob:0.45, puntosExito:22, puntosFallo:-8 }
+  ]},
+  { titulo:'El rival avanza con la pelota', texto:'Tenés que decidir cómo frenarlo.', opciones:[
+    { etiqueta:'Entrada fuerte', prob:0.5, puntosExito:15, puntosFallo:-10 },
+    { etiqueta:'Marca de contención', prob:0.75, puntosExito:10, puntosFallo:-3 },
+    { etiqueta:'Cubrir el espacio', prob:0.85, puntosExito:6, puntosFallo:-1 }
+  ]},
+  { titulo:'Tiro libre a favor, cerca del área', texto:'Te toca patear.', opciones:[
+    { etiqueta:'Buscar el ángulo', prob:0.4, puntosExito:25, puntosFallo:-8 },
+    { etiqueta:'Pasarla corta', prob:0.7, puntosExito:10, puntosFallo:-3 },
+    { etiqueta:'Centrar al área', prob:0.6, puntosExito:15, puntosFallo:-5 }
+  ]},
+  { titulo:'Córner a favor', texto:'Se viene el centro.', opciones:[
+    { etiqueta:'Cabecear al primer palo', prob:0.5, puntosExito:18, puntosFallo:-5 },
+    { etiqueta:'Quedarte afuera por el rebote', prob:0.65, puntosExito:10, puntosFallo:-3 }
+  ]},
+  { titulo:'Rebote suelto en el área rival', texto:'La pelota queda picando.', opciones:[
+    { etiqueta:'Remate de primera', prob:0.45, puntosExito:22, puntosFallo:-8 },
+    { etiqueta:'Controlar y definir', prob:0.6, puntosExito:18, puntosFallo:-6 }
+  ]},
+  { titulo:'Estás cansado, quedan pocos minutos', texto:'El partido se define ahora.', opciones:[
+    { etiqueta:'Seguir exigiéndote', prob:0.5, puntosExito:15, puntosFallo:-8 },
+    { etiqueta:'Jugar simple y cuidar la pelota', prob:0.8, puntosExito:6, puntosFallo:-2 }
+  ]},
+  { titulo:'Pelota dividida en el medio', texto:'Los dos van con todo.', opciones:[
+    { etiqueta:'Entrar decidido', prob:0.55, puntosExito:12, puntosFallo:-6 },
+    { etiqueta:'Anticipar con inteligencia', prob:0.7, puntosExito:10, puntosFallo:-3 }
+  ]},
+  { titulo:'Espacio para pegarle de media distancia', texto:'Nadie te presiona todavía.', opciones:[
+    { etiqueta:'Probar el remate', prob:0.35, puntosExito:25, puntosFallo:-8 },
+    { etiqueta:'Buscar mejor posición', prob:0.65, puntosExito:10, puntosFallo:-3 }
+  ]},
+  { titulo:'Último minuto, tu equipo necesita un gol', texto:'Se juega todo o nada.', opciones:[
+    { etiqueta:'Tirarte al ataque con todo', prob:0.4, puntosExito:25, puntosFallo:-10 },
+    { etiqueta:'Jugar con cabeza fría', prob:0.65, puntosExito:12, puntosFallo:-4 }
+  ]},
+  { titulo:'El árbitro cobra una infracción dudosa a tu favor', texto:'Estás cerca del área rival.', opciones:[
+    { etiqueta:'Discutirle para sacar tarjeta', prob:0.35, puntosExito:10, puntosFallo:-15 },
+    { etiqueta:'Enfocarte en el próximo lance', prob:0.9, puntosExito:3, puntosFallo:0 }
+  ]}
+];
+
+let crJugadorNombre = null;
+let crPosicion = 'delantero';
+let crPartidoActual = 1;
+let crDecisionActual = 0;
+let crPuntaje = 0;
+let crPuntajePartido1 = 0;
+let crSituacionesElegidas = [];
+
+document.getElementById('cr-input-jugador').addEventListener('change', (e)=>{
+  const nombre = normalizarTexto(e.target.value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+  crJugadorNombre = encontrado ? encontrado.Jugador : null;
+  document.getElementById('cr-empezar-btn').disabled = !crJugadorNombre;
+  if(crJugadorNombre) czObtenerImagen(crJugadorNombre);
+});
+document.querySelectorAll('#cr-creacion [data-pos]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    crPosicion = btn.dataset.pos;
+    document.querySelectorAll('#cr-creacion [data-pos]').forEach(b => b.classList.toggle('active', b === btn));
+  });
+});
+document.getElementById('cr-empezar-btn').addEventListener('click', ()=> crIniciarPartido(1));
+
+function crIniciarPartido(numero){
+  crPartidoActual = numero;
+  crDecisionActual = 0;
+  crPuntaje = 0;
+  crSituacionesElegidas = [...CR_SITUACIONES].sort(() => Math.random()-0.5).slice(0, CR_TOTAL_DECISIONES);
+  document.getElementById('cr-creacion').style.display = 'none';
+  document.getElementById('cr-final').style.display = 'none';
+  document.getElementById('cr-partido-wrap').style.display = 'block';
+  document.getElementById('cr-num-partido').textContent = numero;
+  document.getElementById('cr-total-decisiones').textContent = CR_TOTAL_DECISIONES;
+  document.getElementById('carrera-intro-fase').textContent = numero === 2
+    ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este partido. ¡Mostrá tu mejor versión!'
+    : 'Jugá tu partido de prueba tomando decisiones.';
+  crMostrarDecision();
+}
+
+function crMostrarDecision(){
+  document.getElementById('cr-num-decision').textContent = crDecisionActual + 1;
+  document.getElementById('cr-puntaje').textContent = crPuntaje;
+  document.getElementById('cr-feedback').textContent = '';
+  const sit = crSituacionesElegidas[crDecisionActual];
+  document.getElementById('cr-situacion-titulo').textContent = sit.titulo;
+  document.getElementById('cr-situacion-texto').textContent = sit.texto;
+  document.getElementById('cr-opciones').innerHTML = sit.opciones.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.etiqueta}</button>`).join('');
+  document.querySelectorAll('#cr-opciones button').forEach(btn=>{
+    btn.addEventListener('click', () => crElegirOpcion(parseInt(btn.dataset.idx)));
+  });
+}
+
+function crElegirOpcion(idx){
+  const sit = crSituacionesElegidas[crDecisionActual];
+  const opcion = sit.opciones[idx];
+  const exito = Math.random() < opcion.prob;
+  const puntos = exito ? opcion.puntosExito : opcion.puntosFallo;
+  crPuntaje = Math.max(0, crPuntaje + puntos);
+  document.getElementById('cr-puntaje').textContent = crPuntaje;
+  document.getElementById('cr-feedback').textContent = exito
+    ? `✅ ¡Te salió bien! (${puntos>=0?'+':''}${puntos} de rendimiento)`
+    : `❌ No te salió (${puntos} de rendimiento)`;
+  document.querySelectorAll('#cr-opciones button').forEach(b => b.disabled = true);
+  setTimeout(()=>{
+    crDecisionActual++;
+    if(crDecisionActual >= CR_TOTAL_DECISIONES){ crTerminarPartido(); }
+    else { crMostrarDecision(); }
+  }, 1400);
+}
+
+async function crGuardarEstado(fase, puntajeCampo, puntajeValor){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  const payload = { usuario_id:user.id, nombre_jugador:crJugadorNombre, posicion:crPosicion, fase, actualizado_en:new Date().toISOString() };
+  payload[puntajeCampo] = puntajeValor;
+  await sbClient.from('carrera_estado').upsert(payload).then(()=>{}, ()=>{});
+}
+
+async function crTerminarPartido(){
+  document.getElementById('cr-partido-wrap').style.display = 'none';
+  document.getElementById('cr-final').style.display = 'block';
+  if(crPartidoActual === 1){
+    crPuntajePartido1 = crPuntaje;
+    const paso = crPuntaje >= CR_UMBRAL_PARTIDO1;
+    document.getElementById('cr-final-titulo').textContent = paso ? '🎉 ¡Rendimiento destacado!' : '😕 No alcanzó';
+    document.getElementById('cr-final-detalle').textContent = paso
+      ? `Terminaste con ${crPuntaje} puntos de rendimiento. ¡Te ganaste un segundo partido de prueba, esta vez con un ojeador mirándote!`
+      : `Terminaste con ${crPuntaje} puntos de rendimiento (necesitabas al menos ${CR_UMBRAL_PARTIDO1}). Podés volver a intentarlo.`;
+    document.getElementById('cr-reintentar-btn').textContent = paso ? 'Jugar el segundo partido' : 'Reintentar el primer partido';
+    document.getElementById('cr-reintentar-btn').onclick = paso ? () => crIniciarPartido(2) : () => crIniciarPartido(1);
+    await crGuardarEstado(paso ? 'partido2' : 'partido1', 'puntaje_partido1', crPuntaje);
+  } else {
+    const paso = crPuntaje >= CR_UMBRAL_PARTIDO2;
+    document.getElementById('cr-final-titulo').textContent = paso ? '🌟 ¡El ojeador quedó impresionado!' : '😕 El ojeador no quedó convencido';
+    document.getElementById('cr-final-detalle').textContent = paso
+      ? `Terminaste con ${crPuntaje} puntos de rendimiento. Pronto vas a poder ver las ofertas de clubes que te llegaron — esa parte del Modo Carrera (ligas, clubes y ofertas reales) la vamos a sumar en la próxima etapa.`
+      : `Terminaste con ${crPuntaje} puntos de rendimiento (necesitabas al menos ${CR_UMBRAL_PARTIDO2}). Podés volver a intentar este segundo partido.`;
+    document.getElementById('cr-reintentar-btn').textContent = 'Reintentar el segundo partido';
+    document.getElementById('cr-reintentar-btn').onclick = () => crIniciarPartido(2);
+    await crGuardarEstado(paso ? 'ojeador_ok' : 'ojeador_no', 'puntaje_partido2', crPuntaje);
+  }
+}
+
+document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-carrera').style.display = 'block';
+  document.getElementById('cr-creacion').style.display = 'block';
+  document.getElementById('cr-partido-wrap').style.display = 'none';
+  document.getElementById('cr-final').style.display = 'none';
+  document.getElementById('carrera-intro-fase').textContent = 'Jugá un partido de prueba tomando decisiones. Si tenés buen rendimiento, vas a un segundo partido — esta vez con un ojeador mirándote.';
+  crJugadorNombre = null;
+  document.getElementById('cr-input-jugador').value = '';
+  document.getElementById('cr-empezar-btn').disabled = true;
+});
+document.getElementById('carrera-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-carrera').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
 });
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
