@@ -297,7 +297,7 @@
 @media (max-width:500px){ .sim-auto-capitanes-fila{ grid-template-columns:1fr; } }
 .sim-buscador{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
 .autocomplete-dropdown{
-  display:none; position:absolute; z-index:9500; max-height:220px; overflow-y:auto;
+  display:none; position:absolute; z-index:9500; max-height:280px; overflow-y:auto;
   background:var(--card); border:1px solid var(--line-strong); border-radius:6px;
   box-shadow:0 6px 16px rgba(0,0,0,.18); margin-top:2px;
 }
@@ -3415,7 +3415,7 @@ function crearAutocompletado(input){
     if(texto){
       coincidencias = LISTA_NOMBRES_JUGADORES.filter(n => normalizarTexto(n).includes(texto));
     }
-    coincidencias = coincidencias.slice(0, 8);
+    coincidencias = coincidencias.slice(0, 50);
     if(!coincidencias.length){ ocultar(); return; }
     dropdown.innerHTML = coincidencias.map(n => `<div class="autocomplete-item">${n}</div>`).join('');
     dropdown.querySelectorAll('.autocomplete-item').forEach((el,i)=>{
