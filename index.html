@@ -281,7 +281,30 @@
   .gd-pistas-partidos{ grid-template-columns:1fr; }
 }
 /* ---------- MINIJUEGO: SIMULADOR DE PARTIDOS ---------- */
+.sim-auto-wrap{
+  background:var(--card2); border:1px solid var(--line); border-radius:8px;
+  padding:14px 16px; margin-bottom:16px;
+}
+.sim-auto-lista{
+  display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; max-height:180px; overflow-y:auto;
+}
+.sim-auto-lista label{
+  display:flex; align-items:center; gap:5px; font-family:'Lora',serif; font-size:12.5px;
+  color:var(--text-dim); cursor:pointer; white-space:nowrap;
+}
+.sim-auto-lista input[type="checkbox"]{ accent-color:var(--red); cursor:pointer; }
 .sim-buscador{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.autocomplete-dropdown{
+  display:none; position:absolute; z-index:9500; max-height:220px; overflow-y:auto;
+  background:var(--card); border:1px solid var(--line-strong); border-radius:6px;
+  box-shadow:0 6px 16px rgba(0,0,0,.18); margin-top:2px;
+}
+.autocomplete-item{
+  padding:8px 12px; font-family:'Lora',serif; font-size:13px; color:var(--text);
+  cursor:pointer; border-bottom:1px solid var(--line);
+}
+.autocomplete-item:last-child{ border-bottom:none; }
+.autocomplete-item:hover{ background:var(--card2); color:var(--red); }
 .sim-buscador input{
   flex:1; min-width:160px; box-sizing:border-box; padding:9px 12px; border-radius:20px;
   border:1px solid var(--line-strong); background:var(--card); color:var(--text);
@@ -1477,8 +1500,7 @@ footer{
       <span class="rps-volver" id="grillodle-volver">← Volver a Minijuegos</span>
       <div class="gd-intro">Adiviná qué jugador de la Grillo Liga es el misterioso. Escribí un nombre y fijate las pistas. El misterioso siempre es alguien con 2 partidos jugados o más.</div>
       <div class="gd-input-row">
-        <input type="text" id="gd-input" list="gd-lista-jugadores" placeholder="Escribí un nombre…">
-        <datalist id="gd-lista-jugadores"></datalist>
+        <input type="text" id="gd-input" placeholder="Escribí un nombre…">
         <button id="gd-adivinar">Adivinar</button>
       </div>
       <div id="gd-mensaje-ganaste" style="display:none;"></div>
@@ -1525,7 +1547,7 @@ footer{
         </div>
 
         <div class="sim-buscador">
-          <input type="text" id="mg-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
+          <input type="text" id="mg-buscador-input" placeholder="Buscá un jugador para agregar…">
           <button data-equipo="claro">Agregar a Claro (<span id="mg-count-claro">0</span>/6)</button>
           <button data-equipo="oscuro">Agregar a Oscuro (<span id="mg-count-oscuro">0</span>/6)</button>
         </div>
@@ -1608,11 +1630,11 @@ footer{
         <div class="cz-elegir-fila" id="cz-elegir-fila">
           <div class="cz-elegir-col">
             <div class="mg-opciones-titulo" id="cz-label-j1">Jugador 1</div>
-            <input type="text" id="cz-input-j1" list="gd-lista-jugadores" placeholder="Buscá tu cabeza…">
+            <input type="text" id="cz-input-j1" placeholder="Buscá tu cabeza…">
           </div>
           <div class="cz-elegir-col" id="cz-elegir-col-j2">
             <div class="mg-opciones-titulo" id="cz-label-j2">GrilloBOT</div>
-            <input type="text" id="cz-input-j2" list="gd-lista-jugadores" placeholder="Buscá la cabeza rival…">
+            <input type="text" id="cz-input-j2" placeholder="Buscá la cabeza rival…">
           </div>
         </div>
 
@@ -1757,8 +1779,14 @@ footer{
       de cada uno. Ojo: es un cálculo aproximado, no refleja el nivel real de juego de cada uno. 😉
     </div>
 
+    <div class="sim-auto-wrap">
+      <div class="mg-opciones-titulo">⚡ Armado automático — tildá quiénes van a jugar hoy</div>
+      <div id="sim-auto-lista" class="sim-auto-lista"></div>
+      <button class="auth-btn" id="sim-auto-armar-btn" style="max-width:280px; margin:10px auto 0;">Armar equipos parejos con los tildados</button>
+    </div>
+
     <div class="sim-buscador">
-      <input type="text" id="sim-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
+      <input type="text" id="sim-buscador-input" placeholder="Buscá un jugador para agregar…">
       <button data-equipo="claro">Agregar a Equipo Claro</button>
       <button data-equipo="oscuro">Agregar a Equipo Oscuro</button>
     </div>
@@ -3350,9 +3378,48 @@ let gdReveladasSi = [];
 let gdReveladasNo = [];
 let gdGanado = false;
 
+let LISTA_NOMBRES_JUGADORES = [];
 function gdCargarListaJugadores(){
-  const lista = document.getElementById('gd-lista-jugadores');
-  lista.innerHTML = DATA.estadisticas.map(r => `<option value="${r.Jugador}">`).join('');
+  LISTA_NOMBRES_JUGADORES = DATA.estadisticas.map(r => r.Jugador);
+}
+
+function crearAutocompletado(input){
+  const dropdown = document.createElement('div');
+  dropdown.className = 'autocomplete-dropdown';
+  document.body.appendChild(dropdown);
+
+  function posicionar(){
+    const r = input.getBoundingClientRect();
+    dropdown.style.left = r.left + 'px';
+    dropdown.style.top = (r.bottom + window.scrollY + 2) + 'px';
+    dropdown.style.width = r.width + 'px';
+  }
+  function ocultar(){ dropdown.style.display = 'none'; }
+  function elegir(nombre){
+    input.value = nombre;
+    ocultar();
+    input.dispatchEvent(new Event('change', { bubbles:true }));
+  }
+  function mostrarSugerencias(){
+    const texto = normalizarTexto(input.value.trim());
+    let coincidencias = LISTA_NOMBRES_JUGADORES;
+    if(texto){
+      coincidencias = LISTA_NOMBRES_JUGADORES.filter(n => normalizarTexto(n).includes(texto));
+    }
+    coincidencias = coincidencias.slice(0, 8);
+    if(!coincidencias.length){ ocultar(); return; }
+    dropdown.innerHTML = coincidencias.map(n => `<div class="autocomplete-item">${n}</div>`).join('');
+    dropdown.querySelectorAll('.autocomplete-item').forEach((el,i)=>{
+      el.addEventListener('mousedown', (e)=>{ e.preventDefault(); elegir(coincidencias[i]); });
+    });
+    posicionar();
+    dropdown.style.display = 'block';
+  }
+  input.addEventListener('input', mostrarSugerencias);
+  input.addEventListener('focus', mostrarSugerencias);
+  input.addEventListener('blur', ()=> setTimeout(ocultar, 120));
+  window.addEventListener('resize', ()=>{ if(dropdown.style.display === 'block') posicionar(); });
+  window.addEventListener('scroll', ()=>{ if(dropdown.style.display === 'block') posicionar(); }, true);
 }
 
 function gdJugadorTieneFoto(nombre){
@@ -3445,6 +3512,11 @@ function gdAdivinar(){
 
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
+gdCargarListaJugadores();
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) crearAutocompletado(el);
+});
 document.getElementById('gd-nuevo-juego').addEventListener('click', gdNuevoJuego);
 
 document.getElementById('mini-card-grillodle').addEventListener('click', ()=>{
@@ -3491,6 +3563,42 @@ function simRenderEquipos(){
     el.addEventListener('click', ()=>{ simEquipoOscuro.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
   });
   simActualizarBotonSimular();
+}
+
+let simAutoListaPoblada = false;
+function simPoblarListaAuto(){
+  if(simAutoListaPoblada) return;
+  const cont = document.getElementById('sim-auto-lista');
+  cont.innerHTML = [...DATA.estadisticas].sort((a,b)=> a.Jugador.localeCompare(b.Jugador)).map(r => `
+    <label><input type="checkbox" value="${r.Jugador}"> ${r.Jugador}</label>
+  `).join('');
+  simAutoListaPoblada = true;
+}
+
+function simArmarEquiposAuto(){
+  const seleccionados = Array.from(document.querySelectorAll('#sim-auto-lista input:checked')).map(el => el.value);
+  if(seleccionados.length < 10){
+    alert('Tildá al menos 10 jugadores (mínimo 5 por equipo).');
+    return;
+  }
+  // ordena por nivel (goles+asistencias por partido) de mejor a peor
+  const conNivel = seleccionados
+    .map(nombre => simObtenerDatosJugador(nombre))
+    .filter(Boolean)
+    .sort((a,b) => b.ataque - a.ataque);
+
+  // draft "serpiente": A,B,B,A,A,B,B,A... para que ambos equipos queden parejos en nivel
+  const claro = [], oscuro = [];
+  conNivel.forEach((j,i)=>{
+    const vueltaPar = Math.floor(i/2) % 2 === 0;
+    const vaAClaro = (i % 2 === 0) === vueltaPar;
+    if(vaAClaro) claro.push(j.nombre); else oscuro.push(j.nombre);
+  });
+
+  simEquipoClaro = claro;
+  simEquipoOscuro = oscuro;
+  document.getElementById('sim-resultado-container').style.display = 'none';
+  simRenderEquipos();
 }
 
 function simAgregarJugador(equipo){
@@ -3599,10 +3707,12 @@ document.getElementById('sim-simular-btn').addEventListener('click', simSimularP
 
 function simAbrirPantalla(){
   gdCargarListaJugadores();
+  simPoblarListaAuto();
   simEquipoClaro = []; simEquipoOscuro = [];
   document.getElementById('sim-resultado-container').style.display = 'none';
   simRenderEquipos();
 }
+document.getElementById('sim-auto-armar-btn').addEventListener('click', simArmarEquiposAuto);
 
 /* ---------- MINIJUEGO: METEGOL 2D ---------- */
 const MG_ANCHO = 800, MG_ALTO = 500;
