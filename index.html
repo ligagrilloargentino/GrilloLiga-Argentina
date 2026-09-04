@@ -1236,6 +1236,7 @@ footer{
   <button class="tab-btn" data-tab="foro">💬 Foro general</button>
   <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
   <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
+  <button class="tab-btn" data-tab="simulador">🔮 Simulador</button>
   <button class="tab-btn" data-tab="usuarios">🙋 Usuarios</button>
 </nav>
 
@@ -1393,6 +1394,12 @@ footer{
       <h2>Minijuegos</h2>
     </div>
 
+    <div class="cg-pistas-col" style="margin-bottom:20px;">
+      <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
+      <div class="gd-intro" style="margin:6px 0 10px;">Los que más victorias sumaron contra el GrilloBOT, entre todos los minijuegos.</div>
+      <div id="ranking-minijuegos-lista"></div>
+    </div>
+
     <div class="mini-juegos-lista" id="mini-lista">
       <div class="mini-juego-card" id="mini-card-rps">
         <h3>✊✋✌️ Piedra, papel o tijera</h3>
@@ -1401,10 +1408,6 @@ footer{
       <div class="mini-juego-card" id="mini-card-grillodle">
         <h3>🔤 Grillodle</h3>
         <p>Adiviná al jugador misterioso.</p>
-      </div>
-      <div class="mini-juego-card" id="mini-card-simulador">
-        <h3>🔮 Simulador de partidos</h3>
-        <p>Armá 2 equipos y mirá qué resultado saldría.</p>
       </div>
       <div class="mini-juego-card" id="mini-card-penales">
         <h3>🥅 Penales</h3>
@@ -1497,47 +1500,6 @@ footer{
         </div>
       </div>
       <button class="auth-btn" id="gd-nuevo-juego" style="max-width:220px; margin:18px auto 0;">Jugar de nuevo</button>
-    </div>
-
-    <div id="mini-simulador" style="display:none;">
-      <span class="rps-volver" id="simulador-volver">← Volver a Minijuegos</span>
-      <div class="gd-intro">
-        Armá dos equipos (mínimo 5 jugadores por lado) y mirá qué resultado saldría, según las estadísticas
-        de cada uno. Ojo: es un cálculo aproximado, no refleja el nivel real de juego de cada uno. 😉
-      </div>
-
-      <div class="sim-buscador">
-        <input type="text" id="sim-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
-        <button data-equipo="claro">Agregar a Equipo Claro</button>
-        <button data-equipo="oscuro">Agregar a Equipo Oscuro</button>
-      </div>
-
-      <div class="sim-equipos">
-        <div class="sim-equipo">
-          <div class="sim-equipo-titulo">⚪ Equipo Claro</div>
-          <ul id="sim-lista-claro"></ul>
-        </div>
-        <div class="sim-equipo">
-          <div class="sim-equipo-titulo">⚫ Equipo Oscuro</div>
-          <ul id="sim-lista-oscuro"></ul>
-        </div>
-      </div>
-
-      <button class="auth-btn" id="sim-simular-btn" style="max-width:260px; margin:18px auto 0;" disabled>Simular partido</button>
-
-      <div id="sim-resultado-container" style="display:none;">
-        <div class="sim-marcador-final" id="sim-marcador-final"></div>
-        <div class="sim-relato" id="sim-relato"></div>
-        <div class="sim-tabla-resumen">
-          <h4>📊 Resumen del partido</h4>
-          <div class="table-wrap">
-            <table id="sim-resumen-tabla">
-              <thead><tr><th>Jugador</th><th>Equipo</th><th>Goles</th><th>Asistencias</th></tr></thead>
-              <tbody id="sim-resumen-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div id="mini-metegol" style="display:none;">
@@ -1794,6 +1756,49 @@ footer{
       <span class="pill-count" id="usuarios-count"></span>
     </div>
     <div id="usuarios-lista"></div>
+  </section>
+
+  <section id="panel-simulador" class="panel">
+    <div class="section-head">
+      <h2>🔮 Simulador de partidos</h2>
+    </div>
+    <div class="gd-intro">
+      Armá dos equipos (mínimo 5 jugadores por lado) y mirá qué resultado saldría, según las estadísticas
+      de cada uno. Ojo: es un cálculo aproximado, no refleja el nivel real de juego de cada uno. 😉
+    </div>
+
+    <div class="sim-buscador">
+      <input type="text" id="sim-buscador-input" list="gd-lista-jugadores" placeholder="Buscá un jugador para agregar…">
+      <button data-equipo="claro">Agregar a Equipo Claro</button>
+      <button data-equipo="oscuro">Agregar a Equipo Oscuro</button>
+    </div>
+
+    <div class="sim-equipos">
+      <div class="sim-equipo">
+        <div class="sim-equipo-titulo">⚪ Equipo Claro</div>
+        <ul id="sim-lista-claro"></ul>
+      </div>
+      <div class="sim-equipo">
+        <div class="sim-equipo-titulo">⚫ Equipo Oscuro</div>
+        <ul id="sim-lista-oscuro"></ul>
+      </div>
+    </div>
+
+    <button class="auth-btn" id="sim-simular-btn" style="max-width:260px; margin:18px auto 0;" disabled>Simular partido</button>
+
+    <div id="sim-resultado-container" style="display:none;">
+      <div class="sim-marcador-final" id="sim-marcador-final"></div>
+      <div class="sim-relato" id="sim-relato"></div>
+      <div class="sim-tabla-resumen">
+        <h4>📊 Resumen del partido</h4>
+        <div class="table-wrap">
+          <table id="sim-resumen-tabla">
+            <thead><tr><th>Jugador</th><th>Equipo</th><th>Goles</th><th>Asistencias</th></tr></thead>
+            <tbody id="sim-resumen-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -2140,6 +2145,8 @@ tabBtns.forEach(btn=>{
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     cerrarCajonMenu();
     if(btn.dataset.tab === 'usuarios') cargarListaUsuarios();
+    if(btn.dataset.tab === 'simulador') simAbrirPantalla();
+    if(btn.dataset.tab === 'minijuegos') renderRankingMinijuegos();
   });
 });
 const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
@@ -3141,6 +3148,40 @@ function rpsActualizarMarcador(){
 }
 rpsActualizarMarcador();
 
+async function guardarResultadoMinijuego(juego, resultado){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  await sbClient.from('minijuegos_resultados').insert({ usuario_id: user.id, juego, resultado }).then(()=>{}, ()=>{});
+}
+
+async function renderRankingMinijuegos(){
+  const cont = document.getElementById('ranking-minijuegos-lista');
+  if(!cont) return;
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando ranking…</div>';
+  const [{ data: resultados }, { data: perfiles }] = await Promise.all([
+    sbClient.from('minijuegos_resultados').select('usuario_id, resultado'),
+    sbClient.from('perfiles_usuario').select('id, username')
+  ]);
+  if(!resultados || !perfiles){ cont.innerHTML = ''; return; }
+  const nombrePorId = {};
+  perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
+  const victorias = {};
+  resultados.forEach(r=>{
+    if(r.resultado === 'victoria') victorias[r.usuario_id] = (victorias[r.usuario_id]||0) + 1;
+  });
+  const lista = Object.entries(victorias)
+    .map(([id, cant]) => ({ nombre: nombrePorId[id] || '???', cant }))
+    .sort((a,b) => b.cant - a.cant)
+    .slice(0, 10);
+  if(!lista.length){
+    cont.innerHTML = '<div class="cz-online-esperando">Todavía nadie ganó ningún minijuego. ¡Sé el primero!</div>';
+    return;
+  }
+  cont.innerHTML = lista.map((f,i) => `
+    <div class="votos-fila"><span>${i+1}. ${f.nombre}</span><b>${f.cant} victoria${f.cant===1?'':'s'}</b></div>
+  `).join('');
+}
+
 function rpsElegirLinea(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 function jugarRPS(jugadaJugador){
@@ -3165,6 +3206,8 @@ function jugarRPS(jugadaJugador){
     resultado = 'bot';
     rpsScoreBot++;
   }
+
+  guardarResultadoMinijuego('rps', resultado === 'jugador' ? 'victoria' : resultado === 'bot' ? 'derrota' : 'empate');
 
   localStorage.setItem('grilloliga_rps_jugador', rpsScoreJugador);
   localStorage.setItem('grilloliga_rps_bot', rpsScoreBot);
@@ -3309,6 +3352,7 @@ function penMostrarFinal(){
     ? `🏆 ¡Ganaste ${penScoreJugador} a ${penScoreBot}!`
     : `😢 Perdiste ${penScoreBot} a ${penScoreJugador}`;
   document.getElementById('pen-final-titulo').textContent = titulo;
+  guardarResultadoMinijuego('penales', penScoreJugador > penScoreBot ? 'victoria' : 'derrota');
 }
 
 document.querySelectorAll('.pen-zona').forEach(zona=>{
@@ -3420,6 +3464,7 @@ function gdAdivinar(){
     msg.style.display = 'block';
     input.disabled = true;
     document.getElementById('gd-adivinar').disabled = true;
+    guardarResultadoMinijuego('grillodle', 'victoria');
     return;
   }
 
@@ -3575,23 +3620,17 @@ function simSimularPartido(){
   document.getElementById('sim-resultado-container').style.display = 'block';
 }
 
-document.querySelectorAll('#mini-simulador .sim-buscador button').forEach(btn=>{
+document.querySelectorAll('#panel-simulador .sim-buscador button').forEach(btn=>{
   btn.addEventListener('click', ()=> simAgregarJugador(btn.dataset.equipo));
 });
 document.getElementById('sim-simular-btn').addEventListener('click', simSimularPartido);
 
-document.getElementById('mini-card-simulador').addEventListener('click', ()=>{
-  document.getElementById('mini-lista').style.display = 'none';
-  document.getElementById('mini-simulador').style.display = 'block';
+function simAbrirPantalla(){
   gdCargarListaJugadores();
   simEquipoClaro = []; simEquipoOscuro = [];
   document.getElementById('sim-resultado-container').style.display = 'none';
   simRenderEquipos();
-});
-document.getElementById('simulador-volver').addEventListener('click', ()=>{
-  document.getElementById('mini-simulador').style.display = 'none';
-  document.getElementById('mini-lista').style.display = 'flex';
-});
+}
 
 /* ---------- MINIJUEGO: METEGOL 2D ---------- */
 const MG_ANCHO = 800, MG_ALTO = 500;
@@ -3793,6 +3832,9 @@ function mgGol(equipoQueAnota){
     const ganador = mgScoreClaro > mgScoreOscuro ? 'Claro' : 'Oscuro';
     document.getElementById('mg-final-titulo').textContent = `🏆 ¡Ganó Equipo ${ganador}! ${mgScoreClaro} - ${mgScoreOscuro}`;
     document.getElementById('mg-final').style.display = 'block';
+    if(mgModo === 'bot'){
+      guardarResultadoMinijuego('metegol', mgScoreClaro > mgScoreOscuro ? 'victoria' : 'derrota');
+    }
     return;
   }
 
@@ -4690,6 +4732,9 @@ function czTerminarPartido(){
   else titulo = `🤝 Empate ${czMarcadorJ1} - ${czMarcadorJ2}`;
   document.getElementById('cz-final-titulo').textContent = titulo;
   document.getElementById('cz-final').style.display = 'block';
+  if(czModo === 'bot'){
+    guardarResultadoMinijuego('cabezones', czMarcadorJ1 > czMarcadorJ2 ? 'victoria' : czMarcadorJ2 > czMarcadorJ1 ? 'derrota' : 'empate');
+  }
 }
 
 function czColisionEntreJugadores(){
