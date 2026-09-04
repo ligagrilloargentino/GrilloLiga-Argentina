@@ -1792,6 +1792,7 @@ footer{
         </div>
       </div>
       <button class="auth-btn" id="sim-auto-armar-btn" style="max-width:280px; margin:10px auto 0;">Armar equipos parejos con los tildados</button>
+      <button class="auth-btn" id="sim-auto-reintentar-btn" style="max-width:280px; margin:8px auto 0; display:none; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🔄 Probar otra combinación pareja</button>
     </div>
 
     <div class="sim-buscador">
@@ -3629,16 +3630,22 @@ function simArmarEquiposAuto(){
     resto = conNivel.filter(j => j.nombre !== capitanClaro && j.nombre !== capitanOscuro);
   }
 
-  // reparto parejo: cada jugador que queda va al equipo con menor suma de nivel acumulada hasta el momento
-  resto.sort((a,b) => b.ataque - a.ataque).forEach(j=>{
-    if(sumaClaro <= sumaOscuro){ claro.push(j.nombre); sumaClaro += j.ataque; }
-    else { oscuro.push(j.nombre); sumaOscuro += j.ataque; }
-  });
+  // reparto parejo: cada jugador que queda va al equipo con menor suma de nivel acumulada hasta el momento.
+  // se le suma un poco de azar al orden para que cada intento pueda salir una combinación distinta,
+  // sin perder de vista que los niveles muy distintos casi no se mezclan.
+  resto
+    .map(j => ({ ...j, ordenAzar: j.ataque + (Math.random()-0.5)*0.5 }))
+    .sort((a,b) => b.ordenAzar - a.ordenAzar)
+    .forEach(j=>{
+      if(sumaClaro <= sumaOscuro){ claro.push(j.nombre); sumaClaro += j.ataque; }
+      else { oscuro.push(j.nombre); sumaOscuro += j.ataque; }
+    });
 
   simEquipoClaro = claro;
   simEquipoOscuro = oscuro;
   document.getElementById('sim-resultado-container').style.display = 'none';
   simRenderEquipos();
+  document.getElementById('sim-auto-reintentar-btn').style.display = 'block';
 }
 
 function simAgregarJugador(equipo){
@@ -3750,9 +3757,11 @@ function simAbrirPantalla(){
   simPoblarListaAuto();
   simEquipoClaro = []; simEquipoOscuro = [];
   document.getElementById('sim-resultado-container').style.display = 'none';
+  document.getElementById('sim-auto-reintentar-btn').style.display = 'none';
   simRenderEquipos();
 }
 document.getElementById('sim-auto-armar-btn').addEventListener('click', simArmarEquiposAuto);
+document.getElementById('sim-auto-reintentar-btn').addEventListener('click', simArmarEquiposAuto);
 
 /* ---------- MINIJUEGO: METEGOL 2D ---------- */
 const MG_ANCHO = 800, MG_ALTO = 500;
