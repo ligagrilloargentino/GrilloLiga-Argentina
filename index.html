@@ -329,6 +329,8 @@
 }
 .sim-equipo li:last-child{ border-bottom:none; }
 .sim-equipo li span.sim-quitar{ color:var(--red); cursor:pointer; font-weight:700; padding:0 4px; }
+.sim-equipo li span.sim-mover{ color:var(--text-dim); cursor:pointer; font-weight:700; padding:0 4px; }
+.sim-equipo li span.sim-mover:hover{ color:var(--red); }
 .sim-marcador-final{
   text-align:center; font-family:'Playfair Display',serif; font-weight:900; font-size:30px;
   color:var(--red); margin:20px 0 14px;
@@ -3564,13 +3566,27 @@ function simActualizarBotonSimular(){
 function simRenderEquipos(){
   const ulClaro = document.getElementById('sim-lista-claro');
   const ulOscuro = document.getElementById('sim-lista-oscuro');
-  ulClaro.innerHTML = simEquipoClaro.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="claro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
-  ulOscuro.innerHTML = simEquipoOscuro.map((n,i) => `<li>${n} <span class="sim-quitar" data-equipo="oscuro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulClaro.innerHTML = simEquipoClaro.map((n,i) => `<li>${n} <span class="sim-mover" data-equipo="claro" data-idx="${i}" title="Pasar al Equipo Oscuro">⇄</span> <span class="sim-quitar" data-equipo="claro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
+  ulOscuro.innerHTML = simEquipoOscuro.map((n,i) => `<li>${n} <span class="sim-mover" data-equipo="oscuro" data-idx="${i}" title="Pasar al Equipo Claro">⇄</span> <span class="sim-quitar" data-equipo="oscuro" data-idx="${i}">✕</span></li>`).join('') || '<li style="color:var(--text-dimmer); font-style:italic;">Sin jugadores todavía</li>';
   ulClaro.querySelectorAll('.sim-quitar').forEach(el=>{
     el.addEventListener('click', ()=>{ simEquipoClaro.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
   });
   ulOscuro.querySelectorAll('.sim-quitar').forEach(el=>{
     el.addEventListener('click', ()=>{ simEquipoOscuro.splice(parseInt(el.dataset.idx),1); simRenderEquipos(); simActualizarBotonSimular(); });
+  });
+  ulClaro.querySelectorAll('.sim-mover').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const [nombre] = simEquipoClaro.splice(parseInt(el.dataset.idx),1);
+      simEquipoOscuro.push(nombre);
+      simRenderEquipos(); simActualizarBotonSimular();
+    });
+  });
+  ulOscuro.querySelectorAll('.sim-mover').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const [nombre] = simEquipoOscuro.splice(parseInt(el.dataset.idx),1);
+      simEquipoClaro.push(nombre);
+      simRenderEquipos(); simActualizarBotonSimular();
+    });
   });
   simActualizarBotonSimular();
 }
