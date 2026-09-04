@@ -477,6 +477,10 @@
 .cz-touch-controles button:active{ transform:scale(0.92); }
 
 /* ---------- MINIJUEGO: GRILLOMAN (Pac-Man) ---------- */
+.pm-titulo-juego{
+  font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:24px;
+  text-align:center; color:var(--red); margin:4px 0 10px;
+}
 #pm-canvas{ display:block; width:100%; height:auto; background:#0d1117; }
 #pm-touch-controles{ justify-content:center; }
 .pm-touch-cruz{
@@ -1817,10 +1821,17 @@ footer{
 
     <div id="mini-pacman" style="display:none;">
       <span class="rps-volver" id="pacman-volver">← Volver a Minijuegos</span>
+      <h2 class="pm-titulo-juego">🦗 GrilloMan</h2>
       <div class="gd-intro">Comé todas las pelotitas ⚽ esquivando a los rivales. Los 🏆 los vuelven vulnerables por unos segundos — ¡comételos también! Los laberintos se generan solos y se ponen más difíciles a medida que avanzás.</div>
 
       <div id="pm-armado">
-        <button class="auth-btn" id="pm-empezar-btn" style="max-width:220px; margin:10px auto 18px;">Empezar a jugar</button>
+        <div class="cz-elegir-fila" style="margin-bottom:6px;">
+          <div class="cz-elegir-col" style="max-width:320px; margin:0 auto;">
+            <div class="mg-opciones-titulo">Elegí tu jugador</div>
+            <input type="text" id="pm-input-jugador" placeholder="Buscá tu cabeza de la Grillo Liga…">
+          </div>
+        </div>
+        <button class="auth-btn" id="pm-empezar-btn" style="max-width:220px; margin:10px auto 18px;" disabled>Empezar a jugar</button>
         <div class="cg-pistas-col" id="pm-ranking-wrap">
           <div class="gd-pista-titulo">🏆 Mejores puntajes</div>
           <div id="pm-ranking-lista" style="margin-top:8px;"></div>
@@ -3650,7 +3661,7 @@ function gdAdivinar(){
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
 gdCargarListaJugadores();
-['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input'].forEach(id=>{
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) crearAutocompletado(el);
 });
@@ -4328,6 +4339,7 @@ let pmJuegoActivo = false;
 let pmUltimoTick = 0;
 let pmMejorPropio = 0;
 let pmDirTecla = null;
+let pmNombreJugador = null;
 
 function pmGenerarLaberinto(cols, filas){
   const anchoGrilla = 2*cols+1, altoGrilla = 2*filas+1;
@@ -4605,13 +4617,25 @@ function pmDibujar(){
 
   const jx = pmJugador.c*PM_TAM_CELDA+PM_TAM_CELDA/2, jy = pmJugador.r*PM_TAM_CELDA+PM_TAM_CELDA/2;
   const bob = Math.sin(Date.now()/110) * 1.5;
+  const foto = pmNombreJugador ? czObtenerImagen(pmNombreJugador) : null;
   ctx.save();
   ctx.translate(jx, jy+bob);
   if(pmJugador.dir === 'izquierda') ctx.scale(-1,1);
   ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 4;
-  ctx.font = (PM_TAM_CELDA*0.85)+'px sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('🦗', 0, 0);
+  if(foto && foto.complete && foto.naturalWidth > 0){
+    const radioFoto = PM_TAM_CELDA*0.44;
+    ctx.beginPath();
+    ctx.arc(0, 0, radioFoto, 0, Math.PI*2);
+    ctx.strokeStyle = '#B33B22'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.save();
+    ctx.clip();
+    ctx.drawImage(foto, -radioFoto, -radioFoto, radioFoto*2, radioFoto*2);
+    ctx.restore();
+  } else {
+    ctx.font = (PM_TAM_CELDA*0.85)+'px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('🦗', 0, 0);
+  }
   ctx.restore();
 }
 
@@ -4697,7 +4721,17 @@ document.getElementById('mini-card-pacman').addEventListener('click', ()=>{
   document.getElementById('pm-armado').style.display = 'block';
   document.getElementById('pm-juego-wrap').style.display = 'none';
   document.getElementById('pm-final').style.display = 'none';
+  pmNombreJugador = null;
+  document.getElementById('pm-input-jugador').value = '';
+  document.getElementById('pm-empezar-btn').disabled = true;
   pmCargarRanking();
+});
+document.getElementById('pm-input-jugador').addEventListener('change', (e)=>{
+  const nombre = normalizarTexto(e.target.value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
+  pmNombreJugador = encontrado ? encontrado.Jugador : null;
+  document.getElementById('pm-empezar-btn').disabled = !pmNombreJugador;
+  if(pmNombreJugador) czObtenerImagen(pmNombreJugador);
 });
 document.getElementById('pacman-volver').addEventListener('click', ()=>{
   pmJuegoActivo = false;
