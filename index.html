@@ -676,6 +676,12 @@ header.top{
   align-items:center; justify-content:center; padding:20px;
 }
 .pp-fila{ font-family:'Lora',serif; font-size:13px; color:var(--text); margin-top:10px; line-height:1.4; }
+.pp-insignias{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.insignia{
+  font-size:20px; opacity:0.25; filter:grayscale(1); cursor:help;
+  transition:opacity .15s, filter .15s;
+}
+.insignia-desbloqueada{ opacity:1; filter:none; }
 .pp-fila b{ color:var(--text-dim); font-weight:700; }
 .fm-user-clickeable{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
 .fm-user-clickeable:hover{ color:var(--red); }
@@ -1205,6 +1211,8 @@ footer{
           <div class="umm-fila"><b>Usuario:</b> <span id="umm-usuario">—</span></div>
           <div class="umm-fila" id="umm-club-fila"><b>Hincha de:</b> <span id="umm-club">—</span></div>
           <div class="umm-fila" id="umm-jugador-fila"><b>Jugador favorito:</b> <span id="umm-jugador">—</span></div>
+          <div class="umm-fila"><b>Insignias:</b></div>
+          <div class="pp-insignias" id="umm-insignias"></div>
           <div class="umm-editar" id="umm-editar-form" style="display:none;">
             <div class="auth-field"><label>Jugador favorito</label><select id="umm-editar-jugador"></select></div>
             <div class="auth-field"><label>Club de fútbol favorito</label><input type="text" id="umm-editar-club"></div>
@@ -1236,6 +1244,8 @@ footer{
     <div class="pp-fila"><b>⚽ Jugador favorito:</b> <span id="pp-jugador">—</span></div>
     <div class="pp-fila"><b>🛡️ Hincha de:</b> <span id="pp-club">—</span></div>
     <div class="pp-fila"><b>📅 En la GrilloLiga desde:</b> <span id="pp-fecha">—</span></div>
+    <div class="pp-fila"><b>🏅 Insignias:</b></div>
+    <div class="pp-insignias" id="pp-insignias"></div>
   </div>
 </div>
 
@@ -2083,6 +2093,9 @@ if(LOGIN_REQUERIDO && !modoInvitado){
             document.getElementById('umm-editar-jugador').value = perfil.jugador_favorito || '';
           }
         });
+      calcularInsigniasUsuario(data.user.id).then(insignias => {
+        renderizarInsignias(document.getElementById('umm-insignias'), insignias);
+      });
 
       const selEditarJugador = document.getElementById('umm-editar-jugador');
       if(selEditarJugador.options.length === 0){
@@ -2458,17 +2471,56 @@ async function obtenerUsernameActual(){
   return usuarioActualUsername;
 }
 
+const INSIGNIAS_DEF = [
+  { id:'primeros_pasos', icono:'🥉', nombre:'Primeros pasos', desc:'Jugó su primer minijuego' },
+  { id:'coleccionista', icono:'🎯', nombre:'Coleccionista', desc:'Ganó al menos 1 vez en los 5 minijuegos distintos' },
+  { id:'diez_mochila', icono:'💯', nombre:'Diez en la mochila', desc:'10 victorias totales sumadas entre todos los juegos' },
+  { id:'campeon_temporada', icono:'🏆', nombre:'Campeón de Temporada', desc:'Ganó una Grillo Temporada' },
+  { id:'campeon_copa', icono:'🏅', nombre:'Campeón de Copa', desc:'Ganó una Grillo Copa' },
+  { id:'cabezon_fierro', icono:'⚽', nombre:'Cabezón de fierro', desc:'5 victorias en Cabezones' }
+];
+
+async function calcularInsigniasUsuario(userId){
+  const [{ data: resultados }, { data: historial }] = await Promise.all([
+    sbClient.from('minijuegos_resultados').select('juego, resultado').eq('usuario_id', userId),
+    sbClient.from('cabezones_historial').select('modo, fue_campeon').eq('usuario_id', userId)
+  ]);
+  const r = resultados || [];
+  const h = historial || [];
+  const juegosGanados = new Set(r.filter(x => x.resultado === 'victoria').map(x => x.juego));
+  const totalVictorias = r.filter(x => x.resultado === 'victoria').length;
+  const victoriasCabezones = r.filter(x => x.juego === 'cabezones' && x.resultado === 'victoria').length;
+
+  const desbloqueadas = new Set();
+  if(r.length >= 1) desbloqueadas.add('primeros_pasos');
+  if(juegosGanados.size >= 5) desbloqueadas.add('coleccionista');
+  if(totalVictorias >= 10) desbloqueadas.add('diez_mochila');
+  if(h.some(x => x.modo === 'temporada' && x.fue_campeon)) desbloqueadas.add('campeon_temporada');
+  if(h.some(x => x.modo === 'copa' && x.fue_campeon)) desbloqueadas.add('campeon_copa');
+  if(victoriasCabezones >= 5) desbloqueadas.add('cabezon_fierro');
+  return desbloqueadas;
+}
+
+function renderizarInsignias(contenedor, desbloqueadas){
+  contenedor.innerHTML = INSIGNIAS_DEF.map(ins => `
+    <span class="insignia${desbloqueadas.has(ins.id) ? ' insignia-desbloqueada' : ''}" title="${ins.nombre}: ${ins.desc}${desbloqueadas.has(ins.id) ? '' : ' (todavía no)'}">${ins.icono}</span>
+  `).join('');
+}
+
 async function mostrarPerfilPublico(username){
-  const { data } = await sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito, creado_en').eq('username', username).maybeSingle();
+  const { data } = await sbClient.from('perfiles_usuario').select('id, username, club_favorito, jugador_favorito, creado_en').eq('username', username).maybeSingle();
   document.getElementById('pp-username').textContent = username;
   if(data){
     document.getElementById('pp-jugador').textContent = data.jugador_favorito || '—';
     document.getElementById('pp-club').textContent = data.club_favorito || '—';
     document.getElementById('pp-fecha').textContent = data.creado_en ? formatearFechaForo(data.creado_en).split(' ')[0] : '—';
+    const insignias = await calcularInsigniasUsuario(data.id);
+    renderizarInsignias(document.getElementById('pp-insignias'), insignias);
   } else {
     document.getElementById('pp-jugador').textContent = '—';
     document.getElementById('pp-club').textContent = '—';
     document.getElementById('pp-fecha').textContent = '—';
+    document.getElementById('pp-insignias').innerHTML = '';
   }
   document.getElementById('perfil-publico-overlay').style.display = 'block';
   document.getElementById('perfil-publico-modal').style.display = 'flex';
