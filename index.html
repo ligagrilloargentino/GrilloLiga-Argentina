@@ -529,8 +529,25 @@
 
 /* ---------- MINIJUEGO: TRUCO GRILLERO ---------- */
 #tr-mesa{
-  background:linear-gradient(180deg, #4A6B43, #375030); border-radius:12px;
-  padding:16px; max-width:520px; margin:0 auto; box-shadow:0 4px 14px rgba(0,0,0,.25);
+  position:relative; overflow:hidden;
+  background:
+    radial-gradient(ellipse at center, #4A6B43 0%, #375030 75%, #2b3f25 100%);
+  background-color:#375030;
+  border-radius:14px;
+  padding:16px; max-width:520px; margin:0 auto;
+  border:10px solid #6b4a2d;
+  box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 0 40px rgba(0,0,0,.35);
+}
+#tr-mesa::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 7px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 7px);
+}
+#tr-mesa::after{
+  content:'GRILLOLIGA'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-14deg);
+  font-family:'Playfair Display',Georgia,serif; font-weight:900; font-size:38px; letter-spacing:3px;
+  color:rgba(247,241,225,.05); pointer-events:none; white-space:nowrap;
 }
 .tr-fila-rival, .tr-fila-yo{ display:flex; align-items:center; gap:10px; }
 .tr-fila-rival{ margin-bottom:10px; }
