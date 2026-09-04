@@ -4330,8 +4330,8 @@ document.getElementById('metegol-volver').addEventListener('click', ()=>{
 
 /* ---------- MINIJUEGO: GRILLOMAN (Pac-Man temático) ---------- */
 const PM_TAM_CELDA = 24;
-const PM_COLORES_RIVALES = ['#B33B22', '#4A6B43', '#9C7A2E', '#57503F'];
-const PM_COLORES_RIVALES_OSCURO = ['#8A2C19', '#375030', '#725A22', '#3a352a'];
+const PM_COLORES_RIVALES = ['#B33B22', '#161310', '#9C7A2E', '#57503F'];
+const PM_COLORES_RIVALES_OSCURO = ['#8A2C19', '#000000', '#725A22', '#3a352a'];
 
 let pmCtx = null;
 let pmLaberinto = null;       // grilla [fila][col], 1=camino 0=pared
@@ -4517,10 +4517,12 @@ function pmPerderVida(){
   pmFantasmas.forEach(f => { f.r = f.casaR; f.c = f.casaC; f.asustadoHasta = 0; });
 }
 
+let pmContadorTick = 0;
 function pmPaso(){
   if(!pmJuegoActivo) return;
+  pmContadorTick++;
   pmMoverJugador();
-  pmMoverFantasmas();
+  if(pmContadorTick % 2 === 0) pmMoverFantasmas(); // los rivales se mueven a la mitad de velocidad que vos
   pmRevisarColisiones();
   if(pmJuegoActivo && pmPellets.size === 0 && pmPowerPellets.size === 0){
     guardarResultadoMinijuego('pacman', 'victoria');
@@ -4543,9 +4545,9 @@ function pmDibujarPared(ctx, r, c){
   ctx.lineTo(x, y+rad);
   ctx.quadraticCurveTo(x, y, x+rad, y);
   ctx.closePath();
-  ctx.fillStyle = '#161310';
+  ctx.fillStyle = '#4A6B43';
   ctx.fill();
-  ctx.strokeStyle = '#3a352a';
+  ctx.strokeStyle = '#375030';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 }
