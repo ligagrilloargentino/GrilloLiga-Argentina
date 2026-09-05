@@ -2169,6 +2169,32 @@ footer{
         <div class="gd-intro" id="cr-final-detalle" style="text-align:center;"></div>
         <button class="auth-btn" id="cr-reintentar-btn" style="max-width:240px; margin:14px auto 0;"></button>
       </div>
+
+      <div id="cr-ofertas-wrap" style="display:none;">
+        <div class="pen-final-titulo">📞 ¡Te llegaron ofertas!</div>
+        <div class="gd-intro" style="text-align:center;">El ojeador movió algunos contactos. Elegí con qué club arrancar tu carrera profesional.</div>
+        <div id="cr-ofertas-lista" style="max-width:480px; margin:16px auto 0;"></div>
+      </div>
+
+      <div id="cr-firma-wrap" style="display:none; text-align:center;">
+        <div class="pen-final-titulo" id="cr-firma-titulo"></div>
+        <div class="gd-intro" id="cr-firma-detalle"></div>
+        <button class="auth-btn" id="cr-arrancar-temporada-btn" style="max-width:260px; margin:14px auto 0;">Arrancar la Temporada 1</button>
+      </div>
+
+      <div id="cr-temporada-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>Temporada<br><b id="cr-temp-num">1</b></div>
+          <div class="pen-ronda">Partido <b id="cr-temp-partido">1</b>/<span id="cr-temp-total-partidos">3</span></div>
+          <div>Rendimiento<br><b id="cr-temp-puntaje">0</b></div>
+        </div>
+      </div>
+
+      <div id="cr-temporada-final" style="display:none; text-align:center;">
+        <div class="pen-final-titulo" id="cr-temp-final-titulo"></div>
+        <div class="gd-intro" id="cr-temp-final-detalle"></div>
+        <button class="auth-btn" id="cr-temp-continuar-btn" style="max-width:260px; margin:14px auto 0;">Volver a Minijuegos</button>
+      </div>
     </div>
   </section>
 
@@ -6193,13 +6219,16 @@ async function crTerminarPartido(){
     await crGuardarEstado(paso ? 'partido2' : 'partido1', 'puntaje_partido1', crPuntaje);
   } else {
     const paso = crPuntaje >= CR_UMBRAL_PARTIDO2;
-    document.getElementById('cr-final-titulo').textContent = paso ? '🌟 ¡El ojeador quedó impresionado!' : '😕 El ojeador no quedó convencido';
-    document.getElementById('cr-final-detalle').textContent = paso
-      ? `Terminaste con ${crPuntaje} puntos de rendimiento. Pronto vas a poder ver las ofertas de clubes que te llegaron — esa parte del Modo Carrera (ligas, clubes y ofertas reales) la vamos a sumar en la próxima etapa.`
-      : `Terminaste con ${crPuntaje} puntos de rendimiento (necesitabas al menos ${CR_UMBRAL_PARTIDO2}). Podés volver a intentar este segundo partido.`;
+    await crGuardarEstado(paso ? 'ojeador_ok' : 'ojeador_no', 'puntaje_partido2', crPuntaje);
+    if(paso){
+      document.getElementById('cr-final').style.display = 'none';
+      crMostrarOfertas();
+      return;
+    }
+    document.getElementById('cr-final-titulo').textContent = '😕 El ojeador no quedó convencido';
+    document.getElementById('cr-final-detalle').textContent = `Terminaste con ${crPuntaje} puntos de rendimiento (necesitabas al menos ${CR_UMBRAL_PARTIDO2}). Podés volver a intentar este segundo partido.`;
     document.getElementById('cr-reintentar-btn').textContent = 'Reintentar el segundo partido';
     document.getElementById('cr-reintentar-btn').onclick = () => crIniciarPartido(2);
-    await crGuardarEstado(paso ? 'ojeador_ok' : 'ojeador_no', 'puntaje_partido2', crPuntaje);
   }
 }
 
@@ -6215,6 +6244,176 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   document.getElementById('cr-empezar-btn').disabled = true;
 });
 document.getElementById('carrera-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-carrera').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'flex';
+});
+
+/* ---------- MODO CARRERA — FASE 2: ligas reales, ofertas y primera temporada ---------- */
+// Aviso importante: estos listados de clubes son una selección sólida y representativa
+// de cada liga (no están 100% verificados club por club para las 16 ligas fuera de
+// Argentina), y con el tiempo se desactualizan solos por ascensos/descensos reales.
+// Avisar para corregir/actualizar cuando haga falta.
+const CR_LIGAS = {
+  arg1: { nombre:'Primera División', pais:'Argentina', prestigio:3, clubes:['Boca Juniors','River Plate','Racing Club','Independiente','San Lorenzo','Huracán','Vélez Sarsfield','Talleres','Estudiantes (LP)','Gimnasia y Esgrima (LP)','Lanús','Argentinos Juniors','Platense','Tigre',"Newell's Old Boys",'Rosario Central','Belgrano','Instituto','Atlético Tucumán','Central Córdoba (SdE)','Barracas Central','Deportivo Riestra','Unión','Sarmiento (Junín)','Aldosivi','Banfield','Independiente Rivadavia','Gimnasia (Mendoza)','Estudiantes (Río Cuarto)','Defensa y Justicia'] },
+  arg2: { nombre:'Primera Nacional', pais:'Argentina', prestigio:2, clubes:['Quilmes','Chacarita Juniors','Atlético de Rafaela','Nueva Chicago','Ferro Carril Oeste','All Boys','Almagro','Almirante Brown','Los Andes','Deportivo Morón','Atlanta','Temperley','Arsenal','Colón','Defensores de Belgrano','Villa Dálmine','San Martín (SJ)','San Martín (T)','Brown (Adrogué)','Guillermo Brown'] },
+  arg3: { nombre:'Primera B Metropolitana', pais:'Argentina', prestigio:1, clubes:['Deportivo Español','Cañuelas','Excursionistas','Comunicaciones','Argentino de Merlo','Deportivo Armenio','Sacachispas','UAI Urquiza','Berazategui','Liniers','Justo José de Urquiza','Fénix','Central Córdoba (Rosario)','Dock Sud','Victoriano Arenas','Muñiz'] },
+  bra: { nombre:'Brasileirão Série A', pais:'Brasil', prestigio:3, clubes:['Flamengo','Palmeiras','São Paulo','Corinthians','Grêmio','Internacional','Atlético Mineiro','Cruzeiro','Fluminense','Botafogo','Vasco da Gama','Santos','Bahia','Fortaleza','Athletico Paranaense','Red Bull Bragantino','Ceará','Vitória','Criciúma','Juventude'] },
+  uru: { nombre:'Primera División', pais:'Uruguay', prestigio:2, clubes:['Peñarol','Nacional','Defensor Sporting','Danubio','Liverpool','Cerro','River Plate (Montevideo)','Wanderers','Rentistas','Boston River','Progreso','Cerro Largo','Plaza Colonia'] },
+  par: { nombre:'División Profesional', pais:'Paraguay', prestigio:1, clubes:['Olimpia','Cerro Porteño','Libertad','Guaraní','Nacional','Sportivo Luqueño','Sol de América','General Díaz','Sportivo Trinidense','Ameliano','12 de Octubre'] },
+  chi: { nombre:'Primera División', pais:'Chile', prestigio:2, clubes:['Colo-Colo','Universidad de Chile','Universidad Católica','Cobresal','Palestino','Unión Española','Huachipato','Audax Italiano',"O'Higgins",'Everton (Viña del Mar)','Coquimbo Unido','Ñublense','Deportes La Serena'] },
+  bol: { nombre:'División Profesional', pais:'Bolivia', prestigio:1, clubes:['Bolívar','The Strongest','Blooming','Always Ready','Wilstermann','Nacional Potosí','Guabirá','Independiente Petrolero','Real Santa Cruz','Real Tomayapo'] },
+  per: { nombre:'Liga 1', pais:'Perú', prestigio:1, clubes:['Universitario','Alianza Lima','Sporting Cristal','Melgar','Cienciano','Cusco FC','Sport Boys','ADT','César Vallejo','Deportivo Garcilaso'] },
+  ecu: { nombre:'Serie A', pais:'Ecuador', prestigio:2, clubes:['Barcelona SC','Emelec','Liga de Quito','Independiente del Valle','Aucas','Universidad Católica','Delfín','El Nacional','Macará','Deportivo Cuenca'] },
+  col: { nombre:'Primera A', pais:'Colombia', prestigio:2, clubes:['Millonarios','Atlético Nacional','América de Cali','Junior de Barranquilla','Deportivo Cali','Independiente Santa Fe','Once Caldas','Deportivo Pereira','Águilas Doradas','Atlético Bucaramanga'] },
+  ven: { nombre:'Primera División', pais:'Venezuela', prestigio:1, clubes:['Deportivo Táchira','Caracas FC','Estudiantes de Mérida','Metropolitanos','Zamora','Monagas','Deportivo La Guaira','Academia Puerto Cabello','Carabobo','Portuguesa'] },
+  mls: { nombre:'MLS', pais:'Estados Unidos', prestigio:2, clubes:['Inter Miami','LA Galaxy','LAFC','Seattle Sounders','Atlanta United','NYCFC','New York Red Bulls','Columbus Crew','Philadelphia Union','Portland Timbers','Toronto FC','Orlando City'] },
+  mex: { nombre:'Liga MX', pais:'México', prestigio:3, clubes:['Club América','Chivas Guadalajara','Cruz Azul','Pumas UNAM','Monterrey','Tigres UANL','Santos Laguna','Toluca','León','Pachuca','Atlas','Necaxa'] },
+  esp: { nombre:'LaLiga', pais:'España', prestigio:3, clubes:['Real Madrid','Barcelona','Atlético de Madrid','Sevilla','Real Sociedad','Athletic Bilbao','Real Betis','Villarreal','Valencia','Celta de Vigo','Osasuna','Girona','Rayo Vallecano','Getafe','Mallorca'] },
+  por: { nombre:'Primeira Liga', pais:'Portugal', prestigio:3, clubes:['Benfica','Porto','Sporting CP','Braga','Vitória de Guimarães','Boavista','Famalicão','Rio Ave','Gil Vicente','Estoril'] },
+  ita: { nombre:'Serie A', pais:'Italia', prestigio:3, clubes:['Juventus','Inter de Milán','AC Milan','Napoli','Roma','Lazio','Atalanta','Fiorentina','Bologna','Torino','Udinese','Sassuolo'] },
+  ing: { nombre:'Premier League', pais:'Inglaterra', prestigio:3, clubes:['Manchester City','Manchester United','Liverpool','Arsenal','Chelsea','Tottenham Hotspur','Newcastle United','Aston Villa','West Ham United','Brighton','Everton','Crystal Palace'] },
+  fra: { nombre:'Ligue 1', pais:'Francia', prestigio:3, clubes:['Paris Saint-Germain','Marsella','Mónaco','Lyon','Lille','Niza','Rennes','Lens','Nantes','Toulouse'] }
+};
+
+function crClubesPrestigio(nivel){
+  const lista = [];
+  Object.values(CR_LIGAS).forEach(liga=>{
+    if(liga.prestigio === nivel){
+      liga.clubes.forEach(club => lista.push({ club, liga: liga.nombre, pais: liga.pais }));
+    }
+  });
+  return lista;
+}
+
+let crOfertaElegida = null;
+let crTemporadaNum = 1;
+let crTempPartidoActual = 1;
+const CR_TEMP_TOTAL_PARTIDOS = 3;
+const CR_TEMP_DECISIONES_POR_PARTIDO = 4;
+let crTempPuntajeTotal = 0;
+
+function crMostrarOfertas(){
+  const candidatos = crClubesPrestigio(1); // primer contrato: clubes de prestigio bajo, algo realista
+  const cantidad = 1 + Math.floor(Math.random()*4); // entre 1 y 4
+  const elegidos = [...candidatos].sort(()=>Math.random()-0.5).slice(0, cantidad);
+  document.getElementById('cr-ofertas-wrap').style.display = 'block';
+  const lista = document.getElementById('cr-ofertas-lista');
+  lista.innerHTML = elegidos.map((o,i) => `
+    <div class="cz-online-fila">
+      <b>${o.club}</b>
+      <span style="font-size:11px; color:var(--text-dimmer); margin:0 8px;">${o.liga} (${o.pais})</span>
+      <button class="auth-btn" style="max-width:110px; margin:0;" data-idx="${i}">Firmar</button>
+    </div>
+  `).join('');
+  lista.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=> crElegirOferta(elegidos[parseInt(btn.dataset.idx)]));
+  });
+}
+
+async function crElegirOferta(oferta){
+  crOfertaElegida = oferta;
+  document.getElementById('cr-ofertas-wrap').style.display = 'none';
+  document.getElementById('cr-firma-wrap').style.display = 'block';
+  document.getElementById('cr-firma-titulo').textContent = `✍️ ¡Firmaste con ${oferta.club}!`;
+  document.getElementById('cr-firma-detalle').textContent = `Arrancás tu carrera profesional en ${oferta.liga} (${oferta.pais}). Cada temporada vas a jugar varios partidos tomando decisiones, igual que en las pruebas.`;
+  await crGuardarEstado('en_club', 'puntaje_partido2', crPuntaje);
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('carrera_estado').update({ club_actual: oferta.club, liga_actual: oferta.liga, temporada: 1 }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+  }
+}
+
+document.getElementById('cr-arrancar-temporada-btn').addEventListener('click', ()=>{
+  document.getElementById('cr-firma-wrap').style.display = 'none';
+  crTemporadaNum = 1;
+  crIniciarTemporada();
+});
+
+function crIniciarTemporada(){
+  crTempPartidoActual = 1;
+  crTempPuntajeTotal = 0;
+  document.getElementById('cr-temp-final').style.display = 'none';
+  document.getElementById('cr-temporada-wrap').style.display = 'block';
+  document.getElementById('cr-temp-num').textContent = crTemporadaNum;
+  document.getElementById('cr-temp-total-partidos').textContent = CR_TEMP_TOTAL_PARTIDOS;
+  crJugarPartidoTemporada();
+}
+
+function crJugarPartidoTemporada(){
+  document.getElementById('cr-temp-partido').textContent = crTempPartidoActual;
+  document.getElementById('cr-temp-puntaje').textContent = crTempPuntajeTotal;
+  crDecisionActual = 0;
+  crPuntaje = 0;
+  crSituacionesElegidas = [...CR_SITUACIONES].sort(() => Math.random()-0.5).slice(0, CR_TEMP_DECISIONES_POR_PARTIDO);
+  document.getElementById('cr-temporada-wrap').insertAdjacentHTML('beforeend', `
+    <div id="cr-temp-situacion" class="cg-pistas-col" style="max-width:520px; margin:10px auto 14px;">
+      <div class="gd-pista-titulo" id="cr-temp-situacion-titulo"></div>
+      <div class="gd-intro" id="cr-temp-situacion-texto" style="margin-top:6px;"></div>
+    </div>
+    <div id="cr-temp-opciones" class="tr-acciones"></div>
+    <div id="cr-temp-feedback" class="pen-resultado"></div>
+  `);
+  crMostrarDecisionTemporada();
+}
+
+function crMostrarDecisionTemporada(){
+  document.getElementById('cr-temp-feedback').textContent = '';
+  const sit = crSituacionesElegidas[crDecisionActual];
+  document.getElementById('cr-temp-situacion-titulo').textContent = sit.titulo;
+  document.getElementById('cr-temp-situacion-texto').textContent = sit.texto;
+  document.getElementById('cr-temp-opciones').innerHTML = sit.opciones.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.etiqueta}</button>`).join('');
+  document.querySelectorAll('#cr-temp-opciones button').forEach(btn=>{
+    btn.addEventListener('click', () => crElegirOpcionTemporada(parseInt(btn.dataset.idx)));
+  });
+}
+
+function crElegirOpcionTemporada(idx){
+  const sit = crSituacionesElegidas[crDecisionActual];
+  const opcion = sit.opciones[idx];
+  const exito = Math.random() < opcion.prob;
+  const puntos = exito ? opcion.puntosExito : opcion.puntosFallo;
+  crPuntaje = Math.max(0, crPuntaje + puntos);
+  crTempPuntajeTotal = Math.max(0, crTempPuntajeTotal + puntos);
+  document.getElementById('cr-temp-puntaje').textContent = crTempPuntajeTotal;
+  document.getElementById('cr-temp-feedback').textContent = exito
+    ? `✅ ¡Te salió bien! (${puntos>=0?'+':''}${puntos})`
+    : `❌ No te salió (${puntos})`;
+  document.querySelectorAll('#cr-temp-opciones button').forEach(b => b.disabled = true);
+  setTimeout(()=>{
+    crDecisionActual++;
+    if(crDecisionActual >= CR_TEMP_DECISIONES_POR_PARTIDO){
+      document.getElementById('cr-temp-situacion')?.remove();
+      document.getElementById('cr-temp-opciones')?.remove();
+      document.getElementById('cr-temp-feedback')?.remove();
+      crTempPartidoActual++;
+      if(crTempPartidoActual > CR_TEMP_TOTAL_PARTIDOS){ crTerminarTemporada(); }
+      else { crJugarPartidoTemporada(); }
+    } else {
+      crMostrarDecisionTemporada();
+    }
+  }, 1400);
+}
+
+async function crTerminarTemporada(){
+  document.getElementById('cr-temporada-wrap').style.display = 'none';
+  document.getElementById('cr-temporada-final').style.display = 'block';
+
+  const CR_UMBRAL_SELECCION = 130;
+  const convocado = crTempPuntajeTotal >= CR_UMBRAL_SELECCION && Math.random() < 0.5;
+
+  let detalle = `Terminaste la Temporada ${crTemporadaNum} en ${crOfertaElegida ? crOfertaElegida.club : 'tu club'} con ${crTempPuntajeTotal} puntos de rendimiento acumulados en los ${CR_TEMP_TOTAL_PARTIDOS} partidos.`;
+  if(convocado){
+    detalle += ' ⭐ ¡Y además fuiste convocado a la Selección! Un llamado que va a quedar en tu historia.';
+  }
+  document.getElementById('cr-temp-final-titulo').textContent = convocado ? '🇦🇷 ¡Convocatoria a la Selección!' : `Fin de la Temporada ${crTemporadaNum}`;
+  document.getElementById('cr-temp-final-detalle').textContent = detalle + ' Las próximas temporadas, transferencias entre clubes y el resto del recorrido de la carrera los vamos a seguir sumando más adelante.';
+
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('carrera_estado').update({ temporada: crTemporadaNum, convocado_seleccion: convocado }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+  }
+}
+document.getElementById('cr-temp-continuar-btn').addEventListener('click', ()=>{
   document.getElementById('mini-carrera').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
