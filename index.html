@@ -6066,65 +6066,93 @@ const CR_UMBRAL_PARTIDO1 = 90;
 const CR_UMBRAL_PARTIDO2 = 140;
 const CR_TOTAL_DECISIONES = 9;
 
+const CR_POSICIONES_TODAS = ['delantero','mediocampista','defensor','arquero'];
 const CR_SITUACIONES = [
-  { titulo:'Recibís la pelota en el medio', texto:'Tenés espacio para jugar.', opciones:[
-    { etiqueta:'Pase simple', prob:0.85, puntosExito:5, puntosFallo:-2 },
-    { etiqueta:'Gambetear a un rival', prob:0.5, puntosExito:15, puntosFallo:-5 },
-    { etiqueta:'Pared con un compañero', prob:0.7, puntosExito:10, puntosFallo:-3 }
+  { titulo:'Recibís la pelota en el medio', texto:'Tenés espacio para jugar.', posiciones:['delantero','mediocampista','defensor'], opciones:[
+    { etiqueta:'Pase simple', atributo:'pase', prob:0.85, puntosExito:5, puntosFallo:-2 },
+    { etiqueta:'Gambetear a un rival', atributo:'regate', prob:0.5, puntosExito:15, puntosFallo:-5 },
+    { etiqueta:'Pared con un compañero', atributo:'pase', prob:0.7, puntosExito:10, puntosFallo:-3 }
   ]},
-  { titulo:'Mano a mano con el arquero', texto:'Quedaste solo frente al arco.', opciones:[
-    { etiqueta:'Definir cruzado', prob:0.55, puntosExito:25, puntosFallo:-8 },
-    { etiqueta:'Picarla por arriba', prob:0.4, puntosExito:30, puntosFallo:-10 },
-    { etiqueta:'Pasarla a un compañero solo', prob:0.75, puntosExito:15, puntosFallo:-3 }
+  { titulo:'Mano a mano con el arquero', texto:'Quedaste solo frente al arco.', posiciones:['delantero','mediocampista'], opciones:[
+    { etiqueta:'Definir cruzado', atributo:'definicion', prob:0.55, puntosExito:25, puntosFallo:-8 },
+    { etiqueta:'Picarla por arriba', atributo:'definicion', prob:0.4, puntosExito:30, puntosFallo:-10 },
+    { etiqueta:'Pasarla a un compañero solo', atributo:'pase', prob:0.75, puntosExito:15, puntosFallo:-3 }
   ]},
-  { titulo:'Te marcan de cerca en el área rival', texto:'Un defensor te pisa los talones.', opciones:[
-    { etiqueta:'Aguantar la pelota', prob:0.6, puntosExito:10, puntosFallo:-5 },
-    { etiqueta:'Probar una rabona', prob:0.3, puntosExito:25, puntosFallo:-10 },
-    { etiqueta:'Devolverla atrás', prob:0.9, puntosExito:3, puntosFallo:0 }
+  { titulo:'Te marcan de cerca en el área rival', texto:'Un defensor te pisa los talones.', posiciones:['delantero','mediocampista'], opciones:[
+    { etiqueta:'Aguantar la pelota', atributo:'regate', prob:0.6, puntosExito:10, puntosFallo:-5 },
+    { etiqueta:'Probar una rabona', atributo:'regate', prob:0.3, puntosExito:25, puntosFallo:-10 },
+    { etiqueta:'Devolverla atrás', atributo:'pase', prob:0.9, puntosExito:3, puntosFallo:0 }
   ]},
-  { titulo:'Contraataque 2 contra 1', texto:'Salís rápido con un compañero.', opciones:[
-    { etiqueta:'Pasar al compañero libre', prob:0.7, puntosExito:18, puntosFallo:-5 },
-    { etiqueta:'Definir vos mismo', prob:0.45, puntosExito:22, puntosFallo:-8 }
+  { titulo:'Contraataque 2 contra 1', texto:'Salís rápido con un compañero.', posiciones:['delantero','mediocampista'], opciones:[
+    { etiqueta:'Pasar al compañero libre', atributo:'pase', prob:0.7, puntosExito:18, puntosFallo:-5 },
+    { etiqueta:'Definir vos mismo', atributo:'definicion', prob:0.45, puntosExito:22, puntosFallo:-8 }
   ]},
-  { titulo:'El rival avanza con la pelota', texto:'Tenés que decidir cómo frenarlo.', opciones:[
-    { etiqueta:'Entrada fuerte', prob:0.5, puntosExito:15, puntosFallo:-10 },
-    { etiqueta:'Marca de contención', prob:0.75, puntosExito:10, puntosFallo:-3 },
-    { etiqueta:'Cubrir el espacio', prob:0.85, puntosExito:6, puntosFallo:-1 }
+  { titulo:'El rival avanza con la pelota', texto:'Tenés que decidir cómo frenarlo.', posiciones:['defensor','mediocampista'], opciones:[
+    { etiqueta:'Entrada fuerte', atributo:'defensa', prob:0.5, puntosExito:15, puntosFallo:-10 },
+    { etiqueta:'Marca de contención', atributo:'defensa', prob:0.75, puntosExito:10, puntosFallo:-3 },
+    { etiqueta:'Cubrir el espacio', atributo:'velocidad', prob:0.85, puntosExito:6, puntosFallo:-1 }
   ]},
-  { titulo:'Tiro libre a favor, cerca del área', texto:'Te toca patear.', opciones:[
-    { etiqueta:'Buscar el ángulo', prob:0.4, puntosExito:25, puntosFallo:-8 },
-    { etiqueta:'Pasarla corta', prob:0.7, puntosExito:10, puntosFallo:-3 },
-    { etiqueta:'Centrar al área', prob:0.6, puntosExito:15, puntosFallo:-5 }
+  { titulo:'Tiro libre a favor, cerca del área', texto:'Te toca patear.', posiciones:['delantero','mediocampista','defensor'], opciones:[
+    { etiqueta:'Buscar el ángulo', atributo:'definicion', prob:0.4, puntosExito:25, puntosFallo:-8 },
+    { etiqueta:'Pasarla corta', atributo:'pase', prob:0.7, puntosExito:10, puntosFallo:-3 },
+    { etiqueta:'Centrar al área', atributo:'pase', prob:0.6, puntosExito:15, puntosFallo:-5 }
   ]},
-  { titulo:'Córner a favor', texto:'Se viene el centro.', opciones:[
-    { etiqueta:'Cabecear al primer palo', prob:0.5, puntosExito:18, puntosFallo:-5 },
-    { etiqueta:'Quedarte afuera por el rebote', prob:0.65, puntosExito:10, puntosFallo:-3 }
+  { titulo:'Córner a favor', texto:'Se viene el centro.', posiciones:['delantero','mediocampista','defensor'], opciones:[
+    { etiqueta:'Cabecear al primer palo', atributo:'definicion', prob:0.5, puntosExito:18, puntosFallo:-5 },
+    { etiqueta:'Quedarte afuera por el rebote', atributo:'velocidad', prob:0.65, puntosExito:10, puntosFallo:-3 }
   ]},
-  { titulo:'Rebote suelto en el área rival', texto:'La pelota queda picando.', opciones:[
-    { etiqueta:'Remate de primera', prob:0.45, puntosExito:22, puntosFallo:-8 },
-    { etiqueta:'Controlar y definir', prob:0.6, puntosExito:18, puntosFallo:-6 }
+  { titulo:'Rebote suelto en el área rival', texto:'La pelota queda picando.', posiciones:['delantero','mediocampista'], opciones:[
+    { etiqueta:'Remate de primera', atributo:'definicion', prob:0.45, puntosExito:22, puntosFallo:-8 },
+    { etiqueta:'Controlar y definir', atributo:'regate', prob:0.6, puntosExito:18, puntosFallo:-6 }
   ]},
-  { titulo:'Estás cansado, quedan pocos minutos', texto:'El partido se define ahora.', opciones:[
-    { etiqueta:'Seguir exigiéndote', prob:0.5, puntosExito:15, puntosFallo:-8 },
-    { etiqueta:'Jugar simple y cuidar la pelota', prob:0.8, puntosExito:6, puntosFallo:-2 }
+  { titulo:'Estás cansado, quedan pocos minutos', texto:'El partido se define ahora.', posiciones:CR_POSICIONES_TODAS, opciones:[
+    { etiqueta:'Seguir exigiéndote', atributo:'velocidad', prob:0.5, puntosExito:15, puntosFallo:-8 },
+    { etiqueta:'Jugar simple y cuidar la pelota', atributo:'pase', prob:0.8, puntosExito:6, puntosFallo:-2 }
   ]},
-  { titulo:'Pelota dividida en el medio', texto:'Los dos van con todo.', opciones:[
-    { etiqueta:'Entrar decidido', prob:0.55, puntosExito:12, puntosFallo:-6 },
-    { etiqueta:'Anticipar con inteligencia', prob:0.7, puntosExito:10, puntosFallo:-3 }
+  { titulo:'Pelota dividida en el medio', texto:'Los dos van con todo.', posiciones:['mediocampista','defensor','delantero'], opciones:[
+    { etiqueta:'Entrar decidido', atributo:'defensa', prob:0.55, puntosExito:12, puntosFallo:-6 },
+    { etiqueta:'Anticipar con inteligencia', atributo:'defensa', prob:0.7, puntosExito:10, puntosFallo:-3 }
   ]},
-  { titulo:'Espacio para pegarle de media distancia', texto:'Nadie te presiona todavía.', opciones:[
-    { etiqueta:'Probar el remate', prob:0.35, puntosExito:25, puntosFallo:-8 },
-    { etiqueta:'Buscar mejor posición', prob:0.65, puntosExito:10, puntosFallo:-3 }
+  { titulo:'Espacio para pegarle de media distancia', texto:'Nadie te presiona todavía.', posiciones:['delantero','mediocampista','defensor'], opciones:[
+    { etiqueta:'Probar el remate', atributo:'definicion', prob:0.35, puntosExito:25, puntosFallo:-8 },
+    { etiqueta:'Buscar mejor posición', atributo:'pase', prob:0.65, puntosExito:10, puntosFallo:-3 }
   ]},
-  { titulo:'Último minuto, tu equipo necesita un gol', texto:'Se juega todo o nada.', opciones:[
-    { etiqueta:'Tirarte al ataque con todo', prob:0.4, puntosExito:25, puntosFallo:-10 },
-    { etiqueta:'Jugar con cabeza fría', prob:0.65, puntosExito:12, puntosFallo:-4 }
+  { titulo:'Último minuto, tu equipo necesita un gol', texto:'Se juega todo o nada.', posiciones:['delantero','mediocampista'], opciones:[
+    { etiqueta:'Tirarte al ataque con todo', atributo:'velocidad', prob:0.4, puntosExito:25, puntosFallo:-10 },
+    { etiqueta:'Jugar con cabeza fría', atributo:'pase', prob:0.65, puntosExito:12, puntosFallo:-4 }
   ]},
-  { titulo:'El árbitro cobra una infracción dudosa a tu favor', texto:'Estás cerca del área rival.', opciones:[
-    { etiqueta:'Discutirle para sacar tarjeta', prob:0.35, puntosExito:10, puntosFallo:-15 },
-    { etiqueta:'Enfocarte en el próximo lance', prob:0.9, puntosExito:3, puntosFallo:0 }
+  { titulo:'El árbitro cobra una infracción dudosa a tu favor', texto:'Estás cerca del área rival.', posiciones:CR_POSICIONES_TODAS, opciones:[
+    { etiqueta:'Discutirle para sacar tarjeta', atributo:null, prob:0.35, puntosExito:10, puntosFallo:-15 },
+    { etiqueta:'Enfocarte en el próximo lance', atributo:null, prob:0.9, puntosExito:3, puntosFallo:0 }
+  ]},
+  { titulo:'Remate cruzado al ángulo', texto:'El rival define fuerte al palo.', posiciones:['arquero'], opciones:[
+    { etiqueta:'Estirarte al palo', atributo:'defensa', prob:0.5, puntosExito:20, puntosFallo:-10 },
+    { etiqueta:'Achicar el ángulo antes', atributo:'defensa', prob:0.65, puntosExito:12, puntosFallo:-6 }
+  ]},
+  { titulo:'Mano a mano con el delantero rival', texto:'Se te viene solo.', posiciones:['arquero'], opciones:[
+    { etiqueta:'Salir a cerrarle el ángulo', atributo:'defensa', prob:0.55, puntosExito:18, puntosFallo:-8 },
+    { etiqueta:'Quedarte parado esperando', atributo:'defensa', prob:0.4, puntosExito:12, puntosFallo:-10 }
+  ]},
+  { titulo:'Centro peligroso al área chica', texto:'Viene un centro pasado.', posiciones:['arquero'], opciones:[
+    { etiqueta:'Salir a trabar el centro', atributo:'defensa', prob:0.5, puntosExito:18, puntosFallo:-8 },
+    { etiqueta:'Quedarte en la línea', atributo:'defensa', prob:0.7, puntosExito:10, puntosFallo:-4 }
+  ]},
+  { titulo:'El rival te encara en velocidad por la banda', texto:'Vas a tener que resolverlo solo.', posiciones:['defensor'], opciones:[
+    { etiqueta:'Anticipar el pase', atributo:'defensa', prob:0.6, puntosExito:15, puntosFallo:-6 },
+    { etiqueta:'Ir al piso', atributo:'defensa', prob:0.4, puntosExito:20, puntosFallo:-12 },
+    { etiqueta:'Achicar el espacio', atributo:'velocidad', prob:0.75, puntosExito:8, puntosFallo:-2 }
+  ]},
+  { titulo:'Pelota aérea disputada en tu área', texto:'Se viene un centro largo.', posiciones:['defensor'], opciones:[
+    { etiqueta:'Ir fuerte al cabezazo', atributo:'defensa', prob:0.55, puntosExito:15, puntosFallo:-8 },
+    { etiqueta:'Achicarle el salto al rival', atributo:'defensa', prob:0.7, puntosExito:10, puntosFallo:-3 }
   ]}
 ];
+
+function crSituacionesParaPosicion(posicion, cantidad){
+  const propias = CR_SITUACIONES.filter(s => s.posiciones.includes(posicion));
+  const pool = propias.length >= cantidad ? propias : CR_SITUACIONES;
+  return [...pool].sort(() => Math.random()-0.5).slice(0, cantidad);
+}
 
 let crJugadorNombre = null;
 let crPosicion = 'delantero';
@@ -6133,6 +6161,16 @@ let crDecisionActual = 0;
 let crPuntaje = 0;
 let crPuntajePartido1 = 0;
 let crSituacionesElegidas = [];
+let crAtributos = { velocidad:50, pase:50, definicion:50, regate:50, defensa:50 };
+
+function crCalcularExito(opcion){
+  let prob = opcion.prob;
+  if(opcion.atributo){
+    prob += (crAtributos[opcion.atributo] - 50) / 250; // hasta ±0.2 según el atributo (0-100)
+    prob = Math.max(0.05, Math.min(0.95, prob));
+  }
+  return Math.random() < prob;
+}
 
 document.getElementById('cr-input-jugador').addEventListener('change', (e)=>{
   const nombre = normalizarTexto(e.target.value);
@@ -6153,7 +6191,7 @@ function crIniciarPartido(numero){
   crPartidoActual = numero;
   crDecisionActual = 0;
   crPuntaje = 0;
-  crSituacionesElegidas = [...CR_SITUACIONES].sort(() => Math.random()-0.5).slice(0, CR_TOTAL_DECISIONES);
+  crSituacionesElegidas = crSituacionesParaPosicion(crPosicion, CR_TOTAL_DECISIONES);
   document.getElementById('cr-creacion').style.display = 'none';
   document.getElementById('cr-final').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'block';
@@ -6181,7 +6219,7 @@ function crMostrarDecision(){
 function crElegirOpcion(idx){
   const sit = crSituacionesElegidas[crDecisionActual];
   const opcion = sit.opciones[idx];
-  const exito = Math.random() < opcion.prob;
+  const exito = crCalcularExito(opcion);
   const puntos = exito ? opcion.puntosExito : opcion.puntosFallo;
   crPuntaje = Math.max(0, crPuntaje + puntos);
   document.getElementById('cr-puntaje').textContent = crPuntaje;
@@ -6344,7 +6382,7 @@ function crJugarPartidoTemporada(){
   document.getElementById('cr-temp-puntaje').textContent = crTempPuntajeTotal;
   crDecisionActual = 0;
   crPuntaje = 0;
-  crSituacionesElegidas = [...CR_SITUACIONES].sort(() => Math.random()-0.5).slice(0, CR_TEMP_DECISIONES_POR_PARTIDO);
+  crSituacionesElegidas = crSituacionesParaPosicion(crPosicion, CR_TEMP_DECISIONES_POR_PARTIDO);
   document.getElementById('cr-temporada-wrap').insertAdjacentHTML('beforeend', `
     <div id="cr-temp-situacion" class="cg-pistas-col" style="max-width:520px; margin:10px auto 14px;">
       <div class="gd-pista-titulo" id="cr-temp-situacion-titulo"></div>
@@ -6370,7 +6408,7 @@ function crMostrarDecisionTemporada(){
 function crElegirOpcionTemporada(idx){
   const sit = crSituacionesElegidas[crDecisionActual];
   const opcion = sit.opciones[idx];
-  const exito = Math.random() < opcion.prob;
+  const exito = crCalcularExito(opcion);
   const puntos = exito ? opcion.puntosExito : opcion.puntosFallo;
   crPuntaje = Math.max(0, crPuntaje + puntos);
   crTempPuntajeTotal = Math.max(0, crTempPuntajeTotal + puntos);
@@ -6394,29 +6432,118 @@ function crElegirOpcionTemporada(idx){
   }, 1400);
 }
 
+const CR_UMBRAL_ASCENSO = 140;
+const CR_UMBRAL_DESCENSO = 45;
+const CR_UMBRAL_SELECCION = 130;
+const CR_ATRIBUTOS_LISTA = [
+  { key:'velocidad', etiqueta:'⚡ Velocidad' },
+  { key:'pase', etiqueta:'🎯 Pase' },
+  { key:'definicion', etiqueta:'🥅 Definición' },
+  { key:'regate', etiqueta:'🌀 Regate' },
+  { key:'defensa', etiqueta:'🛡️ Defensa' }
+];
+
 async function crTerminarTemporada(){
   document.getElementById('cr-temporada-wrap').style.display = 'none';
   document.getElementById('cr-temporada-final').style.display = 'block';
 
-  const CR_UMBRAL_SELECCION = 130;
   const convocado = crTempPuntajeTotal >= CR_UMBRAL_SELECCION && Math.random() < 0.5;
+  let resultadoClub = 'continua';
+  if(crTempPuntajeTotal >= CR_UMBRAL_ASCENSO) resultadoClub = 'ascenso';
+  else if(crTempPuntajeTotal < CR_UMBRAL_DESCENSO) resultadoClub = 'descenso';
 
   let detalle = `Terminaste la Temporada ${crTemporadaNum} en ${crOfertaElegida ? crOfertaElegida.club : 'tu club'} con ${crTempPuntajeTotal} puntos de rendimiento acumulados en los ${CR_TEMP_TOTAL_PARTIDOS} partidos.`;
-  if(convocado){
-    detalle += ' ⭐ ¡Y además fuiste convocado a la Selección! Un llamado que va a quedar en tu historia.';
+  if(convocado) detalle += ' ⭐ ¡Y además fuiste convocado a la Selección! Un llamado que va a quedar en tu historia.';
+
+  if(resultadoClub === 'ascenso'){
+    detalle += ' Tu nivel llamó la atención — te llegaron ofertas de clubes de mayor categoría.';
+  } else if(resultadoClub === 'descenso'){
+    detalle += ' El club decidió no renovarte el contrato. Vas a tener que buscar otro equipo.';
+  } else {
+    detalle += ' Seguís en el mismo club la próxima temporada.';
   }
+
   document.getElementById('cr-temp-final-titulo').textContent = convocado ? '🇦🇷 ¡Convocatoria a la Selección!' : `Fin de la Temporada ${crTemporadaNum}`;
-  document.getElementById('cr-temp-final-detalle').textContent = detalle + ' Las próximas temporadas, transferencias entre clubes y el resto del recorrido de la carrera los vamos a seguir sumando más adelante.';
+  document.getElementById('cr-temp-final-detalle').textContent = detalle;
 
   const { data: { user } } = await sbClient.auth.getUser();
   if(user){
     await sbClient.from('carrera_estado').update({ temporada: crTemporadaNum, convocado_seleccion: convocado }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
+
+  document.getElementById('cr-temp-continuar-btn').textContent = 'Continuar';
+  document.getElementById('cr-temp-continuar-btn').onclick = () => crResolverMercadoDePases(resultadoClub);
 }
-document.getElementById('cr-temp-continuar-btn').addEventListener('click', ()=>{
-  document.getElementById('mini-carrera').style.display = 'none';
-  document.getElementById('mini-lista').style.display = 'flex';
-});
+
+function crResolverMercadoDePases(resultadoClub){
+  document.getElementById('cr-temporada-final').style.display = 'none';
+  if(resultadoClub === 'continua'){
+    crMostrarEntrenamiento();
+    return;
+  }
+  const tierActual = crOfertaElegida ? (Object.values(CR_LIGAS).find(l => l.nombre === crOfertaElegida.liga)?.prestigio || 1) : 1;
+  let tierObjetivo = tierActual;
+  if(resultadoClub === 'ascenso') tierObjetivo = Math.min(3, tierActual + 1);
+  if(resultadoClub === 'descenso') tierObjetivo = Math.max(1, tierActual - 1);
+
+  const candidatos = crClubesPrestigio(tierObjetivo);
+  const cantidad = resultadoClub === 'ascenso' ? (1 + Math.floor(Math.random()*3)) : 1;
+  const elegidos = [...candidatos].sort(()=>Math.random()-0.5).slice(0, cantidad);
+
+  document.getElementById('cr-ofertas-wrap').style.display = 'block';
+  document.querySelector('#cr-ofertas-wrap .pen-final-titulo').textContent = resultadoClub === 'ascenso' ? '📞 ¡Te llegaron ofertas de mejores clubes!' : '📞 Encontraste club para seguir jugando';
+  const lista = document.getElementById('cr-ofertas-lista');
+  lista.innerHTML = elegidos.map((o,i) => `
+    <div class="cz-online-fila">
+      <b>${o.club}</b>
+      <span style="font-size:11px; color:var(--text-dimmer); margin:0 8px;">${o.liga} (${o.pais})</span>
+      <button class="auth-btn" style="max-width:110px; margin:0;" data-idx="${i}">Firmar</button>
+    </div>
+  `).join('');
+  lista.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      crOfertaElegida = elegidos[parseInt(btn.dataset.idx)];
+      document.getElementById('cr-ofertas-wrap').style.display = 'none';
+      const { data: { user } } = await sbClient.auth.getUser();
+      if(user){
+        await sbClient.from('carrera_estado').update({ club_actual: crOfertaElegida.club, liga_actual: crOfertaElegida.liga }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+      }
+      crMostrarEntrenamiento();
+    });
+  });
+}
+
+function crMostrarEntrenamiento(){
+  document.getElementById('cr-firma-wrap').style.display = 'block';
+  document.getElementById('cr-firma-titulo').textContent = '💪 Pretemporada';
+  document.getElementById('cr-firma-detalle').textContent = `Elegí en qué atributo enfocar tu entrenamiento antes de la Temporada ${crTemporadaNum + 1} (ahora: Velocidad ${crAtributos.velocidad} · Pase ${crAtributos.pase} · Definición ${crAtributos.definicion} · Regate ${crAtributos.regate} · Defensa ${crAtributos.defensa}).`;
+  document.getElementById('cr-arrancar-temporada-btn').style.display = 'none';
+  let contEntreno = document.getElementById('cr-entreno-botones');
+  if(!contEntreno){
+    contEntreno = document.createElement('div');
+    contEntreno.id = 'cr-entreno-botones';
+    contEntreno.className = 'tr-acciones';
+    document.getElementById('cr-firma-wrap').appendChild(contEntreno);
+  }
+  contEntreno.innerHTML = CR_ATRIBUTOS_LISTA.map(a => `<button class="auth-btn tr-btn-chico" data-attr="${a.key}">${a.etiqueta} (${crAtributos[a.key]})</button>`).join('');
+  contEntreno.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      crAtributos[btn.dataset.attr] = Math.min(100, crAtributos[btn.dataset.attr] + 5);
+      document.getElementById('cr-firma-wrap').style.display = 'none';
+      contEntreno.innerHTML = '';
+      document.getElementById('cr-arrancar-temporada-btn').style.display = 'block';
+      const { data: { user } } = await sbClient.auth.getUser();
+      if(user){
+        await sbClient.from('carrera_estado').update({
+          velocidad: crAtributos.velocidad, pase: crAtributos.pase, definicion: crAtributos.definicion,
+          regate: crAtributos.regate, defensa: crAtributos.defensa
+        }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+      }
+      crTemporadaNum++;
+      crIniciarTemporada();
+    });
+  });
+}
 
 /* ---------- MINIJUEGO: CABEZONES ---------- */
 const CZ_ANCHO = 960, CZ_ALTO = 580, CZ_CENTRO_X = 480;
