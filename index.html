@@ -167,7 +167,9 @@
   .usuario-mini-menu{ min-width:180px !important; padding:11px 13px !important; }
 }
 /* ---------- MINIJUEGOS ---------- */
-.mini-juegos-lista{ display:flex; flex-direction:column; gap:14px; }
+.mini-juegos-lista{ display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; }
+@media (max-width:800px){ .mini-juegos-lista{ grid-template-columns:repeat(3, 1fr); } }
+@media (max-width:520px){ .mini-juegos-lista{ grid-template-columns:repeat(2, 1fr); } }
 .mini-juego-card{
   background:var(--card); border:1px solid var(--line); border-radius:8px;
   padding:16px; cursor:pointer; transition:border-color .15s, transform .1s;
@@ -755,8 +757,8 @@ header.top{
   display:flex; align-items:baseline; gap:12px; margin-bottom:8px;
 }
 .brand .badge{
-  font-family:'Alegreya Sans',sans-serif;
-  font-size:14px; letter-spacing:1px; font-weight:600;
+  font-family:'Special Elite',Georgia,serif;
+  font-size:14px; letter-spacing:1px; font-weight:400;
   background:transparent; color:var(--red);
   border:1.5px solid var(--red);
   padding:4px 10px; border-radius:3px;
@@ -1619,7 +1621,7 @@ footer{
         <p>Jugá tu partido de prueba y soñá con que te vea un ojeador. (En construcción — Fase 1)</p>
       </div>
 
-      <div class="cg-pistas-col" style="margin-top:10px;">
+      <div class="cg-pistas-col" style="margin-top:10px; grid-column:1 / -1;">
         <div class="gd-pista-titulo">🏆 Ranking de Minijuegos</div>
         <div class="gd-intro" style="margin:6px 0 10px;">Los que más victorias sumaron contra el GrilloBOT, entre todos los minijuegos.</div>
         <div id="ranking-minijuegos-lista"></div>
