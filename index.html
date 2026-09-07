@@ -2227,6 +2227,7 @@ footer{
           <div>Temporada<br><b id="cr-temp-num">1</b></div>
           <div class="pen-ronda" id="cr-temp-club-liga">Club — Liga</div>
           <div>Puntos en Liga<br><b id="cr-temp-puntos-liga">0</b></div>
+          <div>Media<br><b id="cr-temp-media">70</b></div>
         </div>
         <h3 class="gd-pista-titulo" style="margin-top:14px;">📋 Próximos partidos</h3>
         <div class="gd-intro" style="margin:6px 0 10px;">Tildá los que querés simular de una, y usá "Jugar" en el que quieras jugar de verdad. Junta partidos de Liga, Copa Nacional y Copa Americana.</div>
@@ -6281,6 +6282,56 @@ let crPuntaje = 0;
 let crPuntajePartido1 = 0;
 let crSituacionesElegidas = [];
 let crAtributos = { velocidad:50, pase:50, definicion:50, regate:50, defensa:50 };
+let crMedia = 70;
+
+// Banco de decisiones de imagen/personalidad — se presenta una al azar entre temporadas.
+// Cada opción define un rango de cambio en la media (mediaMin/mediaMax); si son iguales, el cambio es fijo.
+const CR_DECISIONES_IMAGEN = [
+  { texto:'Un periodista te pregunta tu opinión sobre el gobierno.', opciones:[
+    { etiqueta:'Prefiero no meterme en política', mediaMin:2, mediaMax:2 },
+    { etiqueta:'Doy mi opinión sin filtro', mediaMin:-8, mediaMax:8 },
+    { etiqueta:'Hablo de la difícil situación de los clubes chicos', mediaMin:4, mediaMax:6 }
+  ]},
+  { texto:'Te invitan a un evento de música muy concurrido.', opciones:[
+    { etiqueta:'Voy y me muestro cercano con la gente', mediaMin:3, mediaMax:5 },
+    { etiqueta:'Rechazo la invitación, prefiero entrenar', mediaMin:1, mediaMax:1 },
+    { etiqueta:'Voy y se me escapa un exceso menor', mediaMin:-7, mediaMax:-4 }
+  ]},
+  { texto:'El cuerpo técnico te ofrece entrenar el doble esta semana.', opciones:[
+    { etiqueta:'Acepto, aunque termine agotado', mediaMin:2, mediaMax:4 },
+    { etiqueta:'Prefiero descansar bien', mediaMin:1, mediaMax:1 }
+  ]},
+  { texto:'Los hinchas te esperan afuera del predio para saludarte.', opciones:[
+    { etiqueta:'Me quedo a firmar autógrafos y sacarme fotos', mediaMin:5, mediaMax:7 },
+    { etiqueta:'Me voy rápido, estoy muy cansado', mediaMin:-4, mediaMax:-2 }
+  ]},
+  { texto:'El presidente del club toma una decisión que no te gusta.', opciones:[
+    { etiqueta:'Lo critico públicamente', mediaMin:-10, mediaMax:10 },
+    { etiqueta:'Hablo con él en privado', mediaMin:3, mediaMax:5 },
+    { etiqueta:'Me quedo callado', mediaMin:0, mediaMax:0 }
+  ]},
+  { texto:'Un sponsor te ofrece un contrato publicitario.', opciones:[
+    { etiqueta:'Acepto el contrato', mediaMin:3, mediaMax:6 },
+    { etiqueta:'Rechazo para enfocarme solo en lo deportivo', mediaMin:1, mediaMax:2 }
+  ]},
+  { texto:'Te invitan a una nota en un programa muy visto.', opciones:[
+    { etiqueta:'Voy con humor y soltura', mediaMin:5, mediaMax:8 },
+    { etiqueta:'Voy pero se me nota incómodo', mediaMin:-3, mediaMax:-1 },
+    { etiqueta:'Rechazo la nota', mediaMin:0, mediaMax:0 }
+  ]},
+  { texto:'Un compañero tuyo está pasando un momento personal difícil.', opciones:[
+    { etiqueta:'Lo apoyo públicamente', mediaMin:4, mediaMax:6 },
+    { etiqueta:'No me meto, es su tema', mediaMin:0, mediaMax:0 }
+  ]},
+  { texto:'Te preguntan por el clásico rival del club.', opciones:[
+    { etiqueta:'Respondo con respeto', mediaMin:2, mediaMax:3 },
+    { etiqueta:'Tiro punta con humor', mediaMin:-5, mediaMax:5 }
+  ]},
+  { texto:'Venís de una racha floja de resultados.', opciones:[
+    { etiqueta:'Me disculpo públicamente con los hinchas', mediaMin:3, mediaMax:5 },
+    { etiqueta:'Me defiendo, no es solo mi culpa', mediaMin:-4, mediaMax:-2 }
+  ]}
+];
 
 function crCalcularExito(opcion){
   let prob = opcion.prob;
@@ -6467,7 +6518,9 @@ function apResumenPartido(){
 // Fórmula acordada: tus goles = tus decisiones de gol exitosas. Los del rival se simulan,
 // con menos chances de convertir cuanto mejor haya sido tu rendimiento en el partido.
 function apSimularGolesRival(puntaje, totalDecisiones){
-  const probPorIntento = Math.max(0.05, 0.35 - puntaje/500);
+  // la media (60-100) también entra en juego: cuanto mejor valorado estás, menos chances le das al rival
+  const bonusMedia = (crMedia - 70) / 300;
+  const probPorIntento = Math.max(0.05, 0.35 - puntaje/500 - bonusMedia);
   let goles = 0;
   for(let i=0; i<totalDecisiones; i++) if(Math.random() < probPorIntento) goles++;
   return goles;
@@ -6994,6 +7047,7 @@ document.getElementById('cr-simular-tildados-btn').addEventListener('click', ()=
 function crRenderizarFixtureYTabla(){
   const miClub = crOfertaElegida.club;
   document.getElementById('cr-temp-puntos-liga').textContent = crTablaLiga[miClub].pts;
+  document.getElementById('cr-temp-media').textContent = crMedia;
 
   const cont = document.getElementById('cr-fixture-lista');
   cont.innerHTML = crFixtureMiClub.map((f,i) => `
@@ -7084,10 +7138,12 @@ function crResolverMercadoDePases(resultadoClub){
   let tierObjetivo = tierActual;
   if(resultadoClub === 'ascenso') tierObjetivo = Math.min(3, tierActual + 1);
   if(resultadoClub === 'descenso') tierObjetivo = Math.max(1, tierActual - 1);
+  // con la media muy alta, hay chance de saltar directo a la categoría de arriba de la que corresponde
+  if(crMedia >= 90 && tierObjetivo < 3 && Math.random() < 0.4) tierObjetivo++;
 
   const candidatos = crClubesPrestigio(tierObjetivo);
-  const cantidad = resultadoClub === 'ascenso' ? (1 + Math.floor(Math.random()*3)) : 1;
-  const elegidos = [...candidatos].sort(()=>Math.random()-0.5).slice(0, cantidad);
+  const cantidad = (resultadoClub === 'ascenso' ? 1 : 0) + Math.floor(Math.random()*3) + (crMedia >= 85 ? 1 : 0);
+  const elegidos = [...candidatos].sort(()=>Math.random()-0.5).slice(0, Math.max(1, cantidad));
 
   document.getElementById('cr-ofertas-wrap').style.display = 'block';
   document.querySelector('#cr-ofertas-wrap .pen-final-titulo').textContent = resultadoClub === 'ascenso' ? '📞 ¡Te llegaron ofertas de mejores clubes!' : '📞 Encontraste club para seguir jugando';
@@ -7128,9 +7184,7 @@ function crMostrarEntrenamiento(){
   contEntreno.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       crAtributos[btn.dataset.attr] = Math.min(100, crAtributos[btn.dataset.attr] + 5);
-      document.getElementById('cr-firma-wrap').style.display = 'none';
       contEntreno.innerHTML = '';
-      document.getElementById('cr-arrancar-temporada-btn').style.display = 'block';
       const { data: { user } } = await sbClient.auth.getUser();
       if(user){
         await sbClient.from('carrera_estado').update({
@@ -7138,6 +7192,34 @@ function crMostrarEntrenamiento(){
           regate: crAtributos.regate, defensa: crAtributos.defensa
         }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
       }
+      crMostrarDecisionImagen();
+    });
+  });
+}
+
+function crMostrarDecisionImagen(){
+  const decision = CR_DECISIONES_IMAGEN[Math.floor(Math.random()*CR_DECISIONES_IMAGEN.length)];
+  document.getElementById('cr-firma-titulo').textContent = '🎤 Fuera de la cancha';
+  document.getElementById('cr-firma-detalle').textContent = `Media actual: ${crMedia}. ${decision.texto}`;
+  let contImagen = document.getElementById('cr-imagen-botones');
+  if(!contImagen){
+    contImagen = document.createElement('div');
+    contImagen.id = 'cr-imagen-botones';
+    contImagen.className = 'tr-acciones';
+    document.getElementById('cr-firma-wrap').appendChild(contImagen);
+  }
+  contImagen.innerHTML = decision.opciones.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.etiqueta}</button>`).join('');
+  contImagen.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const opcion = decision.opciones[parseInt(btn.dataset.idx)];
+      const cambio = opcion.mediaMin === opcion.mediaMax ? opcion.mediaMin : (opcion.mediaMin + Math.floor(Math.random()*(opcion.mediaMax-opcion.mediaMin+1)));
+      crMedia = Math.max(60, Math.min(100, crMedia + cambio));
+      document.getElementById('cr-firma-detalle').textContent = `${cambio >= 0 ? '📈' : '📉'} Tu media ${cambio >= 0 ? 'subió' : 'bajó'} a ${crMedia}.`;
+      contImagen.innerHTML = '';
+      document.getElementById('cr-firma-wrap').style.display = 'none';
+      document.getElementById('cr-arrancar-temporada-btn').style.display = 'block';
+      const { data: { user } } = await sbClient.auth.getUser();
+      if(user) await sbClient.from('carrera_estado').update({ media: crMedia }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
       crTemporadaNum++;
       crIniciarTemporada();
     });
