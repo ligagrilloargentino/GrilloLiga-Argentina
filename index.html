@@ -1616,7 +1616,7 @@ footer{
         <h3>🃏 Truco Grillero</h3>
         <p>El truco argentino de siempre, contra el GrilloBOT o contra otro usuario online.</p>
       </div>
-      <div class="mini-juego-card" id="mini-card-carrera">
+      <div class="mini-juego-card" id="mini-card-carrera" style="display:none;">
         <h3>🌟 Modo Carrera</h3>
         <p>Jugá tu partido de prueba y soñá con que te vea un ojeador. (En construcción — Fase 1)</p>
       </div>
@@ -2149,12 +2149,38 @@ footer{
             <button class="mg-toggle" data-pos="arquero">🧤 Arquero</button>
           </div>
         </div>
-        <button class="auth-btn" id="cr-empezar-btn" style="max-width:240px; margin:16px auto 0;" disabled>Jugar el partido de prueba</button>
+        <button class="auth-btn" id="cr-empezar-btn" style="max-width:240px; margin:16px auto 0;" disabled>Armar los equipos</button>
+      </div>
+
+      <div id="cr-equipos-wrap" style="display:none;">
+        <div class="gd-intro">Armá los dos equipos de 6 jugadores de la Grillo Liga para tu partido en Apanovi.</div>
+        <button class="auth-btn" id="cr-equipos-azar-btn" style="max-width:240px; margin:10px auto 16px;">🎲 Armar equipos al azar</button>
+        <div class="cz-elegir-fila" style="margin-bottom:10px;">
+          <div class="cz-elegir-col" style="max-width:280px;">
+            <div class="mg-opciones-titulo">Buscar jugador</div>
+            <input type="text" id="cr-equipos-input" placeholder="Buscá un jugador…">
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <button class="auth-btn tr-btn-chico" id="cr-agregar-mi-equipo">Sumar a mi equipo</button>
+              <button class="auth-btn tr-btn-chico" id="cr-agregar-rival">Sumar al rival</button>
+            </div>
+          </div>
+        </div>
+        <div class="cz-elegir-fila">
+          <div class="cz-elegir-col">
+            <div class="mg-opciones-titulo">Tu equipo (<span id="cr-mi-equipo-cant">1</span>/6)</div>
+            <ul class="sim-equipo" id="cr-lista-mi-equipo"></ul>
+          </div>
+          <div class="cz-elegir-col">
+            <div class="mg-opciones-titulo">Rival (<span id="cr-rival-equipo-cant">0</span>/6)</div>
+            <ul class="sim-equipo" id="cr-lista-rival-equipo"></ul>
+          </div>
+        </div>
+        <button class="auth-btn" id="cr-confirmar-equipos-btn" style="max-width:240px; margin:16px auto 0;" disabled>Jugar el Partido 1 en Apanovi</button>
       </div>
 
       <div id="cr-partido-wrap" style="display:none;">
         <div class="pen-marcador">
-          <div>Partido<br><b id="cr-num-partido">1</b></div>
+          <div>Partido en Apanovi<br><b id="cr-num-partido">1</b></div>
           <div class="pen-ronda">Decisión <b id="cr-num-decision">1</b>/<span id="cr-total-decisiones">9</span></div>
           <div>Rendimiento<br><b id="cr-puntaje">0</b></div>
         </div>
@@ -2498,6 +2524,7 @@ if(LOGIN_REQUERIDO && !modoInvitado){
       const usuario = data.user.email.replace(DOMINIO_FALSO, '');
       _labelUsuario.textContent = usuario;
       _labelUsuario.style.display = 'inline';
+      document.getElementById('mini-card-carrera').style.display = (usuario === 'grillo') ? '' : 'none';
 
       sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito')
         .eq('id', data.user.id).maybeSingle().then(({data:perfil})=>{
@@ -3993,7 +4020,7 @@ function gdAdivinar(){
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
 gdCargarListaJugadores();
-['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador'].forEach(id=>{
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador','cr-equipos-input'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) crearAutocompletado(el);
 });
@@ -6064,9 +6091,74 @@ document.getElementById('tr-online-salir-btn').addEventListener('click', ()=>{
 });
 
 /* ---------- MODO CARRERA (Fase 1: partidos de prueba + ojeador) ---------- */
-const CR_UMBRAL_PARTIDO1 = 55;
-const CR_UMBRAL_PARTIDO2 = 85;
-const CR_TOTAL_DECISIONES = 9;
+const CR_UMBRAL_PARTIDO1 = 70;
+const CR_UMBRAL_PARTIDO2 = 90;
+
+// Banco de situaciones para los partidos en Apanovi (Partido 1 y 2): 3 opciones de valor fijo
+// (5 = jugada segura, 10 = jugada que arma una asistencia, 15 = jugada de gol), sin fallo posible.
+// {compañero} se reemplaza en pantalla por un jugador al azar de TU equipo (sin contar a vos mismo).
+const AP_SITUACIONES = [
+  { texto:'Recibís la pelota en el medio de la cancha.', opciones:[
+    { etiqueta:'Pase seguro a {compañero}', puntos:5, tipo:null },
+    { etiqueta:'Metés un pase filtrado para {compañero}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Encarás vos mismo hacia el arco', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Recuperás una pelota dividida cerca del área rival.', opciones:[
+    { etiqueta:'La descargás simple', puntos:5, tipo:null },
+    { etiqueta:'Se la dejás picando a {compañero}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Le pegás de primera vos', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Tenés la pelota con espacio por afuera del área.', opciones:[
+    { etiqueta:'Retenés la pelota, jugás tranquilo', puntos:5, tipo:null },
+    { etiqueta:'Centrás buscando a {compañero}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Probás un remate de media distancia', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'{compañero} te devuelve la pelota cerca del área.', opciones:[
+    { etiqueta:'La cuidás, no te arriesgás', puntos:5, tipo:null },
+    { etiqueta:'Buscás a {compañero2} solo del otro lado', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Definís vos mismo', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Contraataque: quedan pocos rivales atrás.', opciones:[
+    { etiqueta:'Frenás la jugada, no hay apuro', puntos:5, tipo:null },
+    { etiqueta:'Habilitás a {compañero} que corre solo', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Definís el mano a mano vos', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Tiro libre a favor cerca del área rival.', opciones:[
+    { etiqueta:'La jugás corta', puntos:5, tipo:null },
+    { etiqueta:'Centrás al área para {compañero}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Pateás directo al arco', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'{compañero} pide la pelota picando al espacio.', opciones:[
+    { etiqueta:'Se la das simple', puntos:5, tipo:null },
+    { etiqueta:'Le das el pase justo para que defina', puntos:10, tipo:'asistencia_companero' },
+    { etiqueta:'Preferís seguir vos con la jugada', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Córner a favor.', opciones:[
+    { etiqueta:'Centro simple al medio del área', puntos:5, tipo:null },
+    { etiqueta:'Buscás la cabeza de {compañero}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Rematás vos del segundo palo', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Rebote suelto dentro del área rival.', opciones:[
+    { etiqueta:'La sacás afuera del área, sin riesgo', puntos:5, tipo:null },
+    { etiqueta:'La bajás para {compañero}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Definís de primera vos', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Último minuto del partido, todo puede pasar.', opciones:[
+    { etiqueta:'Jugás con calma para cuidar la pelota', puntos:5, tipo:null },
+    { etiqueta:'Buscás a {compañero} con un pase largo', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Te tirás al ataque con todo', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'{compañero} te hace un caño y sigue de largo.', opciones:[
+    { etiqueta:'Volvés a marcar tu posición', puntos:5, tipo:null },
+    { etiqueta:'Le devolvés la pared para que siga', puntos:10, tipo:'asistencia_companero' },
+    { etiqueta:'Vas por afuera a buscar el rebote vos', puntos:15, tipo:'gol_vos' }
+  ]},
+  { texto:'Doble pared con {compañero} en la mitad de la cancha.', opciones:[
+    { etiqueta:'Cortás la jugada, no arriesgás', puntos:5, tipo:null },
+    { etiqueta:'Seguís la pared para {compañero2}', puntos:10, tipo:'asistencia' },
+    { etiqueta:'Rompés hacia el arco vos', puntos:15, tipo:'gol_vos' }
+  ]}
+];
 
 const CR_POSICIONES_TODAS = ['delantero','mediocampista','defensor','arquero'];
 const CR_SITUACIONES = [
@@ -6187,53 +6279,137 @@ document.querySelectorAll('#cr-creacion [data-pos]').forEach(btn=>{
     document.querySelectorAll('#cr-creacion [data-pos]').forEach(b => b.classList.toggle('active', b === btn));
   });
 });
-document.getElementById('cr-empezar-btn').addEventListener('click', ()=> crIniciarPartido(1));
-
-function crIniciarPartido(numero){
-  crPartidoActual = numero;
-  crDecisionActual = 0;
-  crPuntaje = 0;
-  crSituacionesElegidas = crSituacionesParaPosicion(crPosicion, CR_TOTAL_DECISIONES);
+document.getElementById('cr-empezar-btn').addEventListener('click', ()=>{
   document.getElementById('cr-creacion').style.display = 'none';
+  document.getElementById('cr-equipos-wrap').style.display = 'block';
+  crEquipoJugador = [crJugadorNombre];
+  crEquipoRival = [];
+  crRenderizarEquipos();
+});
+
+/* --- Armado de equipos 6v6 --- */
+let crEquipoJugador = [];
+let crEquipoRival = [];
+
+function crRenderizarEquipos(){
+  document.getElementById('cr-mi-equipo-cant').textContent = crEquipoJugador.length;
+  document.getElementById('cr-rival-equipo-cant').textContent = crEquipoRival.length;
+  document.getElementById('cr-lista-mi-equipo').innerHTML = crEquipoJugador.map((n,i) => `<li>${n}${i===0 ? ' (vos)' : ` <span class="sim-quitar" data-eq="mi" data-idx="${i}">✕</span>`}</li>`).join('');
+  document.getElementById('cr-lista-rival-equipo').innerHTML = crEquipoRival.map((n,i) => `<li>${n} <span class="sim-quitar" data-eq="rival" data-idx="${i}">✕</span></li>`).join('');
+  document.querySelectorAll('#cr-lista-mi-equipo .sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ crEquipoJugador.splice(parseInt(el.dataset.idx),1); crRenderizarEquipos(); });
+  });
+  document.querySelectorAll('#cr-lista-rival-equipo .sim-quitar').forEach(el=>{
+    el.addEventListener('click', ()=>{ crEquipoRival.splice(parseInt(el.dataset.idx),1); crRenderizarEquipos(); });
+  });
+  document.getElementById('cr-confirmar-equipos-btn').disabled = !(crEquipoJugador.length === 6 && crEquipoRival.length === 6);
+}
+
+document.getElementById('cr-equipos-azar-btn').addEventListener('click', ()=>{
+  const resto = DATA.estadisticas.map(r => r.Jugador).filter(n => n !== crJugadorNombre).sort(() => Math.random()-0.5);
+  crEquipoJugador = [crJugadorNombre, ...resto.slice(0,5)];
+  crEquipoRival = resto.slice(5,11);
+  crRenderizarEquipos();
+});
+document.getElementById('cr-agregar-mi-equipo').addEventListener('click', ()=>{
+  const nombre = normalizarTexto(document.getElementById('cr-equipos-input').value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre)?.Jugador;
+  if(!encontrado || crEquipoJugador.includes(encontrado) || crEquipoRival.includes(encontrado) || crEquipoJugador.length >= 6) return;
+  crEquipoJugador.push(encontrado);
+  document.getElementById('cr-equipos-input').value = '';
+  crRenderizarEquipos();
+});
+document.getElementById('cr-agregar-rival').addEventListener('click', ()=>{
+  const nombre = normalizarTexto(document.getElementById('cr-equipos-input').value);
+  const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre)?.Jugador;
+  if(!encontrado || crEquipoJugador.includes(encontrado) || crEquipoRival.includes(encontrado) || crEquipoRival.length >= 6) return;
+  crEquipoRival.push(encontrado);
+  document.getElementById('cr-equipos-input').value = '';
+  crRenderizarEquipos();
+});
+document.getElementById('cr-confirmar-equipos-btn').addEventListener('click', ()=> apIniciarPartido(1));
+
+/* --- Motor de decisiones de los partidos en Apanovi (Partido 1 y 2) --- */
+let apPartidoActual = 1;
+let apDecisionActual = 0;
+let apTotalDecisiones = 9;
+let apPuntaje = 0;
+let apSituaciones = [];
+let apAsistentePendiente = null; // nombre del compañero que "armó" la próxima jugada de gol
+let apGoles = []; // { jugador, asistencia }
+
+function apCompanerosAlAzar(cantidad){
+  const disponibles = crEquipoJugador.filter(n => n !== crJugadorNombre).sort(() => Math.random()-0.5);
+  return disponibles.slice(0, cantidad);
+}
+
+function apIniciarPartido(numero){
+  apPartidoActual = numero;
+  apDecisionActual = 0;
+  apPuntaje = 0;
+  apAsistentePendiente = null;
+  apGoles = [];
+  apTotalDecisiones = 7 + Math.floor(Math.random()*6); // entre 7 y 12
+  apSituaciones = [...AP_SITUACIONES].sort(() => Math.random()-0.5).slice(0, apTotalDecisiones);
+  document.getElementById('cr-equipos-wrap').style.display = 'none';
   document.getElementById('cr-final').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'block';
   document.getElementById('cr-num-partido').textContent = numero;
-  document.getElementById('cr-total-decisiones').textContent = CR_TOTAL_DECISIONES;
+  document.getElementById('cr-total-decisiones').textContent = apTotalDecisiones;
   document.getElementById('carrera-intro-fase').textContent = numero === 2
-    ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este partido. ¡Mostrá tu mejor versión!'
-    : 'Jugá tu partido de prueba tomando decisiones.';
-  crMostrarDecision();
+    ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
+    : 'Jugá tu Partido 1 en Apanovi tomando decisiones.';
+  apMostrarDecision();
 }
 
-function crMostrarDecision(){
-  document.getElementById('cr-num-decision').textContent = crDecisionActual + 1;
-  document.getElementById('cr-puntaje').textContent = crPuntaje;
+function apResolverPlantilla(texto){
+  let comp1 = null, comp2 = null;
+  if(texto.includes('{compañero2}')){
+    const dos = apCompanerosAlAzar(2);
+    comp1 = dos[0]; comp2 = dos[1] || dos[0];
+  } else if(texto.includes('{compañero}')){
+    comp1 = apCompanerosAlAzar(1)[0];
+  }
+  return { texto: texto.replace(/\{compañero2\}/g, comp2).replace(/\{compañero\}/g, comp1), companero: comp1 };
+}
+
+function apMostrarDecision(){
+  document.getElementById('cr-num-decision').textContent = apDecisionActual + 1;
+  document.getElementById('cr-puntaje').textContent = apPuntaje;
   document.getElementById('cr-feedback').textContent = '';
-  const sit = crSituacionesElegidas[crDecisionActual];
-  document.getElementById('cr-situacion-titulo').textContent = sit.titulo;
-  document.getElementById('cr-situacion-texto').textContent = sit.texto;
-  document.getElementById('cr-opciones').innerHTML = sit.opciones.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.etiqueta}</button>`).join('');
-  document.querySelectorAll('#cr-opciones button').forEach(btn=>{
-    btn.addEventListener('click', () => crElegirOpcion(parseInt(btn.dataset.idx)));
+  const sit = apSituaciones[apDecisionActual];
+  const { texto: textoSituacion } = apResolverPlantilla(sit.texto);
+  document.getElementById('cr-situacion-titulo').textContent = `⚽ Decisión ${apDecisionActual+1}`;
+  document.getElementById('cr-situacion-texto').textContent = textoSituacion;
+  const opcionesResueltas = sit.opciones.map(o => ({ ...o, ...apResolverPlantilla(o.etiqueta) }));
+  document.getElementById('cr-opciones').innerHTML = opcionesResueltas.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.texto} (+${o.puntos})</button>`).join('');
+  document.querySelectorAll('#cr-opciones button').forEach((btn,i)=>{
+    btn.addEventListener('click', () => apElegirOpcion(opcionesResueltas[i]));
   });
 }
 
-function crElegirOpcion(idx){
-  const sit = crSituacionesElegidas[crDecisionActual];
-  const opcion = sit.opciones[idx];
-  const exito = crCalcularExito(opcion);
-  const puntos = exito ? opcion.puntosExito : opcion.puntosFallo;
-  crPuntaje = Math.max(0, crPuntaje + puntos);
-  document.getElementById('cr-puntaje').textContent = crPuntaje;
-  document.getElementById('cr-feedback').textContent = exito
-    ? `✅ ¡Te salió bien! (${puntos>=0?'+':''}${puntos} de rendimiento)`
-    : `❌ No te salió (${puntos} de rendimiento)`;
+function apElegirOpcion(opcion){
+  apPuntaje += opcion.puntos;
+  document.getElementById('cr-puntaje').textContent = apPuntaje;
+  let feedback = `✅ ${opcion.texto} (+${opcion.puntos})`;
+  if(opcion.tipo === 'asistencia'){
+    apAsistentePendiente = crJugadorNombre;
+    feedback += ` — dejaste a ${opcion.companero} con una gran chance.`;
+  } else if(opcion.tipo === 'asistencia_companero'){
+    apAsistentePendiente = opcion.companero;
+    feedback += ` — ${opcion.companero} te dejó una gran chance a vos.`;
+  } else if(opcion.tipo === 'gol_vos'){
+    apGoles.push({ jugador: crJugadorNombre, asistencia: apAsistentePendiente });
+    feedback += apAsistentePendiente ? ` — ¡GOL tuyo, asistencia de ${apAsistentePendiente}!` : ' — ¡GOL tuyo!';
+    apAsistentePendiente = null;
+  }
+  document.getElementById('cr-feedback').textContent = feedback;
   document.querySelectorAll('#cr-opciones button').forEach(b => b.disabled = true);
   setTimeout(()=>{
-    crDecisionActual++;
-    if(crDecisionActual >= CR_TOTAL_DECISIONES){ crTerminarPartido(); }
-    else { crMostrarDecision(); }
-  }, 1400);
+    apDecisionActual++;
+    if(apDecisionActual >= apTotalDecisiones){ apTerminarPartido(); }
+    else { apMostrarDecision(); }
+  }, 1600);
 }
 
 async function crGuardarEstado(fase, puntajeCampo, puntajeValor){
@@ -6244,41 +6420,75 @@ async function crGuardarEstado(fase, puntajeCampo, puntajeValor){
   await sbClient.from('carrera_estado').upsert(payload).then(()=>{}, ()=>{});
 }
 
-async function crTerminarPartido(){
+function apResumenPartido(){
+  if(!apGoles.length) return 'No hubo goles en este partido.';
+  return 'Goles: ' + apGoles.map(g => g.asistencia ? `${g.jugador} (asist. ${g.asistencia})` : g.jugador).join(', ') + '.';
+}
+
+async function apTerminarPartido(){
   document.getElementById('cr-partido-wrap').style.display = 'none';
   document.getElementById('cr-final').style.display = 'block';
-  if(crPartidoActual === 1){
-    crPuntajePartido1 = crPuntaje;
-    const paso = crPuntaje >= CR_UMBRAL_PARTIDO1;
+  const resumen = apResumenPartido();
+  if(apPartidoActual === 1){
+    const paso = apPuntaje >= CR_UMBRAL_PARTIDO1;
     document.getElementById('cr-final-titulo').textContent = paso ? '🎉 ¡Rendimiento destacado!' : '😕 No alcanzó';
-    document.getElementById('cr-final-detalle').textContent = paso
-      ? `Terminaste con ${crPuntaje} puntos de rendimiento. ¡Te ganaste un segundo partido de prueba, esta vez con un ojeador mirándote!`
-      : `Terminaste con ${crPuntaje} puntos de rendimiento (necesitabas al menos ${CR_UMBRAL_PARTIDO1}). Podés volver a intentarlo.`;
-    document.getElementById('cr-reintentar-btn').textContent = paso ? 'Jugar el segundo partido' : 'Reintentar el primer partido';
-    document.getElementById('cr-reintentar-btn').onclick = paso ? () => crIniciarPartido(2) : () => crIniciarPartido(1);
-    await crGuardarEstado(paso ? 'partido2' : 'partido1', 'puntaje_partido1', crPuntaje);
+    document.getElementById('cr-final-detalle').textContent = (paso
+      ? `Terminaste con ${apPuntaje} puntos. ¡Te ganaste un segundo Partido en Apanovi, esta vez con un ojeador mirándote! `
+      : `Terminaste con ${apPuntaje} puntos (necesitabas al menos ${CR_UMBRAL_PARTIDO1}). Podés volver a intentarlo. `) + resumen;
+    if(paso){
+      document.getElementById('cr-reintentar-btn').style.display = 'none';
+      crMostrarEleccionPartido2();
+    } else {
+      document.getElementById('cr-reintentar-btn').style.display = 'block';
+      document.getElementById('cr-reintentar-btn').textContent = 'Reintentar el Partido 1';
+      document.getElementById('cr-reintentar-btn').onclick = () => apIniciarPartido(1);
+    }
+    await crGuardarEstado(paso ? 'partido2' : 'partido1', 'puntaje_partido1', apPuntaje);
   } else {
-    const paso = crPuntaje >= CR_UMBRAL_PARTIDO2;
-    await crGuardarEstado(paso ? 'ojeador_ok' : 'ojeador_no', 'puntaje_partido2', crPuntaje);
+    const paso = apPuntaje >= CR_UMBRAL_PARTIDO2;
+    await crGuardarEstado(paso ? 'ojeador_ok' : 'ojeador_no', 'puntaje_partido2', apPuntaje);
     if(paso){
       document.getElementById('cr-final').style.display = 'none';
       crMostrarOfertas();
       return;
     }
     document.getElementById('cr-final-titulo').textContent = '😕 El ojeador no quedó convencido';
-    document.getElementById('cr-final-detalle').textContent = `Terminaste con ${crPuntaje} puntos de rendimiento (necesitabas al menos ${CR_UMBRAL_PARTIDO2}). Podés volver a intentar este segundo partido.`;
+    document.getElementById('cr-final-detalle').textContent = `Terminaste con ${apPuntaje} puntos (necesitabas al menos ${CR_UMBRAL_PARTIDO2}). Podés volver a intentar este segundo partido. ` + resumen;
+    document.getElementById('cr-reintentar-btn').style.display = 'block';
     document.getElementById('cr-reintentar-btn').textContent = 'Reintentar el segundo partido';
-    document.getElementById('cr-reintentar-btn').onclick = () => crIniciarPartido(2);
+    document.getElementById('cr-reintentar-btn').onclick = () => apIniciarPartido(2);
   }
+}
+
+function crMostrarEleccionPartido2(){
+  document.getElementById('cr-final-detalle').innerHTML += `
+    <div class="tr-acciones" style="margin-top:14px;">
+      <button class="auth-btn tr-btn-chico" id="cr-revancha-btn">Revancha (mismos equipos)</button>
+      <button class="auth-btn tr-btn-chico" id="cr-nuevos-equipos-btn">Nuevos equipos</button>
+    </div>`;
+  document.getElementById('cr-revancha-btn').addEventListener('click', () => apIniciarPartido(2));
+  document.getElementById('cr-nuevos-equipos-btn').addEventListener('click', ()=>{
+    document.getElementById('cr-final').style.display = 'none';
+    document.getElementById('cr-equipos-wrap').style.display = 'block';
+    crEquipoJugador = [crJugadorNombre];
+    crEquipoRival = [];
+    crRenderizarEquipos();
+    document.getElementById('cr-confirmar-equipos-btn').textContent = 'Jugar el Partido 2 en Apanovi';
+    document.getElementById('cr-confirmar-equipos-btn').onclick = () => apIniciarPartido(2);
+  });
 }
 
 document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-carrera').style.display = 'block';
   document.getElementById('cr-creacion').style.display = 'block';
+  document.getElementById('cr-equipos-wrap').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'none';
   document.getElementById('cr-final').style.display = 'none';
-  document.getElementById('carrera-intro-fase').textContent = 'Jugá un partido de prueba tomando decisiones. Si tenés buen rendimiento, vas a un segundo partido — esta vez con un ojeador mirándote.';
+  document.getElementById('cr-reintentar-btn').style.display = 'block';
+  document.getElementById('cr-confirmar-equipos-btn').textContent = 'Jugar el Partido 1 en Apanovi';
+  document.getElementById('cr-confirmar-equipos-btn').onclick = () => apIniciarPartido(1);
+  document.getElementById('carrera-intro-fase').textContent = 'Jugá un Partido en Apanovi tomando decisiones. Si tenés buen rendimiento, vas a un segundo partido — esta vez con un ojeador mirándote.';
   crJugadorNombre = null;
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
@@ -6332,9 +6542,20 @@ const CR_TEMP_TOTAL_PARTIDOS = 3;
 const CR_TEMP_DECISIONES_POR_PARTIDO = 4;
 let crTempPuntajeTotal = 0;
 
+// Primer contrato: primera división real de los 12 países acordados (toda la CONMEBOL + MLS + México)
+const CR_LIGAS_PRIMER_CONTRATO = ['arg1','uru','bra','bol','chi','par','per','ecu','col','ven','mls','mex'];
+function crClubesPrimerContrato(){
+  const lista = [];
+  CR_LIGAS_PRIMER_CONTRATO.forEach(key=>{
+    const liga = CR_LIGAS[key];
+    liga.clubes.forEach(club => lista.push({ club, liga: liga.nombre, pais: liga.pais }));
+  });
+  return lista;
+}
+
 function crMostrarOfertas(){
-  const candidatos = crClubesPrestigio(1); // primer contrato: clubes de prestigio bajo, algo realista
-  const cantidad = 1 + Math.floor(Math.random()*4); // entre 1 y 4
+  const candidatos = crClubesPrimerContrato();
+  const cantidad = 3 + Math.floor(Math.random()*3); // entre 3 y 5
   const elegidos = [...candidatos].sort(()=>Math.random()-0.5).slice(0, cantidad);
   document.getElementById('cr-ofertas-wrap').style.display = 'block';
   const lista = document.getElementById('cr-ofertas-lista');
