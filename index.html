@@ -2239,6 +2239,7 @@ footer{
           <div class="pen-ronda" id="cr-temp-club-liga">Club — Liga</div>
           <div>Puntos en Liga<br><b id="cr-temp-puntos-liga">0</b></div>
           <div>Media<br><b id="cr-temp-media">70</b></div>
+          <div>Sueldo<br><b id="cr-temp-sueldo">🦗0</b></div>
         </div>
         <div style="text-align:center; margin-top:6px;">
           <span class="tr-config-link" id="cr-abrir-beneficios">🎁 Puntos de logros: <b id="cr-puntos-logros-header">0</b> — Ver tienda de beneficios</span>
@@ -6338,6 +6339,12 @@ let crClubesHistorial = [];
 let crLesionado = false;
 let crPartidosLesionRestantes = 0;
 let crMotivoLesion = '';
+let crSueldoActual = 0;
+let crSueldoTotalCarrera = 0;
+
+function crFormatearGrillos(n){
+  return '🦗' + Math.round(n).toLocaleString('es-AR');
+}
 const CR_MOTIVOS_LESION = ['una distensión muscular', 'un esguince de tobillo', 'una sobrecarga', 'un golpe en la rodilla', 'una tarjeta roja que te deja suspendido'];
 let crGolesTemporada = 0;
 let crAsistenciasTemporada = 0;
@@ -6716,6 +6723,7 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   crBeneficiosComprados = new Set();
   crGolesCarrera = 0; crAsistenciasCarrera = 0; crTitulosCarrera = 0; crBalonesDeOro = 0; crClubesHistorial = [];
   crLesionado = false; crPartidosLesionRestantes = 0; crMotivoLesion = '';
+  crSueldoActual = 0; crSueldoTotalCarrera = 0;
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
 });
@@ -6734,7 +6742,7 @@ async function crAbrirHistorial(){
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
   const [{ data: carreras }, { data: archivadas }, { data: perfiles }] = await Promise.all([
     sbClient.from('carrera_estado').select('usuario_id, nombre_jugador, posicion, fase, temporada, puntos_logros, club_actual, liga_actual, convocado_seleccion, retirado'),
-    sbClient.from('carrera_historial').select('usuario_id, nombre_jugador, posicion, temporadas_jugadas, puntos_logros, club_final, liga_final, convocado_seleccion, retirado_en'),
+    sbClient.from('carrera_historial').select('usuario_id, nombre_jugador, posicion, temporadas_jugadas, puntos_logros, club_final, liga_final, convocado_seleccion, retirado_en, goles_carrera, asistencias_carrera, titulos_carrera, balones_de_oro, sueldo_total_carrera'),
     sbClient.from('perfiles_usuario').select('id, username')
   ]);
   if((!carreras || !carreras.length) && (!archivadas || !archivadas.length)){
@@ -6749,7 +6757,7 @@ async function crAbrirHistorial(){
     let detalle = `<b>${usuario}</b> jugó una carrera de ${c.temporadas_jugadas} temporada${c.temporadas_jugadas===1?'':'s'} con <b>${c.nombre_jugador || '???'}</b> y ganó ${c.puntos_logros} puntos de logros`;
     if(c.club_final) detalle += `, terminando en ${c.club_final} (${c.liga_final})`;
     if(c.convocado_seleccion) detalle += ' 🇦🇷 (fue convocado a la Selección)';
-    detalle += ` — ⚽${c.goles_carrera||0} 🎯${c.asistencias_carrera||0} 🏆${c.titulos_carrera||0} 🥇${c.balones_de_oro||0}`;
+    detalle += ` — ⚽${c.goles_carrera||0} 🎯${c.asistencias_carrera||0} 🏆${c.titulos_carrera||0} 🥇${c.balones_de_oro||0} 💰${crFormatearGrillos(c.sueldo_total_carrera||0)}`;
     return `<div class="cr-fixture-fila">🏁 ${detalle}.</div>`;
   });
 
@@ -6788,7 +6796,7 @@ async function crRetirarme(){
       club_final: crOfertaElegida ? crOfertaElegida.club : null, liga_final: crOfertaElegida ? crOfertaElegida.liga : null,
       convocado_seleccion: crFueConvocadoAlgunaVez,
       goles_carrera: crGolesCarrera, asistencias_carrera: crAsistenciasCarrera,
-      titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro
+      titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro, sueldo_total_carrera: Math.round(crSueldoTotalCarrera)
     }).then(()=>{}, ()=>{});
     await sbClient.from('carrera_estado').update({ retirado: true }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
@@ -6827,10 +6835,11 @@ function crMostrarOfertasEuropa(){
   lista.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       crOfertaElegida = elegidos[parseInt(btn.dataset.idx)];
+      crSueldoActual = crSueldoActual * 1.8 * (0.9 + Math.random()*0.3); // emigrar a Europa siempre implica un salto salarial
       document.getElementById('cr-ofertas-europa-wrap').style.display = 'none';
       const { data: { user } } = await sbClient.auth.getUser();
       if(user){
-        await sbClient.from('carrera_estado').update({ club_actual: crOfertaElegida.club, liga_actual: crOfertaElegida.liga }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+        await sbClient.from('carrera_estado').update({ club_actual: crOfertaElegida.club, liga_actual: crOfertaElegida.liga, sueldo_actual: Math.round(crSueldoActual) }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
       }
       crIniciarTemporada();
     });
@@ -6850,6 +6859,8 @@ function crMostrarPerfilHistorico(){
     <div class="pp-fila"><b>🥇 Balones de Oro:</b> ${crBalonesDeOro}</div>
     <div class="pp-fila"><b>📅 Temporadas jugadas:</b> ${crTemporadaNum}</div>
     <div class="pp-fila"><b>🎁 Puntos de logros acumulados:</b> ${crPuntosLogros}</div>
+    <div class="pp-fila"><b>💰 Sueldo actual:</b> ${crFormatearGrillos(crSueldoActual)} por temporada</div>
+    <div class="pp-fila"><b>💰 Total ganado en la carrera:</b> ${crFormatearGrillos(crSueldoTotalCarrera)}</div>
     <div class="pp-fila"><b>🇦🇷 Convocado a la Selección:</b> ${crFueConvocadoAlgunaVez ? 'Sí' : 'Todavía no'}</div>
     <div class="pp-fila"><b>🛡️ Clubes en su carrera:</b> ${crClubesHistorial.join(' → ') || (crOfertaElegida ? crOfertaElegida.club : '—')}</div>
   `;
@@ -6955,14 +6966,16 @@ function crMostrarOfertas(){
 async function crElegirOferta(oferta){
   crOfertaElegida = oferta;
   crClubesHistorial = [oferta.club];
+  const tierInicial = Object.values(CR_LIGAS).find(l => l.nombre === oferta.liga && l.pais === oferta.pais)?.prestigio || 1;
+  crSueldoActual = [8000, 20000, 45000][tierInicial-1] * (0.85 + Math.random()*0.3);
   document.getElementById('cr-ofertas-wrap').style.display = 'none';
   document.getElementById('cr-firma-wrap').style.display = 'block';
   document.getElementById('cr-firma-titulo').textContent = `✍️ ¡Firmaste con ${oferta.club}!`;
-  document.getElementById('cr-firma-detalle').textContent = `Arrancás tu carrera profesional en ${oferta.liga} (${oferta.pais}). Cada temporada vas a jugar varios partidos tomando decisiones, igual que en las pruebas.`;
+  document.getElementById('cr-firma-detalle').textContent = `Arrancás tu carrera profesional en ${oferta.liga} (${oferta.pais}), con un sueldo de ${crFormatearGrillos(crSueldoActual)} por temporada. Cada temporada vas a jugar varios partidos tomando decisiones, igual que en las pruebas.`;
   await crGuardarEstado('en_club', 'puntaje_partido2', apPuntaje);
   const { data: { user } } = await sbClient.auth.getUser();
   if(user){
-    await sbClient.from('carrera_estado').update({ club_actual: oferta.club, liga_actual: oferta.liga, temporada: 1 }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+    await sbClient.from('carrera_estado').update({ club_actual: oferta.club, liga_actual: oferta.liga, temporada: 1, sueldo_actual: Math.round(crSueldoActual) }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
 }
 
@@ -7356,6 +7369,7 @@ function crRenderizarFixtureYTabla(){
   const miClub = crOfertaElegida.club;
   document.getElementById('cr-temp-puntos-liga').textContent = crTablaLiga[miClub].pts;
   document.getElementById('cr-temp-media').textContent = crMedia;
+  document.getElementById('cr-temp-sueldo').textContent = crFormatearGrillos(crSueldoActual);
 
   const cont = document.getElementById('cr-fixture-lista');
   cont.innerHTML = crFixtureMiClub.map((f,i) => `
@@ -7464,10 +7478,18 @@ async function crTerminarTemporada(){
   crTitulosCarrera += (esCampeonLiga?1:0) + (esCampeonCopa?1:0) + (esCampeonCopaAm?1:0);
   if(!crClubesHistorial.includes(miClub)) crClubesHistorial.push(miClub);
 
+  // Sueldo: cobrás el de esta temporada, y se ajusta para la próxima según cómo te fue
+  crSueldoTotalCarrera += crSueldoActual;
+  let factorAjuste = 1 + (crMedia-70)/200; // media alta = mejora el sueldo, media baja lo achica
+  if(puesto <= 3) factorAjuste += 0.15;
+  if(esCampeonLiga || esCampeonCopa || esCampeonCopaAm) factorAjuste += 0.2;
+  if(esBalonDeOro) factorAjuste += 0.5;
+  crSueldoActual = Math.max(1000, crSueldoActual * factorAjuste);
+
   document.getElementById('cr-puntos-logros-header').textContent = crPuntosLogros;
   const contLogros = document.getElementById('cr-temp-logros-resumen');
   contLogros.innerHTML = logros.length
-    ? `<div class="gd-pista-titulo">🏅 Logros de la temporada</div><ul style="margin-top:6px;">${logros.map(l => `<li>${l}</li>`).join('')}</ul><div style="margin-top:8px; font-weight:700;">Total de puntos de logros acumulados: ${crPuntosLogros}</div>`
+    ? `<div class="gd-pista-titulo">🏅 Logros de la temporada</div><ul style="margin-top:6px;">${logros.map(l => `<li>${l}</li>`).join('')}</ul><div style="margin-top:8px; font-weight:700;">Total de puntos de logros acumulados: ${crPuntosLogros}</div><div style="margin-top:4px;">💰 Cobraste ${crFormatearGrillos(crSueldoActual/factorAjuste)} esta temporada. Nuevo sueldo: ${crFormatearGrillos(crSueldoActual)}.</div>`
     : `<div class="gd-intro">No conseguiste logros especiales esta temporada. Total acumulado: ${crPuntosLogros} puntos.</div>`;
 
   const { data: { user } } = await sbClient.auth.getUser();
@@ -7475,7 +7497,8 @@ async function crTerminarTemporada(){
     await sbClient.from('carrera_estado').update({
       temporada: crTemporadaNum, convocado_seleccion: convocado, puntos_logros: crPuntosLogros,
       goles_carrera: crGolesCarrera, asistencias_carrera: crAsistenciasCarrera,
-      titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro, clubes_historial: crClubesHistorial
+      titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro, clubes_historial: crClubesHistorial,
+      sueldo_actual: Math.round(crSueldoActual), sueldo_total_carrera: Math.round(crSueldoTotalCarrera)
     }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
   document.getElementById('cr-temp-continuar-btn').textContent = 'Continuar';
