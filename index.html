@@ -2706,7 +2706,7 @@ if(LOGIN_REQUERIDO && !modoInvitado){
       const usuario = data.user.email.replace(DOMINIO_FALSO, '');
       _labelUsuario.textContent = usuario;
       _labelUsuario.style.display = 'inline';
-      document.getElementById('mini-card-carrera').style.display = (usuario === 'grillo') ? '' : 'none';
+      document.getElementById('mini-card-carrera').style.display = '';
       document.getElementById('notif-campana-btn').style.display = 'inline-block';
       cargarNotificaciones();
 
