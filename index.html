@@ -6346,6 +6346,42 @@ function crFormatearGrillos(n){
   return '🦗' + Math.round(n).toLocaleString('es-AR');
 }
 const CR_MOTIVOS_LESION = ['una distensión muscular', 'un esguince de tobillo', 'una sobrecarga', 'un golpe en la rodilla', 'una tarjeta roja que te deja suspendido'];
+
+// Fichajes de otros jugadores de la Grillo Liga (3 por temporada, en orden de PJ de mayor a menor) y rivalidades
+let crJugadoresFichados = []; // [{ nombre, club, liga, pais }]
+let crUltimaNoticiaTexto = '';
+let crRivales = []; // [{ nombre, club }]
+
+const CR_MAX_RIVALES = 3;
+
+function crFicharJugadoresDeLaTemporada(){
+  const yaFichados = new Set(crJugadoresFichados.map(f => f.nombre));
+  const candidatos = [...DATA.estadisticas]
+    .filter(r => r.Jugador !== crJugadorNombre && !yaFichados.has(r.Jugador))
+    .sort((a,b) => (b.PJ||0) - (a.PJ||0))
+    .slice(0, 3);
+  const clavesLigas = Object.keys(CR_LIGAS);
+  const nuevos = candidatos.map(c => {
+    const claveLiga = clavesLigas[Math.floor(Math.random()*clavesLigas.length)];
+    const liga = CR_LIGAS[claveLiga];
+    const club = liga.clubes[Math.floor(Math.random()*liga.clubes.length)];
+    return { nombre:c.Jugador, club, liga:liga.nombre, pais:liga.pais };
+  });
+  crJugadoresFichados.push(...nuevos);
+
+  const nuevasRivalidades = [];
+  nuevos.forEach(f=>{
+    if(crRivales.length >= CR_MAX_RIVALES) return;
+    const posicionAlAzar = CR_POSICIONES_TODAS[Math.floor(Math.random()*CR_POSICIONES_TODAS.length)];
+    const mismaPosicion = posicionAlAzar === crPosicion; // simplificación: no tenemos posición real de los demás jugadores
+    const chance = mismaPosicion ? 0.4 : 0.15;
+    if(Math.random() < chance){
+      crRivales.push({ nombre:f.nombre, club:f.club });
+      nuevasRivalidades.push(f.nombre);
+    }
+  });
+  return { nuevos, nuevasRivalidades };
+}
 let crGolesTemporada = 0;
 let crAsistenciasTemporada = 0;
 let crPuntosLogros = 0;
@@ -6513,22 +6549,40 @@ function apIniciarPartido(numero){
   document.getElementById('cr-partido-wrap').style.display = 'block';
   document.getElementById('cr-num-partido').textContent = numero === 'temporada' ? crFixtureMiClub[apFixtureIdxPendiente].rival : (numero === 'copa' ? 'Copa' : (numero === 'copaam' ? 'CopaAm' : numero));
   document.getElementById('cr-total-decisiones').textContent = apTotalDecisiones;
+
+  let clubRival = null;
   if(numero === 'temporada'){
     const f = crFixtureMiClub[apFixtureIdxPendiente];
+    clubRival = f.rival;
     document.getElementById('carrera-intro-fase').textContent = `Jugás ${f.local ? 'de local' : 'de visitante'} contra ${f.rival}.`;
   } else if(numero === 'copa'){
     const p = crCopaBracket.partidos[apCopaIdxPendiente];
-    const rival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
-    document.getElementById('carrera-intro-fase').textContent = `Copa Nacional — partido único contra ${rival}.`;
+    clubRival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
+    document.getElementById('carrera-intro-fase').textContent = `Copa Nacional — partido único contra ${clubRival}.`;
   } else if(numero === 'copaam'){
     const p = crCopaAmBracket.partidos[apCopaAmIdxPendiente];
-    const rival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
-    document.getElementById('carrera-intro-fase').textContent = `Copa Americana de Clubes — partido único contra ${rival}.`;
+    clubRival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
+    document.getElementById('carrera-intro-fase').textContent = `Copa Americana de Clubes — partido único contra ${clubRival}.`;
   } else {
     document.getElementById('carrera-intro-fase').textContent = numero === 2
       ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
       : 'Jugá tu Partido 1 en Apanovi tomando decisiones.';
   }
+
+  apRivalDelPartido = clubRival ? crRivales.find(r => r.club === clubRival) : null;
+  if(apRivalDelPartido){
+    apSituaciones.unshift({
+      texto: `Antes de salir a la cancha te cruzás con ${apRivalDelPartido.nombre}, tu rival de toda la vida, que hoy juega para ${apRivalDelPartido.club}. Se picó todo.`,
+      opciones: [
+        { etiqueta:'Lo saludás con respeto', puntos:5, tipo:null },
+        { etiqueta:'Le tirás una chicana antes de arrancar', puntos:10, tipo:null },
+        { etiqueta:'Le demostrás en la cancha quién es mejor', puntos:15, tipo:'gol_vos' }
+      ]
+    });
+    apTotalDecisiones++;
+    document.getElementById('cr-total-decisiones').textContent = apTotalDecisiones;
+  }
+
   apMostrarDecision();
 }
 
@@ -6608,6 +6662,10 @@ function apSimularGolesRival(puntaje, totalDecisiones){
 
 async function apTerminarPartido(){
   document.getElementById('cr-partido-wrap').style.display = 'none';
+
+  if(apRivalDelPartido && (apModoFixture || apModoCopa || apModoCopaAm)){
+    apPuntaje += 10; // bonus de rendimiento por jugarle a tu rival
+  }
 
   if(apModoFixture || apModoCopa || apModoCopaAm){
     crGolesTemporada += apGoles.length;
@@ -6724,6 +6782,7 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   crGolesCarrera = 0; crAsistenciasCarrera = 0; crTitulosCarrera = 0; crBalonesDeOro = 0; crClubesHistorial = [];
   crLesionado = false; crPartidosLesionRestantes = 0; crMotivoLesion = '';
   crSueldoActual = 0; crSueldoTotalCarrera = 0;
+  crJugadoresFichados = []; crRivales = []; crUltimaNoticiaTexto = '';
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
 });
@@ -6863,6 +6922,7 @@ function crMostrarPerfilHistorico(){
     <div class="pp-fila"><b>💰 Total ganado en la carrera:</b> ${crFormatearGrillos(crSueldoTotalCarrera)}</div>
     <div class="pp-fila"><b>🇦🇷 Convocado a la Selección:</b> ${crFueConvocadoAlgunaVez ? 'Sí' : 'Todavía no'}</div>
     <div class="pp-fila"><b>🛡️ Clubes en su carrera:</b> ${crClubesHistorial.join(' → ') || (crOfertaElegida ? crOfertaElegida.club : '—')}</div>
+    <div class="pp-fila"><b>🔥 Rivalidades activas:</b> ${crRivales.length ? crRivales.map(r => `${r.nombre} (${r.club})`).join(', ') : 'Ninguna todavía'}</div>
   `;
 }
 document.getElementById('cr-perfil-link').addEventListener('click', crMostrarPerfilHistorico);
@@ -6993,6 +7053,7 @@ function crClubesDeLigaActual(){
 let crFixtureMiClub = [];
 let crTablaLiga = {};
 let apModoFixture = false;
+let apRivalDelPartido = null;
 let apFixtureIdxPendiente = null;
 
 function crGolesAlAzar(){ return Math.floor(Math.random()*4); }
@@ -7021,6 +7082,12 @@ function crIniciarTemporada(){
   crGolesTemporada = 0;
   crAsistenciasTemporada = 0;
   clubes.forEach(c => { crTablaLiga[c] = { pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,pts:0 }; });
+
+  const { nuevos, nuevasRivalidades } = crFicharJugadoresDeLaTemporada();
+  crUltimaNoticiaTexto = nuevos.length
+    ? `📰 Este año se fichó: ${nuevos.map(n => `${n.nombre} (${n.club})`).join(', ')}.` +
+      (nuevasRivalidades.length ? ` 🔥 ¡Se picó todo con ${nuevasRivalidades.join(' y ')}!` : '')
+    : '';
 
   // se simulan al instante todos los partidos ENTRE LOS DEMÁS CLUBES (ida y vuelta) para que la tabla tenga sentido
   const otros = clubes.filter(c => c !== miClub);
@@ -7262,23 +7329,26 @@ function crRenderizarCopa(){
 
 function crRenderizarProximos(){
   const miClub = crOfertaElegida.club;
+  const clubsRivales = new Set(crRivales.map(r => r.club));
   const items = [];
   crFixtureMiClub.forEach((f,i) => {
-    if(!f.jugado) items.push({ tipo:'liga', idx:i, texto: f.local ? `Liga: ${miClub} vs ${f.rival}` : `Liga: ${f.rival} vs ${miClub}` });
+    if(!f.jugado) items.push({ tipo:'liga', idx:i, texto: (f.local ? `Liga: ${miClub} vs ${f.rival}` : `Liga: ${f.rival} vs ${miClub}`) + (clubsRivales.has(f.rival) ? ' 🔥' : '') });
   });
   if(crCopaBracket && !crCopaBracket.campeon && !crCopaBracket.eliminado){
     const idx = crCopaBracket.partidos.findIndex(p => p.clubA===miClub || p.clubB===miClub);
     const p = crCopaBracket.partidos[idx];
-    if(p && !p.jugado) items.push({ tipo:'copa', idx, texto:`Copa Nacional: ${p.clubA} vs ${p.clubB}` });
+    if(p && !p.jugado) items.push({ tipo:'copa', idx, texto:`Copa Nacional: ${p.clubA} vs ${p.clubB}` + ((clubsRivales.has(p.clubA)||clubsRivales.has(p.clubB)) ? ' 🔥' : '') });
   }
   if(crCopaAmBracket && !crCopaAmBracket.campeon && !crCopaAmBracket.eliminado){
     const idx = crCopaAmBracket.partidos.findIndex(p => p.clubA===miClub || p.clubB===miClub);
     const p = crCopaAmBracket.partidos[idx];
-    if(p && !p.jugado) items.push({ tipo:'copaam', idx, texto:`Copa Americana: ${p.clubA} vs ${p.clubB}` });
+    if(p && !p.jugado) items.push({ tipo:'copaam', idx, texto:`Copa Americana: ${p.clubA} vs ${p.clubB}` + ((clubsRivales.has(p.clubA)||clubsRivales.has(p.clubB)) ? ' 🔥' : '') });
   }
 
   const cont = document.getElementById('cr-proximos-lista');
-  cont.innerHTML = (crLesionado ? `<div class="cz-online-esperando" style="color:var(--red);">🚑 Estás afectado por ${crMotivoLesion} — te quedan ${crPartidosLesionRestantes} partido${crPartidosLesionRestantes===1?'':'s'} en los que solo podés simular, no jugar.</div>` : '') +
+  const noticia = crUltimaNoticiaTexto ? `<div class="cz-online-esperando">${crUltimaNoticiaTexto}</div>` : '';
+  crUltimaNoticiaTexto = '';
+  cont.innerHTML = noticia + (crLesionado ? `<div class="cz-online-esperando" style="color:var(--red);">🚑 Estás afectado por ${crMotivoLesion} — te quedan ${crPartidosLesionRestantes} partido${crPartidosLesionRestantes===1?'':'s'} en los que solo podés simular, no jugar.</div>` : '') +
   (items.length ? items.map(it => `
     <div class="cr-fixture-fila">
       <label style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;">
