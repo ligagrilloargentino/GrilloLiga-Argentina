@@ -6356,6 +6356,14 @@ const CR_MOTIVOS_LESION = ['una distensión muscular', 'un esguince de tobillo',
 let crJugadoresFichados = []; // [{ nombre, club, liga, pais }]
 let crUltimaNoticiaTexto = '';
 let crRivales = []; // [{ nombre, club }]
+let crHistorialMedia = []; // media al final de cada temporada, para el gráfico de progreso
+
+function crGenerarNotaPrensa(contexto, ganaste, puntaje){
+  const buenas = ['te llenó de elogios', 'destacó tu nivel de esta noche', 'habló de vos como una de las figuras del partido', 'no tuvo dudas en calificarte entre los mejores'];
+  const malas = ['fue durísimo con tu actuación', 'cuestionó tus decisiones en los momentos clave', 'te puso entre los peores del partido', 'pidió explicaciones por tu bajo rendimiento'];
+  const frase = puntaje >= 90 ? buenas[Math.floor(Math.random()*buenas.length)] : (puntaje < 40 ? malas[Math.floor(Math.random()*malas.length)] : 'tuvo una nota bastante pareja sobre tu partido');
+  return `📰 La prensa después de ${contexto}: el periodista ${frase} (${puntaje} pts, ${ganaste ? 'victoria' : 'no fue victoria'}).`;
+}
 
 /* --- Copa Mundial de Selecciones del Grillo: cada 2 temporadas --- */
 const CR_PAISES_MUNDIAL = ['Argentina','Uruguay','Brasil','Bolivia','Chile','Paraguay','Perú','Ecuador','Colombia','Venezuela','Estados Unidos','México','España','Portugal','Francia','Alemania','Inglaterra','Italia','Holanda'];
@@ -6509,6 +6517,8 @@ function crRenderizarMundial(){
   if(!crMundial) return;
   const cont = document.getElementById('cr-mundial-lista');
   const contTabla = document.getElementById('cr-mundial-tabla-grupo');
+  const notaPrensa = crUltimaNoticiaTexto ? `<div class="cz-online-esperando">${crUltimaNoticiaTexto}</div>` : '';
+  crUltimaNoticiaTexto = '';
 
   if(crMundial.terminado){
     document.getElementById('cr-mundial-titulo').textContent = crMundial.campeon === CR_MI_SELECCION
@@ -6537,14 +6547,14 @@ function crRenderizarMundial(){
       ${filas.map(([pais,t]) => `<tr class="${pais===CR_MI_SELECCION?'cg-tabla-tuclub':''}"><td>${pais}</td><td>${t.pj}</td><td>${t.pg}</td><td>${t.pe}</td><td>${t.pp}</td><td>${t.gf}</td><td>${t.gc}</td><td>${t.gf-t.gc}</td><td>${t.pts}</td></tr>`).join('')}
     </table>`;
     const pendientes = grupo.partidos.map((p,pi) => ({p,pi})).filter(({p}) => !p.jugado && (p.a===CR_MI_SELECCION || p.b===CR_MI_SELECCION));
-    cont.innerHTML = pendientes.map(({p,pi}) => `
+    cont.innerHTML = notaPrensa + (pendientes.map(({p,pi}) => `
       <div class="cr-fixture-fila">
         <span>${p.a} vs ${p.b}</span>
         <div class="cr-fixture-btns">
           <button class="auth-btn tr-btn-chico" data-mundial-grupo-simular="${pi}">Simular</button>
           <button class="auth-btn tr-btn-chico" data-mundial-grupo-jugar="${pi}">Jugar en Apanovi</button>
         </div>
-      </div>`).join('') || '<div class="cz-online-esperando">Esperando el resto de los resultados del grupo…</div>';
+      </div>`).join('') || '<div class="cz-online-esperando">Esperando el resto de los resultados del grupo…</div>');
     cont.querySelectorAll('[data-mundial-grupo-simular]').forEach(btn=>{
       btn.addEventListener('click', () => crResolverPartidoMundialGrupo(miGrupoIdx, parseInt(btn.dataset.mundialGrupoSimular), true));
     });
@@ -6562,14 +6572,14 @@ function crRenderizarMundial(){
   contTabla.innerHTML = '';
   const idx = crMundial.bracket.partidos.findIndex(p => p.clubA === CR_MI_SELECCION || p.clubB === CR_MI_SELECCION);
   const p = crMundial.bracket.partidos[idx];
-  cont.innerHTML = p ? `
+  cont.innerHTML = notaPrensa + (p ? `
     <div class="cr-fixture-fila ${p.jugado?'jugado':''}">
       <span>${p.clubA} vs ${p.clubB}${p.jugado ? ` — <b>${p.resultado}</b>` : ''}</span>
       ${p.jugado ? '' : `<div class="cr-fixture-btns">
         <button class="auth-btn tr-btn-chico" data-mundial-b-simular="${idx}">Simular</button>
         <button class="auth-btn tr-btn-chico" data-mundial-b-jugar="${idx}">Jugar en Apanovi</button>
       </div>`}
-    </div>` : '<div class="cz-online-esperando">Esperando el resto de los resultados…</div>';
+    </div>` : '<div class="cz-online-esperando">Esperando el resto de los resultados…</div>');
   cont.querySelectorAll('[data-mundial-b-simular]').forEach(btn=>{
     btn.addEventListener('click', () => crResolverPartidoMundialBracket(parseInt(btn.dataset.mundialBSimular), true));
   });
@@ -6903,6 +6913,11 @@ async function apTerminarPartido(){
     apPuntaje += 10; // bonus de rendimiento por jugarle a tu rival
   }
 
+  if(apRivalDelPartido || apModoMundial){
+    const contexto = apModoMundial ? 'tu partido de la Copa Mundial de Selecciones del Grillo' : `el clásico contra ${apRivalDelPartido.nombre}`;
+    crUltimaNoticiaTexto += (crUltimaNoticiaTexto ? ' ' : '') + crGenerarNotaPrensa(contexto, apGoles.length > 0, apPuntaje);
+  }
+
   if(apModoFixture || apModoCopa || apModoCopaAm){
     crGolesTemporada += apGoles.length;
     crAsistenciasTemporada += apGoles.filter(g => g.asistencia === crJugadorNombre).length;
@@ -7040,6 +7055,7 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   crSueldoActual = 0; crSueldoTotalCarrera = 0;
   crJugadoresFichados = []; crRivales = []; crUltimaNoticiaTexto = '';
   crMundial = null;
+  crHistorialMedia = [];
   document.getElementById('cr-mundial-wrap').style.display = 'none';
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
@@ -7089,7 +7105,23 @@ async function crAbrirHistorial(){
     return `<div class="cr-fixture-fila">🟢 ${detalle}.</div>`;
   });
 
-  cont.innerHTML = filasEnCurso.join('') + filasArchivadas.join('');
+  // Ranking de puntos de logros: el máximo alcanzado por cada usuario (entre todas sus carreras, en curso o archivadas)
+  const mejorPorUsuario = {};
+  [...(carreras||[]), ...(archivadas||[])].forEach(c=>{
+    const puntos = c.puntos_logros || 0;
+    if(!mejorPorUsuario[c.usuario_id] || puntos > mejorPorUsuario[c.usuario_id]) mejorPorUsuario[c.usuario_id] = puntos;
+  });
+  const ranking = Object.entries(mejorPorUsuario)
+    .map(([id, puntos]) => ({ nombre: nombrePorId[id] || '???', puntos }))
+    .sort((a,b) => b.puntos - a.puntos)
+    .slice(0, 10);
+  const rankingHtml = ranking.length ? `
+    <div class="gd-pista-titulo" style="margin-bottom:6px;">🏆 Ranking de puntos de logros</div>
+    ${ranking.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${f.puntos} pts</b></div>`).join('')}
+    <div class="gd-pista-titulo" style="margin:16px 0 6px;">📜 Carreras</div>
+  ` : '';
+
+  cont.innerHTML = rankingHtml + filasEnCurso.join('') + filasArchivadas.join('');
 }
 document.getElementById('cr-historial-link').addEventListener('click', crAbrirHistorial);
 document.getElementById('cr-historial-cerrar-btn').addEventListener('click', ()=>{
@@ -7148,8 +7180,8 @@ function crMostrarOfertasEuropa(){
       <span style="font-size:11px; color:var(--text-dimmer); margin:0 8px;">${o.liga} (${o.pais})</span>
       <button class="auth-btn" style="max-width:110px; margin:0;" data-idx="${i}">Firmar</button>
     </div>
-  `).join('');
-  lista.querySelectorAll('button').forEach(btn=>{
+  `).join('') + `<button class="auth-btn tr-btn-chico" id="cr-europa-otras-btn" style="margin:10px auto 0; display:block; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🔄 Pedirle a mi agente otras opciones</button>`;
+  lista.querySelectorAll('[data-idx]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       crOfertaElegida = elegidos[parseInt(btn.dataset.idx)];
       crSueldoActual = crSueldoActual * 1.8 * (0.9 + Math.random()*0.3); // emigrar a Europa siempre implica un salto salarial
@@ -7161,10 +7193,27 @@ function crMostrarOfertasEuropa(){
       crIniciarTemporada();
     });
   });
+  document.getElementById('cr-europa-otras-btn').addEventListener('click', crMostrarOfertasEuropa);
 }
 document.getElementById('cr-emigrar-link').addEventListener('click', crMostrarOfertasEuropa);
 
 /* --- Perfil histórico --- */
+function crDibujarGraficoMedia(){
+  if(crHistorialMedia.length < 2) return '<div class="gd-intro" style="margin-top:6px;">Todavía no hay suficientes temporadas jugadas para graficar tu progreso.</div>';
+  const ancho = 380, alto = 100, pad = 10;
+  const min = 60, max = 100;
+  const puntos = crHistorialMedia.map((m,i) => {
+    const x = pad + (i/(crHistorialMedia.length-1)) * (ancho-pad*2);
+    const y = alto - pad - ((m-min)/(max-min)) * (alto-pad*2);
+    return `${x},${y}`;
+  });
+  return `
+    <svg viewBox="0 0 ${ancho} ${alto}" style="width:100%; max-width:400px; margin-top:8px; background:var(--card2); border-radius:6px;">
+      <polyline points="${puntos.join(' ')}" fill="none" stroke="#B33B22" stroke-width="2"/>
+      ${crHistorialMedia.map((m,i) => `<circle cx="${puntos[i].split(',')[0]}" cy="${puntos[i].split(',')[1]}" r="2.5" fill="#B33B22"/>`).join('')}
+    </svg>`;
+}
+
 function crMostrarPerfilHistorico(){
   document.getElementById('cr-perfil-overlay').style.display = 'block';
   document.getElementById('cr-perfil-modal').style.display = 'flex';
@@ -7181,6 +7230,7 @@ function crMostrarPerfilHistorico(){
     <div class="pp-fila"><b>🇦🇷 Convocado a la Selección:</b> ${crFueConvocadoAlgunaVez ? 'Sí' : 'Todavía no'}</div>
     <div class="pp-fila"><b>🛡️ Clubes en su carrera:</b> ${crClubesHistorial.join(' → ') || (crOfertaElegida ? crOfertaElegida.club : '—')}</div>
     <div class="pp-fila"><b>🔥 Rivalidades activas:</b> ${crRivales.length ? crRivales.map(r => `${r.nombre} (${r.club})`).join(', ') : 'Ninguna todavía'}</div>
+    <div class="pp-fila"><b>📈 Progreso de tu media por temporada:</b> ${crDibujarGraficoMedia()}</div>
   `;
 }
 document.getElementById('cr-perfil-link').addEventListener('click', crMostrarPerfilHistorico);
@@ -7275,10 +7325,11 @@ function crMostrarOfertas(){
       <span style="font-size:11px; color:var(--text-dimmer); margin:0 8px;">${o.liga} (${o.pais})</span>
       <button class="auth-btn" style="max-width:110px; margin:0;" data-idx="${i}">Firmar</button>
     </div>
-  `).join('');
-  lista.querySelectorAll('button').forEach(btn=>{
+  `).join('') + `<button class="auth-btn tr-btn-chico" id="cr-ofertas-otras-btn" style="margin:10px auto 0; display:block; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🔄 Pedirle a mi agente otras opciones</button>`;
+  lista.querySelectorAll('[data-idx]').forEach(btn=>{
     btn.addEventListener('click', ()=> crElegirOferta(elegidos[parseInt(btn.dataset.idx)]));
   });
+  document.getElementById('cr-ofertas-otras-btn').addEventListener('click', crMostrarOfertas);
 }
 
 async function crElegirOferta(oferta){
@@ -7802,6 +7853,7 @@ async function crTerminarTemporada(){
 
   // Acumulados de todo tu perfil histórico
   crGolesCarrera += crGolesTemporada;
+  crHistorialMedia.push(crMedia);
   crAsistenciasCarrera += crAsistenciasTemporada;
   crTitulosCarrera += (esCampeonLiga?1:0) + (esCampeonCopa?1:0) + (esCampeonCopaAm?1:0);
   if(!crClubesHistorial.includes(miClub)) crClubesHistorial.push(miClub);
@@ -7826,7 +7878,8 @@ async function crTerminarTemporada(){
       temporada: crTemporadaNum, convocado_seleccion: convocado, puntos_logros: crPuntosLogros,
       goles_carrera: crGolesCarrera, asistencias_carrera: crAsistenciasCarrera,
       titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro, clubes_historial: crClubesHistorial,
-      sueldo_actual: Math.round(crSueldoActual), sueldo_total_carrera: Math.round(crSueldoTotalCarrera)
+      sueldo_actual: Math.round(crSueldoActual), sueldo_total_carrera: Math.round(crSueldoTotalCarrera),
+      historial_media: crHistorialMedia
     }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
   document.getElementById('cr-temp-continuar-btn').textContent = 'Continuar';
@@ -7864,8 +7917,8 @@ function crResolverMercadoDePases(resultadoClub){
       <span style="font-size:11px; color:var(--text-dimmer); margin:0 8px;">${o.liga} (${o.pais})</span>
       <button class="auth-btn" style="max-width:110px; margin:0;" data-idx="${i}">Firmar</button>
     </div>
-  `).join('');
-  lista.querySelectorAll('button').forEach(btn=>{
+  `).join('') + `<button class="auth-btn tr-btn-chico" id="cr-mercado-otras-btn" style="margin:10px auto 0; display:block; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🔄 Pedirle a mi agente otras opciones</button>`;
+  lista.querySelectorAll('[data-idx]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       crOfertaElegida = elegidos[parseInt(btn.dataset.idx)];
       document.getElementById('cr-ofertas-wrap').style.display = 'none';
@@ -7876,6 +7929,7 @@ function crResolverMercadoDePases(resultadoClub){
       crContinuarDespuesDeMercado();
     });
   });
+  document.getElementById('cr-mercado-otras-btn').addEventListener('click', () => crResolverMercadoDePases(resultadoClub));
 }
 
 function crMostrarEntrenamiento(){
