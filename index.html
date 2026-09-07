@@ -2162,6 +2162,17 @@ footer{
           </div>
         </div>
         <button class="auth-btn" id="cr-empezar-btn" style="max-width:240px; margin:16px auto 0;" disabled>Armar los equipos</button>
+        <span class="tr-config-link" id="cr-historial-link">📜 Historial de carrera</span>
+      </div>
+
+      <div id="cr-historial-overlay" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.45);"></div>
+      <div id="cr-historial-modal" style="display:none; position:fixed; z-index:9001; inset:0; align-items:center; justify-content:center; padding:20px;">
+        <div class="auth-card" style="max-width:480px; max-height:80vh; overflow-y:auto;">
+          <button class="drawer-cerrar" id="cr-historial-cerrar-btn" style="float:right;">✕</button>
+          <h1 style="font-size:19px;">📜 Historial de carrera</h1>
+          <div class="gd-intro">Todas las carreras profesionales jugadas en la Grillo Liga.</div>
+          <div id="cr-historial-lista" style="margin-top:10px;"></div>
+        </div>
       </div>
 
       <div id="cr-equipos-wrap" style="display:none;">
@@ -6665,6 +6676,46 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   crJugadorNombre = null;
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
+});
+
+/* --- Historial de carrera (público) --- */
+const CR_ETIQUETAS_FASE = {
+  creacion:'creando su jugador', partido1:'jugando el Partido 1 en Apanovi', partido2:'jugando el Partido 2 con el ojeador',
+  ojeador_ok:'esperando ofertas de clubes', ojeador_no:'buscando otra chance con el ojeador',
+  eligiendo_club:'eligiendo club', en_club:'jugando profesionalmente'
+};
+
+async function crAbrirHistorial(){
+  document.getElementById('cr-historial-overlay').style.display = 'block';
+  document.getElementById('cr-historial-modal').style.display = 'flex';
+  const cont = document.getElementById('cr-historial-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: carreras }, { data: perfiles }] = await Promise.all([
+    sbClient.from('carrera_estado').select('usuario_id, nombre_jugador, posicion, fase, temporada, puntos_logros, club_actual, liga_actual, convocado_seleccion'),
+    sbClient.from('perfiles_usuario').select('id, username')
+  ]);
+  if(!carreras || !carreras.length){ cont.innerHTML = '<div class="cz-online-esperando">Todavía nadie jugó el Modo Carrera. ¡Arrancá vos!</div>'; return; }
+  const nombrePorId = {};
+  (perfiles || []).forEach(p => { nombrePorId[p.id] = p.username; });
+  cont.innerHTML = carreras.map(c => {
+    const usuario = nombrePorId[c.usuario_id] || '???';
+    const etapa = CR_ETIQUETAS_FASE[c.fase] || c.fase;
+    let detalle = `<b>${usuario}</b> — ${etapa} con <b>${c.nombre_jugador || '???'}</b>`;
+    if(c.fase === 'en_club'){
+      detalle += `, en ${c.club_actual} (${c.liga_actual}), Temporada ${c.temporada}, ${c.puntos_logros} puntos de logros`;
+      if(c.convocado_seleccion) detalle += ' 🇦🇷';
+    }
+    return `<div class="cr-fixture-fila">${detalle}.</div>`;
+  }).join('');
+}
+document.getElementById('cr-historial-link').addEventListener('click', crAbrirHistorial);
+document.getElementById('cr-historial-cerrar-btn').addEventListener('click', ()=>{
+  document.getElementById('cr-historial-overlay').style.display = 'none';
+  document.getElementById('cr-historial-modal').style.display = 'none';
+});
+document.getElementById('cr-historial-overlay').addEventListener('click', ()=>{
+  document.getElementById('cr-historial-overlay').style.display = 'none';
+  document.getElementById('cr-historial-modal').style.display = 'none';
 });
 document.getElementById('carrera-volver').addEventListener('click', ()=>{
   document.getElementById('mini-carrera').style.display = 'none';
