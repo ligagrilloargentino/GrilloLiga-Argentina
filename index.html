@@ -2228,12 +2228,19 @@ footer{
           <div class="pen-ronda" id="cr-temp-club-liga">Club — Liga</div>
           <div>Puntos en Liga<br><b id="cr-temp-puntos-liga">0</b></div>
         </div>
+        <h3 class="gd-pista-titulo" style="margin-top:14px;">📋 Próximos partidos</h3>
+        <div class="gd-intro" style="margin:6px 0 10px;">Tildá los que querés simular de una, y usá "Jugar" en el que quieras jugar de verdad. Junta partidos de Liga, Copa Nacional y Copa Americana.</div>
+        <div id="cr-proximos-lista"></div>
+        <button class="auth-btn" id="cr-simular-tildados-btn" style="max-width:260px; margin:10px auto 16px;" disabled>Simular los tildados</button>
+
         <h3 class="gd-pista-titulo" style="margin-top:14px;">📅 Fixture — Liga Nacional</h3>
         <div id="cr-fixture-lista"></div>
         <h3 class="gd-pista-titulo" style="margin-top:20px;">📊 Tabla de posiciones</h3>
         <div style="overflow-x:auto;"><table class="cg-tabla" id="cr-tabla-liga"></table></div>
         <h3 class="gd-pista-titulo" style="margin-top:20px;" id="cr-copa-titulo">🏆 Copa Nacional</h3>
         <div id="cr-copa-lista"></div>
+        <h3 class="gd-pista-titulo" style="margin-top:20px;" id="cr-copaam-titulo">🏆 Copa Americana de Clubes</h3>
+        <div id="cr-copaam-lista"></div>
       </div>
 
       <div id="cr-temporada-final" style="display:none; text-align:center;">
@@ -6373,7 +6380,7 @@ function apIniciarPartido(numero){
   document.getElementById('cr-temporada-wrap').style.display = 'none';
   document.getElementById('cr-final').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'block';
-  document.getElementById('cr-num-partido').textContent = numero === 'temporada' ? crFixtureMiClub[apFixtureIdxPendiente].rival : (numero === 'copa' ? 'Copa' : numero);
+  document.getElementById('cr-num-partido').textContent = numero === 'temporada' ? crFixtureMiClub[apFixtureIdxPendiente].rival : (numero === 'copa' ? 'Copa' : (numero === 'copaam' ? 'CopaAm' : numero));
   document.getElementById('cr-total-decisiones').textContent = apTotalDecisiones;
   if(numero === 'temporada'){
     const f = crFixtureMiClub[apFixtureIdxPendiente];
@@ -6382,6 +6389,10 @@ function apIniciarPartido(numero){
     const p = crCopaBracket.partidos[apCopaIdxPendiente];
     const rival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
     document.getElementById('carrera-intro-fase').textContent = `Copa Nacional — partido único contra ${rival}.`;
+  } else if(numero === 'copaam'){
+    const p = crCopaAmBracket.partidos[apCopaAmIdxPendiente];
+    const rival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
+    document.getElementById('carrera-intro-fase').textContent = `Copa Americana de Clubes — partido único contra ${rival}.`;
   } else {
     document.getElementById('carrera-intro-fase').textContent = numero === 2
       ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
@@ -6484,6 +6495,19 @@ async function apTerminarPartido(){
     document.getElementById('cr-temporada-wrap').style.display = 'block';
     crAplicarResultadoCopa(apCopaIdxPendiente, esClubA ? golesMios : golesRival, esClubA ? golesRival : golesMios);
     crRenderizarCopa();
+    return;
+  }
+
+  if(apModoCopaAm){
+    const p = crCopaAmBracket.partidos[apCopaAmIdxPendiente];
+    const miClub = crOfertaElegida.club;
+    const esClubA = p.clubA === miClub;
+    const golesMios = apGoles.length;
+    const golesRival = apSimularGolesRival(apPuntaje, apTotalDecisiones);
+    apModoCopaAm = false;
+    document.getElementById('cr-temporada-wrap').style.display = 'block';
+    crAplicarResultadoCopaAm(apCopaAmIdxPendiente, esClubA ? golesMios : golesRival, esClubA ? golesRival : golesMios);
+    crRenderizarCopaAm();
     return;
   }
 
@@ -6704,6 +6728,7 @@ function crIniciarTemporada(){
   document.getElementById('cr-temp-num').textContent = crTemporadaNum;
   document.getElementById('cr-temp-club-liga').textContent = `${miClub} — ${crOfertaElegida.liga}`;
   crGenerarCopaNacional();
+  crGenerarCopaAmericana();
   crRenderizarFixtureYTabla();
 }
 
@@ -6724,6 +6749,111 @@ function crGenerarCopaNacional(){
     crCopaBracket.partidos.push({ clubA:participantes[i], clubB:participantes[i+1], jugado:false, resultado:null, ganador:null });
   }
   crAutoResolverAjenosCopa();
+}
+
+/* --- Copa Americana de Clubes: mismo formato, pool GIGANTE entre las 12 ligas americanas --- */
+let crCopaAmBracket = null;
+let apModoCopaAm = false;
+let apCopaAmIdxPendiente = null;
+
+function crClubesAmericaTodos(){
+  const lista = [];
+  CR_LIGAS_PRIMER_CONTRATO.forEach(key => CR_LIGAS[key].clubes.forEach(c => lista.push(c)));
+  return lista;
+}
+
+function crGenerarCopaAmericana(){
+  const miClub = crOfertaElegida.club;
+  const todos = crClubesAmericaTodos().filter(c => c !== miClub);
+  const pool = [...new Set(todos)].sort(() => Math.random()-0.5);
+  const tamano = 32; // "muchísimos clubes de todos los países" — el cuadro más grande que manejamos
+  const participantes = [miClub, ...pool.slice(0, tamano-1)].sort(() => Math.random()-0.5);
+  crCopaAmBracket = { ronda:1, totalRondas: Math.log2(tamano), partidos:[], eliminado:false, campeon:false };
+  for(let i=0; i<participantes.length; i+=2){
+    crCopaAmBracket.partidos.push({ clubA:participantes[i], clubB:participantes[i+1], jugado:false, resultado:null, ganador:null });
+  }
+  crAutoResolverAjenosCopaAm();
+}
+
+function crAutoResolverAjenosCopaAm(){
+  const miClub = crOfertaElegida.club;
+  crCopaAmBracket.partidos.forEach((p,i) => {
+    if(!p.jugado && p.clubA !== miClub && p.clubB !== miClub){
+      crAplicarResultadoCopaAm(i, crGolesAlAzar(), crGolesAlAzar());
+    }
+  });
+}
+
+function crResolverPartidoCopaAm(idx, simulado){
+  if(simulado){
+    crAplicarResultadoCopaAm(idx, crGolesAlAzar(), crGolesAlAzar());
+  } else {
+    apModoCopaAm = true;
+    apCopaAmIdxPendiente = idx;
+    apIniciarPartido('copaam');
+  }
+}
+
+function crAplicarResultadoCopaAm(idx, golesA, golesB){
+  const p = crCopaAmBracket.partidos[idx];
+  if(golesA === golesB){ golesA += Math.random() < 0.5 ? 1 : 0; if(golesA===golesB) golesB++; }
+  p.jugado = true;
+  p.resultado = `${golesA}-${golesB}`;
+  p.ganador = golesA > golesB ? p.clubA : p.clubB;
+  crAvanzarRondaCopaAmSiCorresponde();
+}
+
+function crAvanzarRondaCopaAmSiCorresponde(){
+  if(!crCopaAmBracket.partidos.every(p => p.jugado)){ crRenderizarCopaAm(); return; }
+  const miClub = crOfertaElegida.club;
+  const miPartido = crCopaAmBracket.partidos.find(p => p.clubA === miClub || p.clubB === miClub);
+  if(miPartido.ganador !== miClub){
+    crCopaAmBracket.eliminado = true;
+    crRenderizarCopaAm();
+    return;
+  }
+  if(crCopaAmBracket.ronda >= crCopaAmBracket.totalRondas){
+    crCopaAmBracket.campeon = true;
+    crRenderizarCopaAm();
+    return;
+  }
+  const ganadores = crCopaAmBracket.partidos.map(p => p.ganador).sort(() => Math.random()-0.5);
+  crCopaAmBracket.ronda++;
+  crCopaAmBracket.partidos = [];
+  for(let i=0; i<ganadores.length; i+=2){
+    crCopaAmBracket.partidos.push({ clubA:ganadores[i], clubB:ganadores[i+1], jugado:false, resultado:null, ganador:null });
+  }
+  crAutoResolverAjenosCopaAm();
+  crRenderizarCopaAm();
+}
+
+function crRenderizarCopaAm(){
+  if(!crCopaAmBracket) return;
+  const miClub = crOfertaElegida.club;
+  let titulo = `🏆 Copa Americana de Clubes — Ronda ${crCopaAmBracket.ronda} de ${crCopaAmBracket.totalRondas}`;
+  if(crCopaAmBracket.campeon) titulo = '🏆 ¡Sos el campeón de la Copa Americana de Clubes!';
+  else if(crCopaAmBracket.eliminado) titulo = '🏆 Copa Americana — Quedaste eliminado esta temporada';
+  document.getElementById('cr-copaam-titulo').textContent = titulo;
+
+  const cont = document.getElementById('cr-copaam-lista');
+  if(crCopaAmBracket.campeon || crCopaAmBracket.eliminado){ cont.innerHTML = ''; return; }
+  const idx = crCopaAmBracket.partidos.findIndex(p => p.clubA === miClub || p.clubB === miClub);
+  const p = crCopaAmBracket.partidos[idx];
+  cont.innerHTML = `
+    <div class="cr-fixture-fila ${p.jugado ? 'jugado' : ''}">
+      <span>${p.clubA} vs ${p.clubB}${p.jugado ? ` — <b>${p.resultado}</b>` : ''}</span>
+      ${p.jugado ? '' : `<div class="cr-fixture-btns">
+        <button class="auth-btn tr-btn-chico" data-copaam-simular="${idx}">Simular</button>
+        <button class="auth-btn tr-btn-chico" data-copaam-jugar="${idx}">Jugar en Apanovi</button>
+      </div>`}
+    </div>`;
+  cont.querySelectorAll('[data-copaam-simular]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoCopaAm(parseInt(btn.dataset.copaamSimular), true));
+  });
+  cont.querySelectorAll('[data-copaam-jugar]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoCopaAm(parseInt(btn.dataset.copaamJugar), false));
+  });
+  if(document.getElementById('cr-proximos-lista')) crRenderizarProximos();
 }
 
 function crAutoResolverAjenosCopa(){
@@ -6806,6 +6936,61 @@ function crRenderizarCopa(){
   });
 }
 
+function crRenderizarProximos(){
+  const miClub = crOfertaElegida.club;
+  const items = [];
+  crFixtureMiClub.forEach((f,i) => {
+    if(!f.jugado) items.push({ tipo:'liga', idx:i, texto: f.local ? `Liga: ${miClub} vs ${f.rival}` : `Liga: ${f.rival} vs ${miClub}` });
+  });
+  if(crCopaBracket && !crCopaBracket.campeon && !crCopaBracket.eliminado){
+    const idx = crCopaBracket.partidos.findIndex(p => p.clubA===miClub || p.clubB===miClub);
+    const p = crCopaBracket.partidos[idx];
+    if(p && !p.jugado) items.push({ tipo:'copa', idx, texto:`Copa Nacional: ${p.clubA} vs ${p.clubB}` });
+  }
+  if(crCopaAmBracket && !crCopaAmBracket.campeon && !crCopaAmBracket.eliminado){
+    const idx = crCopaAmBracket.partidos.findIndex(p => p.clubA===miClub || p.clubB===miClub);
+    const p = crCopaAmBracket.partidos[idx];
+    if(p && !p.jugado) items.push({ tipo:'copaam', idx, texto:`Copa Americana: ${p.clubA} vs ${p.clubB}` });
+  }
+
+  const cont = document.getElementById('cr-proximos-lista');
+  cont.innerHTML = items.length ? items.map(it => `
+    <div class="cr-fixture-fila">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;">
+        <input type="checkbox" class="cr-proximo-check" data-tipo="${it.tipo}" data-idx="${it.idx}">
+        <span>${it.texto}</span>
+      </label>
+      <button class="auth-btn tr-btn-chico" data-jugar-tipo="${it.tipo}" data-jugar-idx="${it.idx}">Jugar en Apanovi</button>
+    </div>
+  `).join('') : '<div class="cz-online-esperando">No tenés partidos pendientes por ahora.</div>';
+  cont.querySelectorAll('.cr-proximo-check').forEach(chk=>{
+    chk.addEventListener('change', crActualizarBotonSimularTildados);
+  });
+  cont.querySelectorAll('[data-jugar-tipo]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const tipo = btn.dataset.jugarTipo, idx = parseInt(btn.dataset.jugarIdx);
+      if(tipo === 'liga') crResolverPartidoFixture(idx, false);
+      else if(tipo === 'copa') crResolverPartidoCopa(idx, false);
+      else if(tipo === 'copaam') crResolverPartidoCopaAm(idx, false);
+    });
+  });
+  crActualizarBotonSimularTildados();
+}
+
+function crActualizarBotonSimularTildados(){
+  const cant = document.querySelectorAll('.cr-proximo-check:checked').length;
+  document.getElementById('cr-simular-tildados-btn').disabled = cant === 0;
+}
+
+document.getElementById('cr-simular-tildados-btn').addEventListener('click', ()=>{
+  const tildados = Array.from(document.querySelectorAll('.cr-proximo-check:checked')).map(chk => ({ tipo:chk.dataset.tipo, idx:parseInt(chk.dataset.idx) }));
+  tildados.forEach(({ tipo, idx }) => {
+    if(tipo === 'liga') crResolverPartidoFixture(idx, true);
+    else if(tipo === 'copa') crResolverPartidoCopa(idx, true);
+    else if(tipo === 'copaam') crResolverPartidoCopaAm(idx, true);
+  });
+});
+
 function crRenderizarFixtureYTabla(){
   const miClub = crOfertaElegida.club;
   document.getElementById('cr-temp-puntos-liga').textContent = crTablaLiga[miClub].pts;
@@ -6836,6 +7021,7 @@ function crRenderizarFixtureYTabla(){
       </tr>`).join('')}
   `;
 
+  crRenderizarProximos();
   if(crFixtureMiClub.every(f => f.jugado)) crTerminarTemporada();
 }
 
