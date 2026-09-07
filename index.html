@@ -6335,6 +6335,10 @@ let crAsistenciasCarrera = 0;
 let crTitulosCarrera = 0;
 let crBalonesDeOro = 0;
 let crClubesHistorial = [];
+let crLesionado = false;
+let crPartidosLesionRestantes = 0;
+let crMotivoLesion = '';
+const CR_MOTIVOS_LESION = ['una distensión muscular', 'un esguince de tobillo', 'una sobrecarga', 'un golpe en la rodilla', 'una tarjeta roja que te deja suspendido'];
 let crGolesTemporada = 0;
 let crAsistenciasTemporada = 0;
 let crPuntosLogros = 0;
@@ -6601,6 +6605,11 @@ async function apTerminarPartido(){
   if(apModoFixture || apModoCopa || apModoCopaAm){
     crGolesTemporada += apGoles.length;
     crAsistenciasTemporada += apGoles.filter(g => g.asistencia === crJugadorNombre).length;
+    if(!crLesionado && Math.random() < 0.1){
+      crLesionado = true;
+      crPartidosLesionRestantes = 1 + Math.floor(Math.random()*3);
+      crMotivoLesion = CR_MOTIVOS_LESION[Math.floor(Math.random()*CR_MOTIVOS_LESION.length)];
+    }
   }
 
   if(apModoFixture){
@@ -6705,6 +6714,8 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   crMedia = 70;
   crPuntosLogros = 0;
   crBeneficiosComprados = new Set();
+  crGolesCarrera = 0; crAsistenciasCarrera = 0; crTitulosCarrera = 0; crBalonesDeOro = 0; crClubesHistorial = [];
+  crLesionado = false; crPartidosLesionRestantes = 0; crMotivoLesion = '';
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
 });
@@ -7075,9 +7086,16 @@ function crAutoResolverAjenosCopaAm(){
   });
 }
 
+function crDescontarLesionSiCorresponde(){
+  if(!crLesionado) return;
+  crPartidosLesionRestantes--;
+  if(crPartidosLesionRestantes <= 0){ crLesionado = false; crMotivoLesion = ''; }
+}
+
 function crResolverPartidoCopaAm(idx, simulado){
-  if(simulado){
+  if(simulado || crLesionado){
     crAplicarResultadoCopaAm(idx, crGolesAlAzar(), crGolesAlAzar());
+    crDescontarLesionSiCorresponde();
   } else {
     apModoCopaAm = true;
     apCopaAmIdxPendiente = idx;
@@ -7158,8 +7176,9 @@ function crAutoResolverAjenosCopa(){
 }
 
 function crResolverPartidoCopa(idx, simulado){
-  if(simulado){
+  if(simulado || crLesionado){
     crAplicarResultadoCopa(idx, crGolesAlAzar(), crGolesAlAzar());
+    crDescontarLesionSiCorresponde();
   } else {
     apModoCopa = true;
     apCopaIdxPendiente = idx;
@@ -7246,15 +7265,16 @@ function crRenderizarProximos(){
   }
 
   const cont = document.getElementById('cr-proximos-lista');
-  cont.innerHTML = items.length ? items.map(it => `
+  cont.innerHTML = (crLesionado ? `<div class="cz-online-esperando" style="color:var(--red);">🚑 Estás afectado por ${crMotivoLesion} — te quedan ${crPartidosLesionRestantes} partido${crPartidosLesionRestantes===1?'':'s'} en los que solo podés simular, no jugar.</div>` : '') +
+  (items.length ? items.map(it => `
     <div class="cr-fixture-fila">
       <label style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;">
         <input type="checkbox" class="cr-proximo-check" data-tipo="${it.tipo}" data-idx="${it.idx}">
         <span>${it.texto}</span>
       </label>
-      <button class="auth-btn tr-btn-chico" data-jugar-tipo="${it.tipo}" data-jugar-idx="${it.idx}">Jugar en Apanovi</button>
+      ${crLesionado ? '' : `<button class="auth-btn tr-btn-chico" data-jugar-tipo="${it.tipo}" data-jugar-idx="${it.idx}">Jugar en Apanovi</button>`}
     </div>
-  `).join('') : '<div class="cz-online-esperando">No tenés partidos pendientes por ahora.</div>';
+  `).join('') : '<div class="cz-online-esperando">No tenés partidos pendientes por ahora.</div>');
   cont.querySelectorAll('.cr-proximo-check').forEach(chk=>{
     chk.addEventListener('change', crActualizarBotonSimularTildados);
   });
@@ -7368,8 +7388,9 @@ function crRenderizarFixtureYTabla(){
 }
 
 function crResolverPartidoFixture(idx, simulado){
-  if(simulado){
+  if(simulado || crLesionado){
     crAplicarResultadoFixture(idx, crGolesAlAzar(), crGolesAlAzar());
+    crDescontarLesionSiCorresponde();
   } else {
     apFixtureIdxPendiente = idx;
     apModoFixture = true;
