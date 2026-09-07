@@ -2229,6 +2229,9 @@ footer{
           <div>Puntos en Liga<br><b id="cr-temp-puntos-liga">0</b></div>
           <div>Media<br><b id="cr-temp-media">70</b></div>
         </div>
+        <div style="text-align:center; margin-top:6px;">
+          <span class="tr-config-link" id="cr-abrir-beneficios">🎁 Puntos de logros: <b id="cr-puntos-logros-header">0</b> — Ver tienda de beneficios</span>
+        </div>
         <h3 class="gd-pista-titulo" style="margin-top:14px;">📋 Próximos partidos</h3>
         <div class="gd-intro" style="margin:6px 0 10px;">Tildá los que querés simular de una, y usá "Jugar" en el que quieras jugar de verdad. Junta partidos de Liga, Copa Nacional y Copa Americana.</div>
         <div id="cr-proximos-lista"></div>
@@ -2247,7 +2250,18 @@ footer{
       <div id="cr-temporada-final" style="display:none; text-align:center;">
         <div class="pen-final-titulo" id="cr-temp-final-titulo"></div>
         <div class="gd-intro" id="cr-temp-final-detalle"></div>
+        <div id="cr-temp-logros-resumen" class="cg-pistas-col" style="max-width:480px; margin:14px auto 0; text-align:left;"></div>
         <button class="auth-btn" id="cr-temp-continuar-btn" style="max-width:260px; margin:14px auto 0;">Volver a Minijuegos</button>
+      </div>
+
+      <div id="cr-beneficios-overlay" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.45);"></div>
+      <div id="cr-beneficios-modal" style="display:none; position:fixed; z-index:9001; inset:0; align-items:center; justify-content:center; padding:20px;">
+        <div class="auth-card" style="max-width:440px; max-height:80vh; overflow-y:auto;">
+          <button class="drawer-cerrar" id="cr-beneficios-cerrar-btn" style="float:right;">✕</button>
+          <h1 style="font-size:19px;">🎁 Tienda de beneficios</h1>
+          <div class="gd-intro">Tenés <b id="cr-puntos-logros-modal">0</b> puntos de logros. Comprá beneficios para que te sea más fácil escalar tu media.</div>
+          <div id="cr-beneficios-lista" style="margin-top:10px;"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -6283,6 +6297,23 @@ let crPuntajePartido1 = 0;
 let crSituacionesElegidas = [];
 let crAtributos = { velocidad:50, pase:50, definicion:50, regate:50, defensa:50 };
 let crMedia = 70;
+let crGolesTemporada = 0;
+let crAsistenciasTemporada = 0;
+let crPuntosLogros = 0;
+let crBeneficiosComprados = new Set();
+
+const CR_BENEFICIOS = [
+  { key:'entrenador', etiqueta:'🏋️ Entrenador personal', costo:10 },
+  { key:'gimnasio', etiqueta:'🏟️ Gimnasio propio', costo:20 },
+  { key:'kinesiologo', etiqueta:'🩹 Kinesiólogo', costo:30 },
+  { key:'nutricionista', etiqueta:'🥗 Nutricionista', costo:40 },
+  { key:'psicologo', etiqueta:'🧠 Psicólogo', costo:50 },
+  { key:'chef', etiqueta:'👨‍🍳 Chef personal', costo:60 },
+  { key:'chofer', etiqueta:'🚗 Chofer', costo:70 },
+  { key:'abogado', etiqueta:'⚖️ Abogado', costo:80 },
+  { key:'contador', etiqueta:'🧾 Contador', costo:90 },
+  { key:'asistente', etiqueta:'🗂️ Asistente personal', costo:100 }
+];
 
 // Banco de decisiones de imagen/personalidad — se presenta una al azar entre temporadas.
 // Cada opción define un rango de cambio en la media (mediaMin/mediaMax); si son iguales, el cambio es fijo.
@@ -6529,6 +6560,11 @@ function apSimularGolesRival(puntaje, totalDecisiones){
 async function apTerminarPartido(){
   document.getElementById('cr-partido-wrap').style.display = 'none';
 
+  if(apModoFixture || apModoCopa || apModoCopaAm){
+    crGolesTemporada += apGoles.length;
+    crAsistenciasTemporada += apGoles.filter(g => g.asistencia === crJugadorNombre).length;
+  }
+
   if(apModoFixture){
     const golesMios = apGoles.length;
     const golesRival = apSimularGolesRival(apPuntaje, apTotalDecisiones);
@@ -6760,6 +6796,8 @@ function crIniciarTemporada(){
   const clubes = crClubesDeLigaActual();
   const miClub = crOfertaElegida.club;
   crTablaLiga = {};
+  crGolesTemporada = 0;
+  crAsistenciasTemporada = 0;
   clubes.forEach(c => { crTablaLiga[c] = { pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,pts:0 }; });
 
   // se simulan al instante todos los partidos ENTRE LOS DEMÁS CLUBES (ida y vuelta) para que la tabla tenga sentido
@@ -7044,6 +7082,55 @@ document.getElementById('cr-simular-tildados-btn').addEventListener('click', ()=
   });
 });
 
+/* --- Tienda de beneficios --- */
+function crRenderizarBeneficios(){
+  document.getElementById('cr-puntos-logros-header').textContent = crPuntosLogros;
+  document.getElementById('cr-puntos-logros-modal').textContent = crPuntosLogros;
+  const cont = document.getElementById('cr-beneficios-lista');
+  cont.innerHTML = CR_BENEFICIOS.map(b => {
+    const comprado = crBeneficiosComprados.has(b.key);
+    const alcanza = crPuntosLogros >= b.costo;
+    return `
+      <div class="cr-fixture-fila">
+        <span>${b.etiqueta} — ${b.costo} pts</span>
+        <button class="auth-btn tr-btn-chico" data-beneficio="${b.key}" ${comprado || !alcanza ? 'disabled' : ''}>
+          ${comprado ? 'Comprado ✓' : 'Comprar'}
+        </button>
+      </div>`;
+  }).join('');
+  cont.querySelectorAll('[data-beneficio]').forEach(btn=>{
+    btn.addEventListener('click', () => crComprarBeneficio(btn.dataset.beneficio));
+  });
+}
+
+async function crComprarBeneficio(key){
+  const beneficio = CR_BENEFICIOS.find(b => b.key === key);
+  if(!beneficio || crBeneficiosComprados.has(key) || crPuntosLogros < beneficio.costo) return;
+  crPuntosLogros -= beneficio.costo;
+  crBeneficiosComprados.add(key);
+  crRenderizarBeneficios();
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('carrera_estado').update({
+      puntos_logros: crPuntosLogros, beneficios_comprados: Array.from(crBeneficiosComprados)
+    }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+  }
+}
+
+document.getElementById('cr-abrir-beneficios').addEventListener('click', ()=>{
+  document.getElementById('cr-beneficios-overlay').style.display = 'block';
+  document.getElementById('cr-beneficios-modal').style.display = 'flex';
+  crRenderizarBeneficios();
+});
+document.getElementById('cr-beneficios-cerrar-btn').addEventListener('click', ()=>{
+  document.getElementById('cr-beneficios-overlay').style.display = 'none';
+  document.getElementById('cr-beneficios-modal').style.display = 'none';
+});
+document.getElementById('cr-beneficios-overlay').addEventListener('click', ()=>{
+  document.getElementById('cr-beneficios-overlay').style.display = 'none';
+  document.getElementById('cr-beneficios-modal').style.display = 'none';
+});
+
 function crRenderizarFixtureYTabla(){
   const miClub = crOfertaElegida.club;
   document.getElementById('cr-temp-puntos-liga').textContent = crTablaLiga[miClub].pts;
@@ -7120,9 +7207,39 @@ async function crTerminarTemporada(){
   document.getElementById('cr-temp-final-titulo').textContent = convocado ? '🇦🇷 ¡Convocatoria a la Selección!' : `Fin de la Temporada ${crTemporadaNum}`;
   document.getElementById('cr-temp-final-detalle').textContent = detalle;
 
+  // --- Cálculo de logros y puntos de la temporada ---
+  const logros = [];
+  const esCampeonLiga = puesto === 1;
+  const esCampeonCopa = crCopaBracket && crCopaBracket.campeon;
+  const esCampeonCopaAm = crCopaAmBracket && crCopaAmBracket.campeon;
+  const esGoleadorDestacado = crGolesTemporada >= 15;
+  const esAsistidorDestacado = crAsistenciasTemporada >= 10;
+  const esMejorJugador = puesto <= 3 && crMedia >= 85;
+  const esPromesa = crTemporadaNum <= 2 && t.pts >= t.pj * 1.5;
+  const esMejorEnSuPosicion =
+    (crPosicion === 'delantero' && crGolesTemporada >= 10) ||
+    (crPosicion === 'mediocampista' && crAsistenciasTemporada >= 8) ||
+    ((crPosicion === 'defensor' || crPosicion === 'arquero') && t.pj > 0 && (t.gc / t.pj) <= 0.8);
+
+  if(esPromesa){ logros.push('🌱 Promesa del año'); crPuntosLogros += 1; }
+  if(esMejorJugador){ logros.push('⭐ Mejor Jugador del año'); crPuntosLogros += 1; }
+  if(esGoleadorDestacado){ logros.push('⚽ Goleador del año'); crPuntosLogros += 1; }
+  if(esAsistidorDestacado){ logros.push('🎯 Asistente del año'); crPuntosLogros += 1; }
+  if(esMejorEnSuPosicion){ logros.push(`🏅 Mejor ${crPosicion} del año`); crPuntosLogros += 1; }
+  if(esGoleadorDestacado || esAsistidorDestacado){ logros.push('➕5 puntos por ser goleador/asistidor destacado'); crPuntosLogros += 5; }
+  if(esCampeonLiga){ logros.push('🏆 Campeón de la Liga Nacional (+10)'); crPuntosLogros += 10; }
+  if(esCampeonCopa){ logros.push('🏆 Campeón de la Copa Nacional (+10)'); crPuntosLogros += 10; }
+  if(esCampeonCopaAm){ logros.push('🏆 Campeón de la Copa Americana de Clubes (+10)'); crPuntosLogros += 10; }
+
+  document.getElementById('cr-puntos-logros-header').textContent = crPuntosLogros;
+  const contLogros = document.getElementById('cr-temp-logros-resumen');
+  contLogros.innerHTML = logros.length
+    ? `<div class="gd-pista-titulo">🏅 Logros de la temporada</div><ul style="margin-top:6px;">${logros.map(l => `<li>${l}</li>`).join('')}</ul><div style="margin-top:8px; font-weight:700;">Total de puntos de logros acumulados: ${crPuntosLogros}</div>`
+    : `<div class="gd-intro">No conseguiste logros especiales esta temporada. Total acumulado: ${crPuntosLogros} puntos.</div>`;
+
   const { data: { user } } = await sbClient.auth.getUser();
   if(user){
-    await sbClient.from('carrera_estado').update({ temporada: crTemporadaNum, convocado_seleccion: convocado }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+    await sbClient.from('carrera_estado').update({ temporada: crTemporadaNum, convocado_seleccion: convocado, puntos_logros: crPuntosLogros }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
   document.getElementById('cr-temp-continuar-btn').textContent = 'Continuar';
   document.getElementById('cr-temp-continuar-btn').onclick = () => crResolverMercadoDePases(resultadoClub);
@@ -7212,7 +7329,8 @@ function crMostrarDecisionImagen(){
   contImagen.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const opcion = decision.opciones[parseInt(btn.dataset.idx)];
-      const cambio = opcion.mediaMin === opcion.mediaMax ? opcion.mediaMin : (opcion.mediaMin + Math.floor(Math.random()*(opcion.mediaMax-opcion.mediaMin+1)));
+      let cambio = opcion.mediaMin === opcion.mediaMax ? opcion.mediaMin : (opcion.mediaMin + Math.floor(Math.random()*(opcion.mediaMax-opcion.mediaMin+1)));
+      if(cambio > 0) cambio += crBeneficiosComprados.size; // cada beneficio comprado te hace más fácil escalar la media
       crMedia = Math.max(60, Math.min(100, crMedia + cambio));
       document.getElementById('cr-firma-detalle').textContent = `${cambio >= 0 ? '📈' : '📉'} Tu media ${cambio >= 0 ? 'subió' : 'bajó'} a ${crMedia}.`;
       contImagen.innerHTML = '';
