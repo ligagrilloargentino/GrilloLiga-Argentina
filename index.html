@@ -2278,6 +2278,11 @@ footer{
         <div id="cr-copa-lista"></div>
         <h3 class="gd-pista-titulo" style="margin-top:20px;" id="cr-copaam-titulo">🏆 Copa Americana de Clubes</h3>
         <div id="cr-copaam-lista"></div>
+        <div id="cr-mundial-wrap" style="display:none;">
+          <h3 class="gd-pista-titulo" style="margin-top:20px;" id="cr-mundial-titulo">🌎 Copa Mundial de Selecciones del Grillo</h3>
+          <div id="cr-mundial-tabla-grupo" style="overflow-x:auto;"></div>
+          <div id="cr-mundial-lista"></div>
+        </div>
       </div>
 
       <div id="cr-temporada-final" style="display:none; text-align:center;">
@@ -6352,6 +6357,229 @@ let crJugadoresFichados = []; // [{ nombre, club, liga, pais }]
 let crUltimaNoticiaTexto = '';
 let crRivales = []; // [{ nombre, club }]
 
+/* --- Copa Mundial de Selecciones del Grillo: cada 2 temporadas --- */
+const CR_PAISES_MUNDIAL = ['Argentina','Uruguay','Brasil','Bolivia','Chile','Paraguay','Perú','Ecuador','Colombia','Venezuela','Estados Unidos','México','España','Portugal','Francia','Alemania','Inglaterra','Italia','Holanda'];
+const CR_MI_SELECCION = 'Argentina';
+let crMundial = null; // { grupos:[{paises,partidos,tabla}], fase:'grupos'|'octavos'|'cuartos'|'semis'|'final', bracket:null, terminado:false, argentinaAfuera:false, campeon:null }
+let apModoMundial = false;
+let apMundialGrupoIdx = null;
+let apMundialPartidoIdx = null;
+
+function crTablaVaciaMundial(paises){
+  const t = {};
+  paises.forEach(p => t[p] = { pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,pts:0 });
+  return t;
+}
+
+function crEsTemporadaDeMundial(){ return crTemporadaNum % 2 === 0; }
+
+function crIniciarMundial(){
+  if(!crFueConvocadoAlgunaVez){
+    // no estás convocado: se juega solo, sin que intervengas
+    const campeon = CR_PAISES_MUNDIAL[Math.floor(Math.random()*CR_PAISES_MUNDIAL.length)];
+    crUltimaNoticiaTexto += (crUltimaNoticiaTexto ? ' ' : '') + `🌎 Se jugó la Copa Mundial de Selecciones del Grillo (no estabas convocado) — campeón: ${campeon}.`;
+    crMostrarEntrenamiento();
+    return;
+  }
+  const otros = CR_PAISES_MUNDIAL.filter(p => p !== CR_MI_SELECCION).sort(() => Math.random()-0.5).slice(0,15);
+  const participantes = [CR_MI_SELECCION, ...otros].sort(() => Math.random()-0.5);
+  const grupos = [0,1,2,3].map(g => {
+    const paises = participantes.slice(g*4, g*4+4);
+    const partidos = [];
+    for(let i=0;i<4;i++) for(let j=i+1;j<4;j++) partidos.push({ a:paises[i], b:paises[j], jugado:false, resultado:null });
+    return { paises, partidos, tabla: crTablaVaciaMundial(paises) };
+  });
+  crMundial = { grupos, fase:'grupos', bracket:null, terminado:false, argentinaAfuera:false, campeon:null };
+
+  // se resuelven al instante todos los partidos de grupo que NO involucran a tu selección
+  crMundial.grupos.forEach((grupo, gi) => {
+    grupo.partidos.forEach((p, pi) => {
+      if(p.a !== CR_MI_SELECCION && p.b !== CR_MI_SELECCION) crAplicarResultadoMundialGrupo(gi, pi, crGolesAlAzar(), crGolesAlAzar());
+    });
+  });
+
+  document.getElementById('cr-ofertas-wrap').style.display = 'none';
+  document.getElementById('cr-firma-wrap').style.display = 'none';
+  document.getElementById('cr-temporada-wrap').style.display = 'block';
+  ['cr-proximos-lista','cr-fixture-lista','cr-copa-lista','cr-copaam-lista'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = '';
+  });
+  document.getElementById('cr-mundial-wrap').style.display = 'block';
+  crRenderizarMundial();
+}
+
+function crAplicarResultadoMundialGrupo(gi, pi, golesA, golesB){
+  const grupo = crMundial.grupos[gi];
+  const p = grupo.partidos[pi];
+  p.jugado = true;
+  p.resultado = `${golesA}-${golesB}`;
+  crSumarResultado(grupo.tabla, p.a, golesA, p.b, golesB);
+}
+
+function crResolverPartidoMundialGrupo(gi, pi, simulado){
+  if(simulado || crLesionado){
+    crAplicarResultadoMundialGrupo(gi, pi, crGolesAlAzar(), crGolesAlAzar());
+    crDescontarLesionSiCorresponde();
+    crVerificarFinDeGruposMundial();
+  } else {
+    apModoMundial = true;
+    apMundialGrupoIdx = gi;
+    apMundialPartidoIdx = pi;
+    apIniciarPartido('mundial-grupo');
+  }
+}
+
+function crVerificarFinDeGruposMundial(){
+  if(!crMundial.grupos.every(g => g.partidos.every(p => p.jugado))){ crRenderizarMundial(); return; }
+  // clasifican los 2 primeros de cada grupo
+  const clasificados = [];
+  crMundial.grupos.forEach(g => {
+    const orden = Object.entries(g.tabla).sort((a,b) => b[1].pts-a[1].pts || (b[1].gf-b[1].gc)-(a[1].gf-a[1].gc));
+    clasificados.push(orden[0][0], orden[1][0]);
+  });
+  if(!clasificados.includes(CR_MI_SELECCION)){
+    crMundial.argentinaAfuera = true;
+    crMundial.fase = 'octavos';
+    crRenderizarMundial();
+    return;
+  }
+  crMundial.fase = 'octavos';
+  crMundial.bracket = { ronda:1, totalRondas:3, partidos:[], eliminado:false, campeon:false };
+  const orden = clasificados.sort(() => Math.random()-0.5);
+  for(let i=0; i<orden.length; i+=2){
+    crMundial.bracket.partidos.push({ clubA:orden[i], clubB:orden[i+1], jugado:false, resultado:null, ganador:null });
+  }
+  crAutoResolverAjenosMundial();
+  crRenderizarMundial();
+}
+
+function crAutoResolverAjenosMundial(){
+  crMundial.bracket.partidos.forEach((p,i) => {
+    if(!p.jugado && p.clubA !== CR_MI_SELECCION && p.clubB !== CR_MI_SELECCION){
+      crAplicarResultadoMundialBracket(i, crGolesAlAzar(), crGolesAlAzar());
+    }
+  });
+}
+
+function crResolverPartidoMundialBracket(idx, simulado){
+  if(simulado || crLesionado){
+    crAplicarResultadoMundialBracket(idx, crGolesAlAzar(), crGolesAlAzar());
+    crDescontarLesionSiCorresponde();
+  } else {
+    apModoMundial = true;
+    apMundialPartidoIdx = idx;
+    apIniciarPartido('mundial-bracket');
+  }
+}
+
+function crAplicarResultadoMundialBracket(idx, golesA, golesB){
+  const p = crMundial.bracket.partidos[idx];
+  if(golesA === golesB){ golesA += Math.random()<0.5 ? 1 : 0; if(golesA===golesB) golesB++; }
+  p.jugado = true;
+  p.resultado = `${golesA}-${golesB}`;
+  p.ganador = golesA > golesB ? p.clubA : p.clubB;
+  crAvanzarRondaMundialSiCorresponde();
+}
+
+function crAvanzarRondaMundialSiCorresponde(){
+  if(!crMundial.bracket.partidos.every(p => p.jugado)){ crRenderizarMundial(); return; }
+  const miPartido = crMundial.bracket.partidos.find(p => p.clubA === CR_MI_SELECCION || p.clubB === CR_MI_SELECCION);
+  if(miPartido && miPartido.ganador !== CR_MI_SELECCION){
+    crMundial.argentinaAfuera = true;
+    crMundial.terminado = crMundial.bracket.ronda >= crMundial.bracket.totalRondas ? true : crMundial.terminado;
+  }
+  if(crMundial.bracket.ronda >= crMundial.bracket.totalRondas){
+    crMundial.campeon = crMundial.bracket.partidos[0].ganador;
+    crMundial.terminado = true;
+    crRenderizarMundial();
+    return;
+  }
+  const ganadores = crMundial.bracket.partidos.map(p => p.ganador).sort(() => Math.random()-0.5);
+  crMundial.bracket.ronda++;
+  crMundial.bracket.partidos = [];
+  for(let i=0; i<ganadores.length; i+=2){
+    crMundial.bracket.partidos.push({ clubA:ganadores[i], clubB:ganadores[i+1], jugado:false, resultado:null, ganador:null });
+  }
+  crAutoResolverAjenosMundial();
+  crRenderizarMundial();
+}
+
+function crRenderizarMundial(){
+  if(!crMundial) return;
+  const cont = document.getElementById('cr-mundial-lista');
+  const contTabla = document.getElementById('cr-mundial-tabla-grupo');
+
+  if(crMundial.terminado){
+    document.getElementById('cr-mundial-titulo').textContent = crMundial.campeon === CR_MI_SELECCION
+      ? '🌎🏆 ¡Argentina campeón de la Copa Mundial de Selecciones del Grillo!'
+      : `🌎 Copa Mundial de Selecciones del Grillo — campeón: ${crMundial.campeon}${crMundial.argentinaAfuera ? ' (quedaste eliminado)' : ''}`;
+    contTabla.innerHTML = ''; cont.innerHTML = '';
+    crMostrarEntrenamiento();
+    return;
+  }
+  if(crMundial.argentinaAfuera){
+    document.getElementById('cr-mundial-titulo').textContent = '🌎 Copa Mundial de Selecciones del Grillo — quedaste eliminado, el torneo sigue sin vos';
+    contTabla.innerHTML = ''; cont.innerHTML = '';
+    // el resto del torneo se resuelve solo hasta terminar
+    if(crMundial.fase === 'grupos'){ crVerificarFinDeGruposMundial(); }
+    else { crAutoResolverAjenosMundial(); crAvanzarRondaMundialSiCorresponde(); }
+    return;
+  }
+
+  if(crMundial.fase === 'grupos'){
+    document.getElementById('cr-mundial-titulo').textContent = '🌎 Copa Mundial de Selecciones del Grillo — Fase de grupos';
+    const miGrupoIdx = crMundial.grupos.findIndex(g => g.paises.includes(CR_MI_SELECCION));
+    const grupo = crMundial.grupos[miGrupoIdx];
+    const filas = Object.entries(grupo.tabla).sort((a,b) => b[1].pts-a[1].pts || (b[1].gf-b[1].gc)-(a[1].gf-a[1].gc));
+    contTabla.innerHTML = `<table class="cg-tabla">
+      <tr><th>País</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
+      ${filas.map(([pais,t]) => `<tr class="${pais===CR_MI_SELECCION?'cg-tabla-tuclub':''}"><td>${pais}</td><td>${t.pj}</td><td>${t.pg}</td><td>${t.pe}</td><td>${t.pp}</td><td>${t.gf}</td><td>${t.gc}</td><td>${t.gf-t.gc}</td><td>${t.pts}</td></tr>`).join('')}
+    </table>`;
+    const pendientes = grupo.partidos.map((p,pi) => ({p,pi})).filter(({p}) => !p.jugado && (p.a===CR_MI_SELECCION || p.b===CR_MI_SELECCION));
+    cont.innerHTML = pendientes.map(({p,pi}) => `
+      <div class="cr-fixture-fila">
+        <span>${p.a} vs ${p.b}</span>
+        <div class="cr-fixture-btns">
+          <button class="auth-btn tr-btn-chico" data-mundial-grupo-simular="${pi}">Simular</button>
+          <button class="auth-btn tr-btn-chico" data-mundial-grupo-jugar="${pi}">Jugar en Apanovi</button>
+        </div>
+      </div>`).join('') || '<div class="cz-online-esperando">Esperando el resto de los resultados del grupo…</div>';
+    cont.querySelectorAll('[data-mundial-grupo-simular]').forEach(btn=>{
+      btn.addEventListener('click', () => crResolverPartidoMundialGrupo(miGrupoIdx, parseInt(btn.dataset.mundialGrupoSimular), true));
+    });
+    cont.querySelectorAll('[data-mundial-grupo-jugar]').forEach(btn=>{
+      btn.addEventListener('click', () => crResolverPartidoMundialGrupo(miGrupoIdx, parseInt(btn.dataset.mundialGrupoJugar), false));
+    });
+    if(pendientes.length === 0) crVerificarFinDeGruposMundial();
+    return;
+  }
+
+  // fase de eliminación directa
+  const nombresFase = { octavos:'Octavos de final', cuartos:'Cuartos de final', semis:'Semifinal', final:'Final' };
+  const etiquetaRonda = ['octavos','cuartos','semis','final'][crMundial.bracket.ronda-1] || 'final';
+  document.getElementById('cr-mundial-titulo').textContent = `🌎 Copa Mundial de Selecciones del Grillo — ${nombresFase[etiquetaRonda]}`;
+  contTabla.innerHTML = '';
+  const idx = crMundial.bracket.partidos.findIndex(p => p.clubA === CR_MI_SELECCION || p.clubB === CR_MI_SELECCION);
+  const p = crMundial.bracket.partidos[idx];
+  cont.innerHTML = p ? `
+    <div class="cr-fixture-fila ${p.jugado?'jugado':''}">
+      <span>${p.clubA} vs ${p.clubB}${p.jugado ? ` — <b>${p.resultado}</b>` : ''}</span>
+      ${p.jugado ? '' : `<div class="cr-fixture-btns">
+        <button class="auth-btn tr-btn-chico" data-mundial-b-simular="${idx}">Simular</button>
+        <button class="auth-btn tr-btn-chico" data-mundial-b-jugar="${idx}">Jugar en Apanovi</button>
+      </div>`}
+    </div>` : '<div class="cz-online-esperando">Esperando el resto de los resultados…</div>';
+  cont.querySelectorAll('[data-mundial-b-simular]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoMundialBracket(parseInt(btn.dataset.mundialBSimular), true));
+  });
+  cont.querySelectorAll('[data-mundial-b-jugar]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoMundialBracket(parseInt(btn.dataset.mundialBJugar), false));
+  });
+}
+
+
+
 const CR_MAX_RIVALES = 3;
 
 function crFicharJugadoresDeLaTemporada(){
@@ -6563,6 +6791,14 @@ function apIniciarPartido(numero){
     const p = crCopaAmBracket.partidos[apCopaAmIdxPendiente];
     clubRival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
     document.getElementById('carrera-intro-fase').textContent = `Copa Americana de Clubes — partido único contra ${clubRival}.`;
+  } else if(numero === 'mundial-grupo'){
+    const p = crMundial.grupos[apMundialGrupoIdx].partidos[apMundialPartidoIdx];
+    const rivalPais = p.a === CR_MI_SELECCION ? p.b : p.a;
+    document.getElementById('carrera-intro-fase').textContent = `🌎 Copa Mundial de Selecciones del Grillo — fase de grupos, Argentina vs ${rivalPais}.`;
+  } else if(numero === 'mundial-bracket'){
+    const p = crMundial.bracket.partidos[apMundialPartidoIdx];
+    const rivalPais = p.clubA === CR_MI_SELECCION ? p.clubB : p.clubA;
+    document.getElementById('carrera-intro-fase').textContent = `🌎 Copa Mundial de Selecciones del Grillo — eliminación directa, Argentina vs ${rivalPais}.`;
   } else {
     document.getElementById('carrera-intro-fase').textContent = numero === 2
       ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
@@ -6712,6 +6948,26 @@ async function apTerminarPartido(){
     return;
   }
 
+  if(apModoMundial){
+    const golesMios = apGoles.length;
+    const golesRival = apSimularGolesRival(apPuntaje, apTotalDecisiones);
+    apModoMundial = false;
+    document.getElementById('cr-temporada-wrap').style.display = 'block';
+    document.getElementById('cr-mundial-wrap').style.display = 'block';
+    if(apPartidoActual === 'mundial-grupo'){
+      const p = crMundial.grupos[apMundialGrupoIdx].partidos[apMundialPartidoIdx];
+      const esA = p.a === CR_MI_SELECCION;
+      crAplicarResultadoMundialGrupo(apMundialGrupoIdx, apMundialPartidoIdx, esA ? golesMios : golesRival, esA ? golesRival : golesMios);
+      crRenderizarMundial();
+    } else {
+      const p = crMundial.bracket.partidos[apMundialPartidoIdx];
+      const esA = p.clubA === CR_MI_SELECCION;
+      crAplicarResultadoMundialBracket(apMundialPartidoIdx, esA ? golesMios : golesRival, esA ? golesRival : golesMios);
+      crRenderizarMundial();
+    }
+    return;
+  }
+
   document.getElementById('cr-final').style.display = 'block';
   const resumen = apResumenPartido();
   if(apPartidoActual === 1){
@@ -6783,6 +7039,8 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   crLesionado = false; crPartidosLesionRestantes = 0; crMotivoLesion = '';
   crSueldoActual = 0; crSueldoTotalCarrera = 0;
   crJugadoresFichados = []; crRivales = []; crUltimaNoticiaTexto = '';
+  crMundial = null;
+  document.getElementById('cr-mundial-wrap').style.display = 'none';
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
 });
@@ -7575,10 +7833,15 @@ async function crTerminarTemporada(){
   document.getElementById('cr-temp-continuar-btn').onclick = () => crResolverMercadoDePases(resultadoClub);
 }
 
+function crContinuarDespuesDeMercado(){
+  if(crEsTemporadaDeMundial()) crIniciarMundial();
+  else crMostrarEntrenamiento();
+}
+
 function crResolverMercadoDePases(resultadoClub){
   document.getElementById('cr-temporada-final').style.display = 'none';
   if(resultadoClub === 'continua'){
-    crMostrarEntrenamiento();
+    crContinuarDespuesDeMercado();
     return;
   }
   const tierActual = crOfertaElegida ? (Object.values(CR_LIGAS).find(l => l.nombre === crOfertaElegida.liga)?.prestigio || 1) : 1;
@@ -7610,12 +7873,14 @@ function crResolverMercadoDePases(resultadoClub){
       if(user){
         await sbClient.from('carrera_estado').update({ club_actual: crOfertaElegida.club, liga_actual: crOfertaElegida.liga }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
       }
-      crMostrarEntrenamiento();
+      crContinuarDespuesDeMercado();
     });
   });
 }
 
 function crMostrarEntrenamiento(){
+  document.getElementById('cr-temporada-wrap').style.display = 'none';
+  document.getElementById('cr-mundial-wrap').style.display = 'none';
   document.getElementById('cr-firma-wrap').style.display = 'block';
   document.getElementById('cr-firma-titulo').textContent = '💪 Pretemporada';
   document.getElementById('cr-firma-detalle').textContent = `Elegí en qué atributo enfocar tu entrenamiento antes de la Temporada ${crTemporadaNum + 1} (ahora: Velocidad ${crAtributos.velocidad} · Pase ${crAtributos.pase} · Definición ${crAtributos.definicion} · Regate ${crAtributos.regate} · Defensa ${crAtributos.defensa}).`;
