@@ -2232,6 +2232,8 @@ footer{
         <div id="cr-fixture-lista"></div>
         <h3 class="gd-pista-titulo" style="margin-top:20px;">📊 Tabla de posiciones</h3>
         <div style="overflow-x:auto;"><table class="cg-tabla" id="cr-tabla-liga"></table></div>
+        <h3 class="gd-pista-titulo" style="margin-top:20px;" id="cr-copa-titulo">🏆 Copa Nacional</h3>
+        <div id="cr-copa-lista"></div>
       </div>
 
       <div id="cr-temporada-final" style="display:none; text-align:center;">
@@ -6371,11 +6373,15 @@ function apIniciarPartido(numero){
   document.getElementById('cr-temporada-wrap').style.display = 'none';
   document.getElementById('cr-final').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'block';
-  document.getElementById('cr-num-partido').textContent = numero === 'temporada' ? crFixtureMiClub[apFixtureIdxPendiente].rival : numero;
+  document.getElementById('cr-num-partido').textContent = numero === 'temporada' ? crFixtureMiClub[apFixtureIdxPendiente].rival : (numero === 'copa' ? 'Copa' : numero);
   document.getElementById('cr-total-decisiones').textContent = apTotalDecisiones;
   if(numero === 'temporada'){
     const f = crFixtureMiClub[apFixtureIdxPendiente];
     document.getElementById('carrera-intro-fase').textContent = `Jugás ${f.local ? 'de local' : 'de visitante'} contra ${f.rival}.`;
+  } else if(numero === 'copa'){
+    const p = crCopaBracket.partidos[apCopaIdxPendiente];
+    const rival = p.clubA === crOfertaElegida.club ? p.clubB : p.clubA;
+    document.getElementById('carrera-intro-fase').textContent = `Copa Nacional — partido único contra ${rival}.`;
   } else {
     document.getElementById('carrera-intro-fase').textContent = numero === 2
       ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
@@ -6465,6 +6471,19 @@ async function apTerminarPartido(){
     apModoFixture = false;
     document.getElementById('cr-temporada-wrap').style.display = 'block';
     crAplicarResultadoFixture(apFixtureIdxPendiente, golesMios, golesRival);
+    return;
+  }
+
+  if(apModoCopa){
+    const p = crCopaBracket.partidos[apCopaIdxPendiente];
+    const miClub = crOfertaElegida.club;
+    const esClubA = p.clubA === miClub;
+    const golesMios = apGoles.length;
+    const golesRival = apSimularGolesRival(apPuntaje, apTotalDecisiones);
+    apModoCopa = false;
+    document.getElementById('cr-temporada-wrap').style.display = 'block';
+    crAplicarResultadoCopa(apCopaIdxPendiente, esClubA ? golesMios : golesRival, esClubA ? golesRival : golesMios);
+    crRenderizarCopa();
     return;
   }
 
@@ -6684,7 +6703,107 @@ function crIniciarTemporada(){
   document.getElementById('cr-temporada-wrap').style.display = 'block';
   document.getElementById('cr-temp-num').textContent = crTemporadaNum;
   document.getElementById('cr-temp-club-liga').textContent = `${miClub} — ${crOfertaElegida.liga}`;
+  crGenerarCopaNacional();
   crRenderizarFixtureYTabla();
+}
+
+/* --- Copa Nacional: eliminación directa a partido único --- */
+let crCopaBracket = null;
+let apModoCopa = false;
+let apCopaIdxPendiente = null;
+
+function crGenerarCopaNacional(){
+  const clubes = crClubesDeLigaActual();
+  const miClub = crOfertaElegida.club;
+  const pool = clubes.filter(c => c !== miClub).sort(() => Math.random()-0.5);
+  let tamano = 8;
+  while(tamano*2 <= clubes.length && tamano < 32) tamano *= 2;
+  const participantes = [miClub, ...pool.slice(0, tamano-1)].sort(() => Math.random()-0.5);
+  crCopaBracket = { ronda:1, totalRondas: Math.log2(tamano), partidos:[], eliminado:false, campeon:false };
+  for(let i=0; i<participantes.length; i+=2){
+    crCopaBracket.partidos.push({ clubA:participantes[i], clubB:participantes[i+1], jugado:false, resultado:null, ganador:null });
+  }
+  crAutoResolverAjenosCopa();
+}
+
+function crAutoResolverAjenosCopa(){
+  const miClub = crOfertaElegida.club;
+  crCopaBracket.partidos.forEach((p,i) => {
+    if(!p.jugado && p.clubA !== miClub && p.clubB !== miClub){
+      crAplicarResultadoCopa(i, crGolesAlAzar(), crGolesAlAzar());
+    }
+  });
+}
+
+function crResolverPartidoCopa(idx, simulado){
+  if(simulado){
+    crAplicarResultadoCopa(idx, crGolesAlAzar(), crGolesAlAzar());
+  } else {
+    apModoCopa = true;
+    apCopaIdxPendiente = idx;
+    apIniciarPartido('copa');
+  }
+}
+
+function crAplicarResultadoCopa(idx, golesA, golesB){
+  const p = crCopaBracket.partidos[idx];
+  if(golesA === golesB){ golesA += Math.random() < 0.5 ? 1 : 0; if(golesA===golesB) golesB++; } // desempate simple (penales)
+  p.jugado = true;
+  p.resultado = `${golesA}-${golesB}`;
+  p.ganador = golesA > golesB ? p.clubA : p.clubB;
+  crAvanzarRondaCopaSiCorresponde();
+}
+
+function crAvanzarRondaCopaSiCorresponde(){
+  if(!crCopaBracket.partidos.every(p => p.jugado)){ crRenderizarCopa(); return; }
+  const miClub = crOfertaElegida.club;
+  const miPartido = crCopaBracket.partidos.find(p => p.clubA === miClub || p.clubB === miClub);
+  if(miPartido.ganador !== miClub){
+    crCopaBracket.eliminado = true;
+    crRenderizarCopa();
+    return;
+  }
+  if(crCopaBracket.ronda >= crCopaBracket.totalRondas){
+    crCopaBracket.campeon = true;
+    crRenderizarCopa();
+    return;
+  }
+  const ganadores = crCopaBracket.partidos.map(p => p.ganador).sort(() => Math.random()-0.5);
+  crCopaBracket.ronda++;
+  crCopaBracket.partidos = [];
+  for(let i=0; i<ganadores.length; i+=2){
+    crCopaBracket.partidos.push({ clubA:ganadores[i], clubB:ganadores[i+1], jugado:false, resultado:null, ganador:null });
+  }
+  crAutoResolverAjenosCopa();
+  crRenderizarCopa();
+}
+
+function crRenderizarCopa(){
+  if(!crCopaBracket) return;
+  const miClub = crOfertaElegida.club;
+  let titulo = `🏆 Copa Nacional — Ronda ${crCopaBracket.ronda} de ${crCopaBracket.totalRondas}`;
+  if(crCopaBracket.campeon) titulo = '🏆 ¡Sos el campeón de la Copa Nacional!';
+  else if(crCopaBracket.eliminado) titulo = '🏆 Copa Nacional — Quedaste eliminado esta temporada';
+  document.getElementById('cr-copa-titulo').textContent = titulo;
+
+  const cont = document.getElementById('cr-copa-lista');
+  if(crCopaBracket.campeon || crCopaBracket.eliminado){ cont.innerHTML = ''; return; }
+  const idx = crCopaBracket.partidos.findIndex(p => p.clubA === miClub || p.clubB === miClub);
+  const p = crCopaBracket.partidos[idx];
+  cont.innerHTML = `
+    <div class="cr-fixture-fila ${p.jugado ? 'jugado' : ''}">
+      <span>${p.clubA} vs ${p.clubB}${p.jugado ? ` — <b>${p.resultado}</b>` : ''}</span>
+      ${p.jugado ? '' : `<div class="cr-fixture-btns">
+        <button class="auth-btn tr-btn-chico" data-copa-simular="${idx}">Simular</button>
+        <button class="auth-btn tr-btn-chico" data-copa-jugar="${idx}">Jugar en Apanovi</button>
+      </div>`}
+    </div>`;
+  cont.querySelectorAll('[data-copa-simular]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoCopa(parseInt(btn.dataset.copaSimular), true));
+  });
+  cont.querySelectorAll('[data-copa-jugar]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoCopa(parseInt(btn.dataset.copaJugar), false));
+  });
 }
 
 function crRenderizarFixtureYTabla(){
