@@ -2242,7 +2242,28 @@ footer{
         </div>
         <div style="text-align:center; margin-top:6px;">
           <span class="tr-config-link" id="cr-abrir-beneficios">🎁 Puntos de logros: <b id="cr-puntos-logros-header">0</b> — Ver tienda de beneficios</span>
+          &nbsp;·&nbsp;
+          <span class="tr-config-link" id="cr-perfil-link">📖 Perfil histórico</span>
+          &nbsp;·&nbsp;
+          <span class="tr-config-link" id="cr-emigrar-link" style="display:none;">✈️ Emigrar a Europa</span>
+          &nbsp;·&nbsp;
+          <span class="tr-config-link" id="cr-retirarme-link" style="color:var(--red);">🚪 Retirarme</span>
         </div>
+
+        <div id="cr-perfil-overlay" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.45);"></div>
+        <div id="cr-perfil-modal" style="display:none; position:fixed; z-index:9001; inset:0; align-items:center; justify-content:center; padding:20px;">
+          <div class="auth-card" style="max-width:440px;">
+            <button class="drawer-cerrar" id="cr-perfil-cerrar-btn" style="float:right;">✕</button>
+            <h1 id="cr-perfil-titulo" style="font-size:19px;">📖 Perfil histórico</h1>
+            <div id="cr-perfil-contenido" class="gd-intro"></div>
+          </div>
+        </div>
+
+        <div id="cr-ofertas-europa-wrap" style="display:none;">
+          <div class="gd-intro">Te llegaron ofertas de Europa. Elegí con qué club emigrar (esto arma una temporada nueva en tu nueva liga).</div>
+          <div id="cr-ofertas-europa-lista" style="max-width:480px; margin:16px auto 0;"></div>
+        </div>
+
         <h3 class="gd-pista-titulo" style="margin-top:14px;">📋 Próximos partidos</h3>
         <div class="gd-intro" style="margin:6px 0 10px;">Tildá los que querés simular de una, y usá "Jugar" en el que quieras jugar de verdad. Junta partidos de Liga, Copa Nacional y Copa Americana.</div>
         <div id="cr-proximos-lista"></div>
@@ -6308,6 +6329,12 @@ let crPuntajePartido1 = 0;
 let crSituacionesElegidas = [];
 let crAtributos = { velocidad:50, pase:50, definicion:50, regate:50, defensa:50 };
 let crMedia = 70;
+let crFueConvocadoAlgunaVez = false;
+let crGolesCarrera = 0;
+let crAsistenciasCarrera = 0;
+let crTitulosCarrera = 0;
+let crBalonesDeOro = 0;
+let crClubesHistorial = [];
 let crGolesTemporada = 0;
 let crAsistenciasTemporada = 0;
 let crPuntosLogros = 0;
@@ -6674,6 +6701,10 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   document.getElementById('cr-confirmar-equipos-btn').onclick = () => apIniciarPartido(1);
   document.getElementById('carrera-intro-fase').textContent = 'Jugá un Partido en Apanovi tomando decisiones. Si tenés buen rendimiento, vas a un segundo partido — esta vez con un ojeador mirándote.';
   crJugadorNombre = null;
+  crFueConvocadoAlgunaVez = false;
+  crMedia = 70;
+  crPuntosLogros = 0;
+  crBeneficiosComprados = new Set();
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
 });
@@ -6690,14 +6721,28 @@ async function crAbrirHistorial(){
   document.getElementById('cr-historial-modal').style.display = 'flex';
   const cont = document.getElementById('cr-historial-lista');
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
-  const [{ data: carreras }, { data: perfiles }] = await Promise.all([
-    sbClient.from('carrera_estado').select('usuario_id, nombre_jugador, posicion, fase, temporada, puntos_logros, club_actual, liga_actual, convocado_seleccion'),
+  const [{ data: carreras }, { data: archivadas }, { data: perfiles }] = await Promise.all([
+    sbClient.from('carrera_estado').select('usuario_id, nombre_jugador, posicion, fase, temporada, puntos_logros, club_actual, liga_actual, convocado_seleccion, retirado'),
+    sbClient.from('carrera_historial').select('usuario_id, nombre_jugador, posicion, temporadas_jugadas, puntos_logros, club_final, liga_final, convocado_seleccion, retirado_en'),
     sbClient.from('perfiles_usuario').select('id, username')
   ]);
-  if(!carreras || !carreras.length){ cont.innerHTML = '<div class="cz-online-esperando">Todavía nadie jugó el Modo Carrera. ¡Arrancá vos!</div>'; return; }
+  if((!carreras || !carreras.length) && (!archivadas || !archivadas.length)){
+    cont.innerHTML = '<div class="cz-online-esperando">Todavía nadie jugó el Modo Carrera. ¡Arrancá vos!</div>';
+    return;
+  }
   const nombrePorId = {};
   (perfiles || []).forEach(p => { nombrePorId[p.id] = p.username; });
-  cont.innerHTML = carreras.map(c => {
+
+  const filasArchivadas = (archivadas || []).sort((a,b) => new Date(b.retirado_en)-new Date(a.retirado_en)).map(c => {
+    const usuario = nombrePorId[c.usuario_id] || '???';
+    let detalle = `<b>${usuario}</b> jugó una carrera de ${c.temporadas_jugadas} temporada${c.temporadas_jugadas===1?'':'s'} con <b>${c.nombre_jugador || '???'}</b> y ganó ${c.puntos_logros} puntos de logros`;
+    if(c.club_final) detalle += `, terminando en ${c.club_final} (${c.liga_final})`;
+    if(c.convocado_seleccion) detalle += ' 🇦🇷 (fue convocado a la Selección)';
+    detalle += ` — ⚽${c.goles_carrera||0} 🎯${c.asistencias_carrera||0} 🏆${c.titulos_carrera||0} 🥇${c.balones_de_oro||0}`;
+    return `<div class="cr-fixture-fila">🏁 ${detalle}.</div>`;
+  });
+
+  const filasEnCurso = (carreras || []).filter(c => !c.retirado).map(c => {
     const usuario = nombrePorId[c.usuario_id] || '???';
     const etapa = CR_ETIQUETAS_FASE[c.fase] || c.fase;
     let detalle = `<b>${usuario}</b> — ${etapa} con <b>${c.nombre_jugador || '???'}</b>`;
@@ -6705,8 +6750,10 @@ async function crAbrirHistorial(){
       detalle += `, en ${c.club_actual} (${c.liga_actual}), Temporada ${c.temporada}, ${c.puntos_logros} puntos de logros`;
       if(c.convocado_seleccion) detalle += ' 🇦🇷';
     }
-    return `<div class="cr-fixture-fila">${detalle}.</div>`;
-  }).join('');
+    return `<div class="cr-fixture-fila">🟢 ${detalle}.</div>`;
+  });
+
+  cont.innerHTML = filasEnCurso.join('') + filasArchivadas.join('');
 }
 document.getElementById('cr-historial-link').addEventListener('click', crAbrirHistorial);
 document.getElementById('cr-historial-cerrar-btn').addEventListener('click', ()=>{
@@ -6717,6 +6764,95 @@ document.getElementById('cr-historial-overlay').addEventListener('click', ()=>{
   document.getElementById('cr-historial-overlay').style.display = 'none';
   document.getElementById('cr-historial-modal').style.display = 'none';
 });
+
+/* --- Retiro voluntario --- */
+async function crRetirarme(){
+  const confirmar = confirm(`¿Seguro que querés retirar a ${crJugadorNombre} después de ${crTemporadaNum} temporada${crTemporadaNum===1?'':'s'} y ${crPuntosLogros} puntos de logros? Esta acción no se puede deshacer.`);
+  if(!confirmar) return;
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('carrera_historial').insert({
+      usuario_id: user.id, nombre_jugador: crJugadorNombre, posicion: crPosicion,
+      temporadas_jugadas: crTemporadaNum, puntos_logros: crPuntosLogros,
+      club_final: crOfertaElegida ? crOfertaElegida.club : null, liga_final: crOfertaElegida ? crOfertaElegida.liga : null,
+      convocado_seleccion: crFueConvocadoAlgunaVez,
+      goles_carrera: crGolesCarrera, asistencias_carrera: crAsistenciasCarrera,
+      titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro
+    }).then(()=>{}, ()=>{});
+    await sbClient.from('carrera_estado').update({ retirado: true }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+  }
+  document.getElementById('cr-temporada-wrap').style.display = 'none';
+  document.getElementById('cr-final').style.display = 'block';
+  document.getElementById('cr-final-titulo').textContent = `👋 ${crJugadorNombre} se retiró del fútbol profesional`;
+  document.getElementById('cr-final-detalle').textContent = `Jugó ${crTemporadaNum} temporada${crTemporadaNum===1?'':'s'} y terminó su carrera con ${crPuntosLogros} puntos de logros. ¡Gracias por todo, crack!`;
+  document.getElementById('cr-reintentar-btn').style.display = 'block';
+  document.getElementById('cr-reintentar-btn').textContent = 'Empezar una carrera nueva';
+  document.getElementById('cr-reintentar-btn').onclick = ()=>{
+    document.getElementById('mini-card-carrera').click();
+  };
+}
+document.getElementById('cr-retirarme-link').addEventListener('click', crRetirarme);
+
+/* --- Emigrar a Europa --- */
+function crClubesEuropaTodos(){
+  const lista = [];
+  CR_LIGAS_EUROPA.forEach(key => CR_LIGAS[key].clubes.forEach(c => lista.push({ club:c, liga:CR_LIGAS[key].nombre, pais:CR_LIGAS[key].pais })));
+  return lista;
+}
+
+function crMostrarOfertasEuropa(){
+  const candidatos = crClubesEuropaTodos();
+  const cantidad = 3 + Math.floor(Math.random()*3);
+  const elegidos = [...candidatos].sort(() => Math.random()-0.5).slice(0, cantidad);
+  document.getElementById('cr-ofertas-europa-wrap').style.display = 'block';
+  const lista = document.getElementById('cr-ofertas-europa-lista');
+  lista.innerHTML = elegidos.map((o,i) => `
+    <div class="cz-online-fila">
+      <b>${o.club}</b>
+      <span style="font-size:11px; color:var(--text-dimmer); margin:0 8px;">${o.liga} (${o.pais})</span>
+      <button class="auth-btn" style="max-width:110px; margin:0;" data-idx="${i}">Firmar</button>
+    </div>
+  `).join('');
+  lista.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      crOfertaElegida = elegidos[parseInt(btn.dataset.idx)];
+      document.getElementById('cr-ofertas-europa-wrap').style.display = 'none';
+      const { data: { user } } = await sbClient.auth.getUser();
+      if(user){
+        await sbClient.from('carrera_estado').update({ club_actual: crOfertaElegida.club, liga_actual: crOfertaElegida.liga }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+      }
+      crIniciarTemporada();
+    });
+  });
+}
+document.getElementById('cr-emigrar-link').addEventListener('click', crMostrarOfertasEuropa);
+
+/* --- Perfil histórico --- */
+function crMostrarPerfilHistorico(){
+  document.getElementById('cr-perfil-overlay').style.display = 'block';
+  document.getElementById('cr-perfil-modal').style.display = 'flex';
+  document.getElementById('cr-perfil-titulo').textContent = `📖 ${crJugadorNombre} (${crPosicion})`;
+  document.getElementById('cr-perfil-contenido').innerHTML = `
+    <div class="pp-fila"><b>⚽ Goles en la carrera:</b> ${crGolesCarrera}</div>
+    <div class="pp-fila"><b>🎯 Asistencias en la carrera:</b> ${crAsistenciasCarrera}</div>
+    <div class="pp-fila"><b>🏆 Títulos ganados:</b> ${crTitulosCarrera}</div>
+    <div class="pp-fila"><b>🥇 Balones de Oro:</b> ${crBalonesDeOro}</div>
+    <div class="pp-fila"><b>📅 Temporadas jugadas:</b> ${crTemporadaNum}</div>
+    <div class="pp-fila"><b>🎁 Puntos de logros acumulados:</b> ${crPuntosLogros}</div>
+    <div class="pp-fila"><b>🇦🇷 Convocado a la Selección:</b> ${crFueConvocadoAlgunaVez ? 'Sí' : 'Todavía no'}</div>
+    <div class="pp-fila"><b>🛡️ Clubes en su carrera:</b> ${crClubesHistorial.join(' → ') || (crOfertaElegida ? crOfertaElegida.club : '—')}</div>
+  `;
+}
+document.getElementById('cr-perfil-link').addEventListener('click', crMostrarPerfilHistorico);
+document.getElementById('cr-perfil-cerrar-btn').addEventListener('click', ()=>{
+  document.getElementById('cr-perfil-overlay').style.display = 'none';
+  document.getElementById('cr-perfil-modal').style.display = 'none';
+});
+document.getElementById('cr-perfil-overlay').addEventListener('click', ()=>{
+  document.getElementById('cr-perfil-overlay').style.display = 'none';
+  document.getElementById('cr-perfil-modal').style.display = 'none';
+});
+
 document.getElementById('carrera-volver').addEventListener('click', ()=>{
   document.getElementById('mini-carrera').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
@@ -6746,7 +6882,9 @@ const CR_LIGAS = {
   por: { nombre:'Primeira Liga', pais:'Portugal', prestigio:3, clubes:['Benfica','Porto','Sporting CP','Braga','Vitória de Guimarães','Boavista','Famalicão','Rio Ave','Gil Vicente','Estoril'] },
   ita: { nombre:'Serie A', pais:'Italia', prestigio:3, clubes:['Juventus','Inter de Milán','AC Milan','Napoli','Roma','Lazio','Atalanta','Fiorentina','Bologna','Torino','Udinese','Sassuolo'] },
   ing: { nombre:'Premier League', pais:'Inglaterra', prestigio:3, clubes:['Manchester City','Manchester United','Liverpool','Arsenal','Chelsea','Tottenham Hotspur','Newcastle United','Aston Villa','West Ham United','Brighton','Everton','Crystal Palace'] },
-  fra: { nombre:'Ligue 1', pais:'Francia', prestigio:3, clubes:['Paris Saint-Germain','Marsella','Mónaco','Lyon','Lille','Niza','Rennes','Lens','Nantes','Toulouse'] }
+  fra: { nombre:'Ligue 1', pais:'Francia', prestigio:3, clubes:['Paris Saint-Germain','Marsella','Mónaco','Lyon','Lille','Niza','Rennes','Lens','Nantes','Toulouse'] },
+  ale: { nombre:'Bundesliga', pais:'Alemania', prestigio:3, clubes:['Bayern Múnich','Borussia Dortmund','RB Leipzig','Bayer Leverkusen','Eintracht Frankfurt','VfB Stuttgart','Borussia Mönchengladbach','Wolfsburgo','Union Berlin','Friburgo','Hoffenheim','Werder Bremen'] },
+  hol: { nombre:'Eredivisie', pais:'Holanda', prestigio:2, clubes:['Ajax','PSV Eindhoven','Feyenoord','AZ Alkmaar','FC Twente','FC Utrecht','Vitesse','Heerenveen','Go Ahead Eagles','NEC Nijmegen'] }
 };
 
 function crClubesPrestigio(nivel){
@@ -6768,6 +6906,14 @@ let crTempPuntajeTotal = 0;
 
 // Primer contrato: primera división real de los 12 países acordados (toda la CONMEBOL + MLS + México)
 const CR_LIGAS_PRIMER_CONTRATO = ['arg1','uru','bra','bol','chi','par','per','ecu','col','ven','mls','mex'];
+const CR_LIGAS_EUROPA = ['esp','por','fra','ale','ing','ita','hol'];
+
+function crClaveLigaActual(){
+  return Object.keys(CR_LIGAS).find(key => CR_LIGAS[key].nombre === crOfertaElegida.liga && CR_LIGAS[key].pais === crOfertaElegida.pais);
+}
+function crEstaEnEuropa(){
+  return CR_LIGAS_EUROPA.includes(crClaveLigaActual());
+}
 function crClubesPrimerContrato(){
   const lista = [];
   CR_LIGAS_PRIMER_CONTRATO.forEach(key=>{
@@ -6797,6 +6943,7 @@ function crMostrarOfertas(){
 
 async function crElegirOferta(oferta){
   crOfertaElegida = oferta;
+  crClubesHistorial = [oferta.club];
   document.getElementById('cr-ofertas-wrap').style.display = 'none';
   document.getElementById('cr-firma-wrap').style.display = 'block';
   document.getElementById('cr-firma-titulo').textContent = `✍️ ¡Firmaste con ${oferta.club}!`;
@@ -6869,6 +7016,7 @@ function crIniciarTemporada(){
   document.getElementById('cr-temporada-wrap').style.display = 'block';
   document.getElementById('cr-temp-num').textContent = crTemporadaNum;
   document.getElementById('cr-temp-club-liga').textContent = `${miClub} — ${crOfertaElegida.liga}`;
+  document.getElementById('cr-emigrar-link').style.display = crEstaEnEuropa() ? 'none' : 'inline';
   crGenerarCopaNacional();
   crGenerarCopaAmericana();
   crRenderizarFixtureYTabla();
@@ -6898,15 +7046,16 @@ let crCopaAmBracket = null;
 let apModoCopaAm = false;
 let apCopaAmIdxPendiente = null;
 
-function crClubesAmericaTodos(){
+function crClubesContinentalTodos(){
+  const claves = crEstaEnEuropa() ? CR_LIGAS_EUROPA : CR_LIGAS_PRIMER_CONTRATO;
   const lista = [];
-  CR_LIGAS_PRIMER_CONTRATO.forEach(key => CR_LIGAS[key].clubes.forEach(c => lista.push(c)));
+  claves.forEach(key => CR_LIGAS[key].clubes.forEach(c => lista.push(c)));
   return lista;
 }
 
 function crGenerarCopaAmericana(){
   const miClub = crOfertaElegida.club;
-  const todos = crClubesAmericaTodos().filter(c => c !== miClub);
+  const todos = crClubesContinentalTodos().filter(c => c !== miClub);
   const pool = [...new Set(todos)].sort(() => Math.random()-0.5);
   const tamano = 32; // "muchísimos clubes de todos los países" — el cuadro más grande que manejamos
   const participantes = [miClub, ...pool.slice(0, tamano-1)].sort(() => Math.random()-0.5);
@@ -6972,9 +7121,10 @@ function crAvanzarRondaCopaAmSiCorresponde(){
 function crRenderizarCopaAm(){
   if(!crCopaAmBracket) return;
   const miClub = crOfertaElegida.club;
-  let titulo = `🏆 Copa Americana de Clubes — Ronda ${crCopaAmBracket.ronda} de ${crCopaAmBracket.totalRondas}`;
-  if(crCopaAmBracket.campeon) titulo = '🏆 ¡Sos el campeón de la Copa Americana de Clubes!';
-  else if(crCopaAmBracket.eliminado) titulo = '🏆 Copa Americana — Quedaste eliminado esta temporada';
+  const nombreCopa = crEstaEnEuropa() ? 'Copa Europea de Clubes' : 'Copa Americana de Clubes';
+  let titulo = `🏆 ${nombreCopa} — Ronda ${crCopaAmBracket.ronda} de ${crCopaAmBracket.totalRondas}`;
+  if(crCopaAmBracket.campeon) titulo = `🏆 ¡Sos el campeón de la ${nombreCopa}!`;
+  else if(crCopaAmBracket.eliminado) titulo = `🏆 ${nombreCopa} — Quedaste eliminado esta temporada`;
   document.getElementById('cr-copaam-titulo').textContent = titulo;
 
   const cont = document.getElementById('cr-copaam-lista');
@@ -7245,6 +7395,7 @@ async function crTerminarTemporada(){
   const puesto = Object.entries(crTablaLiga).sort((a,b) => b[1].pts - a[1].pts || (b[1].gf-b[1].gc)-(a[1].gf-a[1].gc)).findIndex(([c]) => c === miClub) + 1;
 
   const convocado = t.pts >= (crFixtureMiClub.length * 1.8) && Math.random() < 0.4;
+  if(convocado) crFueConvocadoAlgunaVez = true;
   let resultadoClub = 'continua';
   if(puesto <= 3) resultadoClub = 'ascenso';
   else if(puesto >= Object.keys(crTablaLiga).length - 4) resultadoClub = 'descenso';
@@ -7282,6 +7433,16 @@ async function crTerminarTemporada(){
   if(esCampeonCopa){ logros.push('🏆 Campeón de la Copa Nacional (+10)'); crPuntosLogros += 10; }
   if(esCampeonCopaAm){ logros.push('🏆 Campeón de la Copa Americana de Clubes (+10)'); crPuntosLogros += 10; }
 
+  // Balón de Oro: mucho más exigente que "Mejor Jugador del año" — combina campeón + media altísima + destacado en goles/asistencias
+  const esBalonDeOro = esCampeonLiga && crMedia >= 95 && (esGoleadorDestacado || esAsistidorDestacado);
+  if(esBalonDeOro){ logros.push('🥇 ¡Balón de Oro de la temporada! (+20)'); crPuntosLogros += 20; crBalonesDeOro++; }
+
+  // Acumulados de todo tu perfil histórico
+  crGolesCarrera += crGolesTemporada;
+  crAsistenciasCarrera += crAsistenciasTemporada;
+  crTitulosCarrera += (esCampeonLiga?1:0) + (esCampeonCopa?1:0) + (esCampeonCopaAm?1:0);
+  if(!crClubesHistorial.includes(miClub)) crClubesHistorial.push(miClub);
+
   document.getElementById('cr-puntos-logros-header').textContent = crPuntosLogros;
   const contLogros = document.getElementById('cr-temp-logros-resumen');
   contLogros.innerHTML = logros.length
@@ -7290,7 +7451,11 @@ async function crTerminarTemporada(){
 
   const { data: { user } } = await sbClient.auth.getUser();
   if(user){
-    await sbClient.from('carrera_estado').update({ temporada: crTemporadaNum, convocado_seleccion: convocado, puntos_logros: crPuntosLogros }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+    await sbClient.from('carrera_estado').update({
+      temporada: crTemporadaNum, convocado_seleccion: convocado, puntos_logros: crPuntosLogros,
+      goles_carrera: crGolesCarrera, asistencias_carrera: crAsistenciasCarrera,
+      titulos_carrera: crTitulosCarrera, balones_de_oro: crBalonesDeOro, clubes_historial: crClubesHistorial
+    }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
   document.getElementById('cr-temp-continuar-btn').textContent = 'Continuar';
   document.getElementById('cr-temp-continuar-btn').onclick = () => crResolverMercadoDePases(resultadoClub);
