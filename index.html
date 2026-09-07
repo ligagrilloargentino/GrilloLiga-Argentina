@@ -39,6 +39,17 @@
   --claro-text:#161310;
   --radius:5px;
 }
+body.tema-oscuro{
+  --bg:#171310;
+  --bg2:#1f1a15;
+  --card:#241e17;
+  --card2:#2c241b;
+  --line:rgba(240,231,210,0.14);
+  --line-strong:rgba(240,231,210,0.35);
+  --text:#F0E7D2;
+  --text-dim:#C9BFA8;
+  --text-dimmer:#8B8270;
+}
 .auth-overlay{
   position:fixed; inset:0; z-index:10000;
   background:var(--bg);
@@ -818,6 +829,15 @@ header.top{
   text-align:center; padding:16px; color:var(--text-dim); font-size:13px;
 }
 .cg-tabla{ width:100%; border-collapse:collapse; font-size:12px; min-width:520px; }
+.cmp-tabla{ width:100%; max-width:520px; margin:0 auto; border-collapse:collapse; }
+.cmp-tabla td{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:center; font-size:14px; }
+.cmp-tabla td.cmp-mejor{ color:var(--red); font-weight:700; }
+.cmp-tabla td.cmp-etiqueta{ color:var(--text-dimmer); font-size:11px; text-transform:uppercase; }
+.cmp-cabecera{ display:flex; justify-content:space-around; margin-bottom:10px; }
+.cmp-cabecera .cmp-cabeza-jugador{
+  width:70px; height:70px; border-radius:50%; background:var(--card2) center/cover;
+  border:2px solid var(--red); margin:0 auto 6px;
+}
 .cg-tabla th, .cg-tabla td{ padding:6px 8px; text-align:center; border-bottom:1px solid var(--line); }
 .cg-tabla th{ background:var(--card2); font-weight:700; }
 .cg-tabla td:first-child, .cg-tabla th:first-child{ text-align:left; }
@@ -1383,6 +1403,17 @@ footer{
         </div>
       </div>
       <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:12px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
+      <span id="tema-toggle-btn" style="cursor:pointer; font-size:16px; margin-left:10px;" title="Cambiar tema">🌙</span>
+      <span id="notif-campana-btn" style="cursor:pointer; font-size:16px; margin-left:10px; position:relative; display:none;" title="Notificaciones">
+        🔔<span id="notif-badge" style="display:none; position:absolute; top:-6px; right:-8px; background:var(--red); color:#fff; border-radius:50%; font-size:9px; width:15px; height:15px; align-items:center; justify-content:center; display:flex;">0</span>
+      </span>
+      <div id="notif-overlay" style="display:none; position:fixed; inset:0; z-index:9000;"></div>
+      <div id="notif-dropdown" style="display:none; position:absolute; z-index:9001; top:60px; right:16px; max-width:320px; width:90vw;">
+        <div class="auth-card" style="max-height:60vh; overflow-y:auto;">
+          <h1 style="font-size:16px;">🔔 Notificaciones</h1>
+          <div id="notif-lista" style="margin-top:8px;"></div>
+        </div>
+      </div>
     </div>
     <div class="brand">
       <span class="badge">2026</span>
@@ -1435,6 +1466,7 @@ footer{
   <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
   <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
   <button class="tab-btn" data-tab="simulador">🔮 Simulador</button>
+  <button class="tab-btn" data-tab="comparador">⚖️ Comparar jugadores</button>
 </nav>
 
 <main>
@@ -2361,6 +2393,25 @@ footer{
     </div>
   </section>
 
+  <!-- COMPARADOR DE JUGADORES -->
+  <section id="panel-comparador" class="panel">
+    <div class="section-head">
+      <h2>⚖️ Comparar jugadores</h2>
+    </div>
+    <div class="gd-intro">Elegí 2 jugadores de la Grillo Liga y mirá sus estadísticas lado a lado.</div>
+    <div class="cz-elegir-fila" style="margin-bottom:16px;">
+      <div class="cz-elegir-col" style="max-width:280px;">
+        <div class="mg-opciones-titulo">Jugador A</div>
+        <input type="text" id="cmp-input-a" placeholder="Buscá un jugador…">
+      </div>
+      <div class="cz-elegir-col" style="max-width:280px;">
+        <div class="mg-opciones-titulo">Jugador B</div>
+        <input type="text" id="cmp-input-b" placeholder="Buscá un jugador…">
+      </div>
+    </div>
+    <div id="cmp-resultado"></div>
+  </section>
+
 </main>
 
 <footer>Datos cargados desde la planilla de Los Pibes · Grilloliga 2026</footer>
@@ -2591,6 +2642,57 @@ async function verificarSesion(){
 
 verificarSesion();
 
+// Modo oscuro: se aplica apenas carga la página, sin esperar el login
+(function(){
+  const btn = document.getElementById('tema-toggle-btn');
+  function aplicarTema(oscuro){
+    document.body.classList.toggle('tema-oscuro', oscuro);
+    btn.textContent = oscuro ? '☀️' : '🌙';
+  }
+  aplicarTema(localStorage.getItem('grilloliga-tema') === 'oscuro');
+  btn.addEventListener('click', ()=>{
+    const oscuro = !document.body.classList.contains('tema-oscuro');
+    aplicarTema(oscuro);
+    localStorage.setItem('grilloliga-tema', oscuro ? 'oscuro' : 'claro');
+  });
+})();
+
+async function cargarNotificaciones(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  const { data } = await sbClient.from('notificaciones').select('id').eq('usuario_id', user.id).eq('leida', false);
+  const badge = document.getElementById('notif-badge');
+  const cant = (data || []).length;
+  badge.textContent = cant > 9 ? '9+' : cant;
+  badge.style.display = cant > 0 ? 'flex' : 'none';
+}
+
+async function abrirNotificaciones(){
+  const overlay = document.getElementById('notif-overlay');
+  const dropdown = document.getElementById('notif-dropdown');
+  overlay.style.display = 'block';
+  dropdown.style.display = 'block';
+  const cont = document.getElementById('notif-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  const { data } = await sbClient.from('notificaciones').select('id, tipo, mensaje, leida, creado_en').eq('usuario_id', user.id).order('creado_en', { ascending:false }).limit(20);
+  cont.innerHTML = (data && data.length)
+    ? data.map(n => `<div class="cr-fixture-fila" style="${n.leida?'opacity:0.6;':''}"><span>${n.mensaje}</span></div>`).join('')
+    : '<div class="cz-online-esperando">No tenés notificaciones todavía.</div>';
+  const sinLeer = (data || []).filter(n => !n.leida).map(n => n.id);
+  if(sinLeer.length){
+    await sbClient.from('notificaciones').update({ leida:true }).in('id', sinLeer).then(()=>{}, ()=>{});
+    cargarNotificaciones();
+  }
+}
+document.getElementById('notif-campana-btn').addEventListener('click', abrirNotificaciones);
+document.getElementById('notif-overlay').addEventListener('click', ()=>{
+  document.getElementById('notif-overlay').style.display = 'none';
+  document.getElementById('notif-dropdown').style.display = 'none';
+});
+setInterval(()=>{ if(document.getElementById('notif-campana-btn').style.display !== 'none') cargarNotificaciones(); }, 30000);
+
 function iniciarApp(){
 const _btnCerrarSesion = document.getElementById('cerrar-sesion-btn');
 const _labelUsuario = document.getElementById('usuario-actual-nombre');
@@ -2603,6 +2705,8 @@ if(LOGIN_REQUERIDO && !modoInvitado){
       _labelUsuario.textContent = usuario;
       _labelUsuario.style.display = 'inline';
       document.getElementById('mini-card-carrera').style.display = (usuario === 'grillo') ? '' : 'none';
+      document.getElementById('notif-campana-btn').style.display = 'inline-block';
+      cargarNotificaciones();
 
       sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito')
         .eq('id', data.user.id).maybeSingle().then(({data:perfil})=>{
@@ -2977,8 +3081,49 @@ function renderScoreboard(){
       <span><span class="dot g"></span>Goles</span>
       <span><span class="dot a"></span>Asistencias</span>
     </div>
+    <div class="cg-pistas-col" id="mvp-wrap" style="margin-top:18px;">
+      <div class="gd-pista-titulo">🌟 MVP de este partido</div>
+      <div id="mvp-lista" style="margin-top:8px;">Cargando…</div>
+    </div>
   `;
   cargarYRenderizarComentarios('partido', match.numero, document.getElementById('foro-partido-container'));
+  cargarYRenderizarMvp(match);
+}
+
+/* ---------- MVP DE LA FECHA (votado por los usuarios) ---------- */
+async function cargarYRenderizarMvp(match){
+  const candidatos = [...match.oscuro.jugadores, ...match.claro.jugadores].map(j => j.jugador);
+  const partidoId = String(match.numero);
+  const { data: { user } } = await sbClient.auth.getUser();
+  const [{ data: votos }] = await Promise.all([
+    sbClient.from('mvp_votos').select('jugador_votado, usuario_id').eq('partido_id', partidoId)
+  ]);
+  const conteo = {};
+  candidatos.forEach(c => conteo[c] = 0);
+  (votos || []).forEach(v => { conteo[v.jugador_votado] = (conteo[v.jugador_votado] || 0) + 1; });
+  const miVoto = user ? (votos || []).find(v => v.usuario_id === user.id)?.jugador_votado : null;
+  const ordenados = candidatos.slice().sort((a,b) => (conteo[b]||0) - (conteo[a]||0));
+  const totalVotos = (votos || []).length;
+
+  document.getElementById('mvp-lista').innerHTML = ordenados.map(nombre => {
+    const cant = conteo[nombre] || 0;
+    const pct = totalVotos ? Math.round((cant/totalVotos)*100) : 0;
+    return `
+      <div class="cr-fixture-fila ${nombre===miVoto ? 'jugado' : ''}" data-mvp-candidato="${nombre}" style="cursor:pointer;">
+        <span>${nombre===miVoto ? '✅ ' : ''}${nombre}</span>
+        <span><b>${cant}</b> voto${cant===1?'':'s'} (${pct}%)</span>
+      </div>`;
+  }).join('');
+  document.querySelectorAll('[data-mvp-candidato]').forEach(el=>{
+    el.addEventListener('click', () => votarMvp(partidoId, el.dataset.mvpCandidato, match));
+  });
+}
+
+async function votarMvp(partidoId, jugador, match){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user){ alert('Necesitás estar logueado para votar.'); return; }
+  await sbClient.from('mvp_votos').upsert({ partido_id:partidoId, usuario_id:user.id, jugador_votado:jugador }, { onConflict:'partido_id,usuario_id' }).then(()=>{}, ()=>{});
+  cargarYRenderizarMvp(match);
 }
 
 /* ---------- FORO (general y por partido) ---------- */
@@ -3213,6 +3358,15 @@ async function publicarComentarioForo(tipo, partidoId, contenido, padreId){
     tipo, partido_id: tipo === 'partido' ? partidoId : null,
     usuario_id: user.id, username, padre_id: padreId, contenido
   });
+  if(padreId){
+    const { data: padre } = await sbClient.from('foro_mensajes').select('usuario_id').eq('id', padreId).maybeSingle();
+    if(padre && padre.usuario_id !== user.id){
+      await sbClient.from('notificaciones').insert({
+        usuario_id: padre.usuario_id, tipo:'respuesta_foro',
+        mensaje: `${username} te respondió en el Foro: "${contenido.slice(0,60)}${contenido.length>60?'…':''}"`
+      }).then(()=>{}, ()=>{});
+    }
+  }
 }
 
 /* ---------- GRILLOBOT ---------- */
@@ -4098,7 +4252,7 @@ function gdAdivinar(){
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
 gdCargarListaJugadores();
-['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador','cr-equipos-input'].forEach(id=>{
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador','cr-equipos-input','cmp-input-a','cmp-input-b'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) crearAutocompletado(el);
 });
@@ -5395,6 +5549,45 @@ document.getElementById('sudoku-volver').addEventListener('click', ()=>{
   document.getElementById('mini-sudoku').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
+
+/* ---------- COMPARADOR DE JUGADORES ---------- */
+let cmpJugadorA = null, cmpJugadorB = null;
+function cmpBuscarPorInput(id){
+  const nombre = normalizarTexto(document.getElementById(id).value);
+  return DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre) || null;
+}
+function cmpRenderizar(){
+  const cont = document.getElementById('cmp-resultado');
+  if(!cmpJugadorA || !cmpJugadorB){ cont.innerHTML = ''; return; }
+  const a = cmpJugadorA, b = cmpJugadorB;
+  const fotoA = czObtenerImagen(a.Jugador), fotoB = czObtenerImagen(b.Jugador);
+  const filas = [
+    { etiqueta:'Partidos jugados', va:a.PJ||0, vb:b.PJ||0 },
+    { etiqueta:'Goles', va:a.Goles||0, vb:b.Goles||0 },
+    { etiqueta:'Asistencias', va:a.Ast||0, vb:b.Ast||0 },
+    { etiqueta:'Goles + Asistencias', va:(a.Goles||0)+(a.Ast||0), vb:(b.Goles||0)+(b.Ast||0) },
+    { etiqueta:'Goles por partido', va:a.PJ ? ((a.Goles||0)/a.PJ).toFixed(2) : '0.00', vb:b.PJ ? ((b.Goles||0)/b.PJ).toFixed(2) : '0.00' },
+    { etiqueta:'Asistencias por partido', va:a.PJ ? ((a.Ast||0)/a.PJ).toFixed(2) : '0.00', vb:b.PJ ? ((b.Ast||0)/b.PJ).toFixed(2) : '0.00' }
+  ];
+  cont.innerHTML = `
+    <div class="cmp-cabecera">
+      <div><div class="cmp-cabeza-jugador" style="background-image:${fotoA ? `url(${fotoA.src})` : 'none'};"></div><b>${a.Jugador}</b></div>
+      <div><div class="cmp-cabeza-jugador" style="background-image:${fotoB ? `url(${fotoB.src})` : 'none'};"></div><b>${b.Jugador}</b></div>
+    </div>
+    <table class="cmp-tabla">
+      ${filas.map(f=>{
+        const numA = parseFloat(f.va), numB = parseFloat(f.vb);
+        const mejorA = numA > numB, mejorB = numB > numA;
+        return `<tr>
+          <td class="${mejorA?'cmp-mejor':''}">${f.va}</td>
+          <td class="cmp-etiqueta">${f.etiqueta}</td>
+          <td class="${mejorB?'cmp-mejor':''}">${f.vb}</td>
+        </tr>`;
+      }).join('')}
+    </table>`;
+}
+document.getElementById('cmp-input-a').addEventListener('change', ()=>{ cmpJugadorA = cmpBuscarPorInput('cmp-input-a'); cmpRenderizar(); });
+document.getElementById('cmp-input-b').addEventListener('change', ()=>{ cmpJugadorB = cmpBuscarPorInput('cmp-input-b'); cmpRenderizar(); });
 
 /* ---------- MINIJUEGO: TRUCO GRILLERO ---------- */
 // Motor de reglas de Truco Argentino (2 jugadores, 30 puntos).
@@ -9796,6 +9989,29 @@ function renderJugadorChips(){
   });
 }
 
+function jpGraficoRendimiento(matches){
+  if(matches.length < 2) return '';
+  const ancho = 500, alto = 110, pad = 10;
+  let acumGoles = 0, acumAst = 0;
+  const seriesGoles = [], seriesAst = [];
+  matches.forEach(m => { acumGoles += m.goles||0; acumAst += m.asistencias||0; seriesGoles.push(acumGoles); seriesAst.push(acumAst); });
+  const maxVal = Math.max(...seriesGoles, ...seriesAst, 1);
+  const puntos = (serie) => serie.map((v,i) => {
+    const x = pad + (i/(matches.length-1)) * (ancho-pad*2);
+    const y = alto - pad - (v/maxVal) * (alto-pad*2);
+    return `${x},${y}`;
+  }).join(' ');
+  return `
+    <div class="jp-matches-title">📈 Rendimiento acumulado a lo largo del torneo</div>
+    <svg viewBox="0 0 ${ancho} ${alto}" style="width:100%; max-width:520px; background:var(--card2); border-radius:6px;">
+      <polyline points="${puntos(seriesGoles)}" fill="none" stroke="#B33B22" stroke-width="2"/>
+      <polyline points="${puntos(seriesAst)}" fill="none" stroke="#4A6B43" stroke-width="2"/>
+    </svg>
+    <div style="font-size:11px; color:var(--text-dimmer); margin-top:4px;">
+      <span style="color:#B33B22;">●</span> Goles acumulados &nbsp; <span style="color:#4A6B43;">●</span> Asistencias acumuladas
+    </div>`;
+}
+
 function renderJugadorProfile(){
   const container = document.getElementById('jugador-profile');
   if(!activeJugador){
@@ -9842,6 +10058,7 @@ function renderJugadorProfile(){
     <div class="jp-stat-grid">
       ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${NOMBRES_COMPLETOS_STAT[k] || k}</div></div>`).join('')}
     </div>
+    ${jpGraficoRendimiento(matches)}
     <div class="jp-matches-title">Partidos jugados (${matches.length})</div>
     <div class="jp-match-list">
       ${matches.length ? matches.map(m => `
