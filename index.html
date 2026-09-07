@@ -817,6 +817,18 @@ header.top{
 .cz-online-esperando{
   text-align:center; padding:16px; color:var(--text-dim); font-size:13px;
 }
+.cg-tabla{ width:100%; border-collapse:collapse; font-size:12px; min-width:520px; }
+.cg-tabla th, .cg-tabla td{ padding:6px 8px; text-align:center; border-bottom:1px solid var(--line); }
+.cg-tabla th{ background:var(--card2); font-weight:700; }
+.cg-tabla td:first-child, .cg-tabla th:first-child{ text-align:left; }
+.cg-tabla tr.cg-tabla-tuclub{ background:rgba(179,59,34,.12); font-weight:700; }
+.cr-fixture-fila{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  padding:10px 14px; margin-bottom:6px; background:var(--card); border:1px solid var(--line); border-radius:8px;
+  font-size:12.5px;
+}
+.cr-fixture-fila.jugado{ opacity:0.65; }
+.cr-fixture-fila .cr-fixture-btns{ display:flex; gap:6px; }
 #perfil-publico-overlay{
   position:fixed; inset:0; background:rgba(20,17,12,.6); z-index:10040;
 }
@@ -2213,9 +2225,13 @@ footer{
       <div id="cr-temporada-wrap" style="display:none;">
         <div class="pen-marcador">
           <div>Temporada<br><b id="cr-temp-num">1</b></div>
-          <div class="pen-ronda">Partido <b id="cr-temp-partido">1</b>/<span id="cr-temp-total-partidos">3</span></div>
-          <div>Rendimiento<br><b id="cr-temp-puntaje">0</b></div>
+          <div class="pen-ronda" id="cr-temp-club-liga">Club — Liga</div>
+          <div>Puntos en Liga<br><b id="cr-temp-puntos-liga">0</b></div>
         </div>
+        <h3 class="gd-pista-titulo" style="margin-top:14px;">📅 Fixture — Liga Nacional</h3>
+        <div id="cr-fixture-lista"></div>
+        <h3 class="gd-pista-titulo" style="margin-top:20px;">📊 Tabla de posiciones</h3>
+        <div style="overflow-x:auto;"><table class="cg-tabla" id="cr-tabla-liga"></table></div>
       </div>
 
       <div id="cr-temporada-final" style="display:none; text-align:center;">
@@ -6352,13 +6368,19 @@ function apIniciarPartido(numero){
   apTotalDecisiones = 7 + Math.floor(Math.random()*6); // entre 7 y 12
   apSituaciones = [...AP_SITUACIONES].sort(() => Math.random()-0.5).slice(0, apTotalDecisiones);
   document.getElementById('cr-equipos-wrap').style.display = 'none';
+  document.getElementById('cr-temporada-wrap').style.display = 'none';
   document.getElementById('cr-final').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'block';
-  document.getElementById('cr-num-partido').textContent = numero;
+  document.getElementById('cr-num-partido').textContent = numero === 'temporada' ? crFixtureMiClub[apFixtureIdxPendiente].rival : numero;
   document.getElementById('cr-total-decisiones').textContent = apTotalDecisiones;
-  document.getElementById('carrera-intro-fase').textContent = numero === 2
-    ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
-    : 'Jugá tu Partido 1 en Apanovi tomando decisiones.';
+  if(numero === 'temporada'){
+    const f = crFixtureMiClub[apFixtureIdxPendiente];
+    document.getElementById('carrera-intro-fase').textContent = `Jugás ${f.local ? 'de local' : 'de visitante'} contra ${f.rival}.`;
+  } else {
+    document.getElementById('carrera-intro-fase').textContent = numero === 2
+      ? '⭐ Un ojeador muy importante del fútbol argentino te está mirando en este Partido en Apanovi. ¡Mostrá tu mejor versión!'
+      : 'Jugá tu Partido 1 en Apanovi tomando decisiones.';
+  }
   apMostrarDecision();
 }
 
@@ -6425,8 +6447,27 @@ function apResumenPartido(){
   return 'Goles: ' + apGoles.map(g => g.asistencia ? `${g.jugador} (asist. ${g.asistencia})` : g.jugador).join(', ') + '.';
 }
 
+// Fórmula acordada: tus goles = tus decisiones de gol exitosas. Los del rival se simulan,
+// con menos chances de convertir cuanto mejor haya sido tu rendimiento en el partido.
+function apSimularGolesRival(puntaje, totalDecisiones){
+  const probPorIntento = Math.max(0.05, 0.35 - puntaje/500);
+  let goles = 0;
+  for(let i=0; i<totalDecisiones; i++) if(Math.random() < probPorIntento) goles++;
+  return goles;
+}
+
 async function apTerminarPartido(){
   document.getElementById('cr-partido-wrap').style.display = 'none';
+
+  if(apModoFixture){
+    const golesMios = apGoles.length;
+    const golesRival = apSimularGolesRival(apPuntaje, apTotalDecisiones);
+    apModoFixture = false;
+    document.getElementById('cr-temporada-wrap').style.display = 'block';
+    crAplicarResultadoFixture(apFixtureIdxPendiente, golesMios, golesRival);
+    return;
+  }
+
   document.getElementById('cr-final').style.display = 'block';
   const resumen = apResumenPartido();
   if(apPartidoActual === 1){
@@ -6577,7 +6618,7 @@ async function crElegirOferta(oferta){
   document.getElementById('cr-firma-wrap').style.display = 'block';
   document.getElementById('cr-firma-titulo').textContent = `✍️ ¡Firmaste con ${oferta.club}!`;
   document.getElementById('cr-firma-detalle').textContent = `Arrancás tu carrera profesional en ${oferta.liga} (${oferta.pais}). Cada temporada vas a jugar varios partidos tomando decisiones, igual que en las pruebas.`;
-  await crGuardarEstado('en_club', 'puntaje_partido2', crPuntaje);
+  await crGuardarEstado('en_club', 'puntaje_partido2', apPuntaje);
   const { data: { user } } = await sbClient.auth.getUser();
   if(user){
     await sbClient.from('carrera_estado').update({ club_actual: oferta.club, liga_actual: oferta.liga, temporada: 1 }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
@@ -6590,74 +6631,18 @@ document.getElementById('cr-arrancar-temporada-btn').addEventListener('click', (
   crIniciarTemporada();
 });
 
-function crIniciarTemporada(){
-  crTempPartidoActual = 1;
-  crTempPuntajeTotal = 0;
-  document.getElementById('cr-temp-final').style.display = 'none';
-  document.getElementById('cr-temporada-wrap').style.display = 'block';
-  document.getElementById('cr-temp-num').textContent = crTemporadaNum;
-  document.getElementById('cr-temp-total-partidos').textContent = CR_TEMP_TOTAL_PARTIDOS;
-  crJugarPartidoTemporada();
+function crClubesDeLigaActual(){
+  const entry = Object.values(CR_LIGAS).find(l => l.nombre === crOfertaElegida.liga && l.pais === crOfertaElegida.pais);
+  return entry ? entry.clubes : [];
 }
 
-function crJugarPartidoTemporada(){
-  document.getElementById('cr-temp-partido').textContent = crTempPartidoActual;
-  document.getElementById('cr-temp-puntaje').textContent = crTempPuntajeTotal;
-  crDecisionActual = 0;
-  crPuntaje = 0;
-  crSituacionesElegidas = crSituacionesParaPosicion(crPosicion, CR_TEMP_DECISIONES_POR_PARTIDO);
-  document.getElementById('cr-temporada-wrap').insertAdjacentHTML('beforeend', `
-    <div id="cr-temp-situacion" class="cg-pistas-col" style="max-width:520px; margin:10px auto 14px;">
-      <div class="gd-pista-titulo" id="cr-temp-situacion-titulo"></div>
-      <div class="gd-intro" id="cr-temp-situacion-texto" style="margin-top:6px;"></div>
-    </div>
-    <div id="cr-temp-opciones" class="tr-acciones"></div>
-    <div id="cr-temp-feedback" class="pen-resultado"></div>
-  `);
-  crMostrarDecisionTemporada();
-}
+let crFixtureMiClub = [];
+let crTablaLiga = {};
+let apModoFixture = false;
+let apFixtureIdxPendiente = null;
 
-function crMostrarDecisionTemporada(){
-  document.getElementById('cr-temp-feedback').textContent = '';
-  const sit = crSituacionesElegidas[crDecisionActual];
-  document.getElementById('cr-temp-situacion-titulo').textContent = sit.titulo;
-  document.getElementById('cr-temp-situacion-texto').textContent = sit.texto;
-  document.getElementById('cr-temp-opciones').innerHTML = sit.opciones.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.etiqueta}</button>`).join('');
-  document.querySelectorAll('#cr-temp-opciones button').forEach(btn=>{
-    btn.addEventListener('click', () => crElegirOpcionTemporada(parseInt(btn.dataset.idx)));
-  });
-}
+function crGolesAlAzar(){ return Math.floor(Math.random()*4); }
 
-function crElegirOpcionTemporada(idx){
-  const sit = crSituacionesElegidas[crDecisionActual];
-  const opcion = sit.opciones[idx];
-  const exito = crCalcularExito(opcion);
-  const puntos = exito ? opcion.puntosExito : opcion.puntosFallo;
-  crPuntaje = Math.max(0, crPuntaje + puntos);
-  crTempPuntajeTotal = Math.max(0, crTempPuntajeTotal + puntos);
-  document.getElementById('cr-temp-puntaje').textContent = crTempPuntajeTotal;
-  document.getElementById('cr-temp-feedback').textContent = exito
-    ? `✅ ¡Te salió bien! (${puntos>=0?'+':''}${puntos})`
-    : `❌ No te salió (${puntos})`;
-  document.querySelectorAll('#cr-temp-opciones button').forEach(b => b.disabled = true);
-  setTimeout(()=>{
-    crDecisionActual++;
-    if(crDecisionActual >= CR_TEMP_DECISIONES_POR_PARTIDO){
-      document.getElementById('cr-temp-situacion')?.remove();
-      document.getElementById('cr-temp-opciones')?.remove();
-      document.getElementById('cr-temp-feedback')?.remove();
-      crTempPartidoActual++;
-      if(crTempPartidoActual > CR_TEMP_TOTAL_PARTIDOS){ crTerminarTemporada(); }
-      else { crJugarPartidoTemporada(); }
-    } else {
-      crMostrarDecisionTemporada();
-    }
-  }, 1400);
-}
-
-const CR_UMBRAL_ASCENSO = 140;
-const CR_UMBRAL_DESCENSO = 45;
-const CR_UMBRAL_SELECCION = 130;
 const CR_ATRIBUTOS_LISTA = [
   { key:'velocidad', etiqueta:'⚡ Velocidad' },
   { key:'pase', etiqueta:'🎯 Pase' },
@@ -6666,25 +6651,112 @@ const CR_ATRIBUTOS_LISTA = [
   { key:'defensa', etiqueta:'🛡️ Defensa' }
 ];
 
+function crSumarResultado(tabla, clubA, golesA, clubB, golesB){
+  tabla[clubA].pj++; tabla[clubB].pj++;
+  tabla[clubA].gf += golesA; tabla[clubA].gc += golesB;
+  tabla[clubB].gf += golesB; tabla[clubB].gc += golesA;
+  if(golesA > golesB){ tabla[clubA].pg++; tabla[clubA].pts += 3; tabla[clubB].pp++; }
+  else if(golesB > golesA){ tabla[clubB].pg++; tabla[clubB].pts += 3; tabla[clubA].pp++; }
+  else { tabla[clubA].pe++; tabla[clubB].pe++; tabla[clubA].pts++; tabla[clubB].pts++; }
+}
+
+function crIniciarTemporada(){
+  const clubes = crClubesDeLigaActual();
+  const miClub = crOfertaElegida.club;
+  crTablaLiga = {};
+  clubes.forEach(c => { crTablaLiga[c] = { pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,pts:0 }; });
+
+  // se simulan al instante todos los partidos ENTRE LOS DEMÁS CLUBES (ida y vuelta) para que la tabla tenga sentido
+  const otros = clubes.filter(c => c !== miClub);
+  for(let i=0;i<otros.length;i++){
+    for(let j=0;j<otros.length;j++){
+      if(i===j) continue;
+      crSumarResultado(crTablaLiga, otros[i], crGolesAlAzar(), otros[j], crGolesAlAzar());
+    }
+  }
+  // fixture de TU club: ida y vuelta contra cada rival de la liga
+  crFixtureMiClub = otros.flatMap(r => [
+    { rival:r, local:true, jugado:false, resultado:null },
+    { rival:r, local:false, jugado:false, resultado:null }
+  ]).sort(() => Math.random()-0.5);
+
+  document.getElementById('cr-temp-final').style.display = 'none';
+  document.getElementById('cr-temporada-wrap').style.display = 'block';
+  document.getElementById('cr-temp-num').textContent = crTemporadaNum;
+  document.getElementById('cr-temp-club-liga').textContent = `${miClub} — ${crOfertaElegida.liga}`;
+  crRenderizarFixtureYTabla();
+}
+
+function crRenderizarFixtureYTabla(){
+  const miClub = crOfertaElegida.club;
+  document.getElementById('cr-temp-puntos-liga').textContent = crTablaLiga[miClub].pts;
+
+  const cont = document.getElementById('cr-fixture-lista');
+  cont.innerHTML = crFixtureMiClub.map((f,i) => `
+    <div class="cr-fixture-fila ${f.jugado ? 'jugado' : ''}">
+      <span>${f.local ? `${miClub} vs ${f.rival}` : `${f.rival} vs ${miClub}`}${f.jugado ? ` — <b>${f.resultado}</b>` : ''}</span>
+      ${f.jugado ? '' : `<div class="cr-fixture-btns">
+        <button class="auth-btn tr-btn-chico" data-simular="${i}">Simular</button>
+        <button class="auth-btn tr-btn-chico" data-jugar="${i}">Jugar en Apanovi</button>
+      </div>`}
+    </div>
+  `).join('');
+  cont.querySelectorAll('[data-simular]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoFixture(parseInt(btn.dataset.simular), true));
+  });
+  cont.querySelectorAll('[data-jugar]').forEach(btn=>{
+    btn.addEventListener('click', () => crResolverPartidoFixture(parseInt(btn.dataset.jugar), false));
+  });
+
+  const filas = Object.entries(crTablaLiga).sort((a,b) => b[1].pts - a[1].pts || (b[1].gf-b[1].gc)-(a[1].gf-a[1].gc));
+  document.getElementById('cr-tabla-liga').innerHTML = `
+    <tr><th>Club</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
+    ${filas.map(([club,t]) => `
+      <tr class="${club===miClub ? 'cg-tabla-tuclub' : ''}">
+        <td>${club}</td><td>${t.pj}</td><td>${t.pg}</td><td>${t.pe}</td><td>${t.pp}</td><td>${t.gf}</td><td>${t.gc}</td><td>${t.gf-t.gc}</td><td>${t.pts}</td>
+      </tr>`).join('')}
+  `;
+
+  if(crFixtureMiClub.every(f => f.jugado)) crTerminarTemporada();
+}
+
+function crResolverPartidoFixture(idx, simulado){
+  if(simulado){
+    crAplicarResultadoFixture(idx, crGolesAlAzar(), crGolesAlAzar());
+  } else {
+    apFixtureIdxPendiente = idx;
+    apModoFixture = true;
+    apIniciarPartido('temporada');
+  }
+}
+
+function crAplicarResultadoFixture(idx, golesMios, golesRival){
+  const f = crFixtureMiClub[idx];
+  const miClub = crOfertaElegida.club;
+  f.jugado = true;
+  f.resultado = f.local ? `${golesMios}-${golesRival}` : `${golesRival}-${golesMios}`;
+  if(f.local) crSumarResultado(crTablaLiga, miClub, golesMios, f.rival, golesRival);
+  else crSumarResultado(crTablaLiga, f.rival, golesRival, miClub, golesMios);
+  crRenderizarFixtureYTabla();
+}
+
 async function crTerminarTemporada(){
   document.getElementById('cr-temporada-wrap').style.display = 'none';
   document.getElementById('cr-temporada-final').style.display = 'block';
+  const miClub = crOfertaElegida.club;
+  const t = crTablaLiga[miClub];
+  const puesto = Object.entries(crTablaLiga).sort((a,b) => b[1].pts - a[1].pts || (b[1].gf-b[1].gc)-(a[1].gf-a[1].gc)).findIndex(([c]) => c === miClub) + 1;
 
-  const convocado = crTempPuntajeTotal >= CR_UMBRAL_SELECCION && Math.random() < 0.5;
+  const convocado = t.pts >= (crFixtureMiClub.length * 1.8) && Math.random() < 0.4;
   let resultadoClub = 'continua';
-  if(crTempPuntajeTotal >= CR_UMBRAL_ASCENSO) resultadoClub = 'ascenso';
-  else if(crTempPuntajeTotal < CR_UMBRAL_DESCENSO) resultadoClub = 'descenso';
+  if(puesto <= 3) resultadoClub = 'ascenso';
+  else if(puesto >= Object.keys(crTablaLiga).length - 4) resultadoClub = 'descenso';
 
-  let detalle = `Terminaste la Temporada ${crTemporadaNum} en ${crOfertaElegida ? crOfertaElegida.club : 'tu club'} con ${crTempPuntajeTotal} puntos de rendimiento acumulados en los ${CR_TEMP_TOTAL_PARTIDOS} partidos.`;
+  let detalle = `Terminaste la Temporada ${crTemporadaNum} en ${miClub} en el puesto ${puesto} de la tabla, con ${t.pts} puntos (${t.pg}G-${t.pe}E-${t.pp}P, goles ${t.gf}-${t.gc}).`;
   if(convocado) detalle += ' ⭐ ¡Y además fuiste convocado a la Selección! Un llamado que va a quedar en tu historia.';
-
-  if(resultadoClub === 'ascenso'){
-    detalle += ' Tu nivel llamó la atención — te llegaron ofertas de clubes de mayor categoría.';
-  } else if(resultadoClub === 'descenso'){
-    detalle += ' El club decidió no renovarte el contrato. Vas a tener que buscar otro equipo.';
-  } else {
-    detalle += ' Seguís en el mismo club la próxima temporada.';
-  }
+  if(resultadoClub === 'ascenso') detalle += ' Tu nivel llamó la atención — te llegaron ofertas de clubes de mayor categoría.';
+  else if(resultadoClub === 'descenso') detalle += ' El club decidió no renovarte el contrato. Vas a tener que buscar otro equipo.';
+  else detalle += ' Seguís en el mismo club la próxima temporada.';
 
   document.getElementById('cr-temp-final-titulo').textContent = convocado ? '🇦🇷 ¡Convocatoria a la Selección!' : `Fin de la Temporada ${crTemporadaNum}`;
   document.getElementById('cr-temp-final-detalle').textContent = detalle;
@@ -6693,7 +6765,6 @@ async function crTerminarTemporada(){
   if(user){
     await sbClient.from('carrera_estado').update({ temporada: crTemporadaNum, convocado_seleccion: convocado }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
   }
-
   document.getElementById('cr-temp-continuar-btn').textContent = 'Continuar';
   document.getElementById('cr-temp-continuar-btn').onclick = () => crResolverMercadoDePases(resultadoClub);
 }
