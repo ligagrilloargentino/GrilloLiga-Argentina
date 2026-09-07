@@ -175,6 +175,8 @@ body.tema-oscuro{
   }
   #usuario-actual-nombre{ font-size:12px !important; }
   #cerrar-sesion-btn{ font-size:10px !important; }
+  #tema-toggle-btn, #notif-campana-btn{ font-size:14px !important; }
+  #notif-dropdown{ top:80px !important; right:10px !important; }
   .usuario-mini-menu{ min-width:180px !important; padding:11px 13px !important; }
 }
 /* ---------- MINIJUEGOS ---------- */
@@ -589,7 +591,7 @@ body.tema-oscuro{
 }
 .tr-carta.tr-dorso:hover{ transform:none; }
 .tr-centro{ display:flex; flex-direction:column; align-items:center; gap:6px; min-height:70px; justify-content:center; }
-.tr-jugadas{ display:flex; gap:8px; min-height:66px; align-items:center; }
+.tr-jugadas{ display:flex; gap:8px; min-height:66px; align-items:center; flex-wrap:wrap; justify-content:center; }
 .tr-canto-actual{
   font-family:'Alegreya Sans',sans-serif; font-weight:900; color:#F7F1E1;
   text-shadow:0 2px 4px rgba(0,0,0,.4); font-size:14px; text-align:center; min-height:18px;
@@ -1403,8 +1405,8 @@ footer{
         </div>
       </div>
       <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:12px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
-      <span id="tema-toggle-btn" style="cursor:pointer; font-size:16px; margin-left:10px;" title="Cambiar tema">🌙</span>
-      <span id="notif-campana-btn" style="cursor:pointer; font-size:16px; margin-left:10px; position:relative; display:none;" title="Notificaciones">
+      <span id="tema-toggle-btn" style="cursor:pointer; font-size:16px;" title="Cambiar tema">🌙</span>
+      <span id="notif-campana-btn" style="cursor:pointer; font-size:16px; position:relative; display:none;" title="Notificaciones">
         🔔<span id="notif-badge" style="display:none; position:absolute; top:-6px; right:-8px; background:var(--red); color:#fff; border-radius:50%; font-size:9px; width:15px; height:15px; align-items:center; justify-content:center; display:flex;">0</span>
       </span>
       <div id="notif-overlay" style="display:none; position:fixed; inset:0; z-index:9000;"></div>
@@ -2214,7 +2216,7 @@ footer{
           <div class="cz-elegir-col" style="max-width:280px;">
             <div class="mg-opciones-titulo">Buscar jugador</div>
             <input type="text" id="cr-equipos-input" placeholder="Buscá un jugador…">
-            <div style="display:flex; gap:8px; margin-top:6px;">
+            <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
               <button class="auth-btn tr-btn-chico" id="cr-agregar-mi-equipo">Sumar a mi equipo</button>
               <button class="auth-btn tr-btn-chico" id="cr-agregar-rival">Sumar al rival</button>
             </div>
