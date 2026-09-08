@@ -465,13 +465,13 @@ body.tema-oscuro{
 .cg-pistas-col li.cg-pista-activa{ color:var(--red); font-weight:700; }
 .cg-resultado{ margin-top:10px; font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:13.5px; text-align:center; min-height:20px; }
 .cg-pistas{ display:flex; flex-direction:column; gap:16px; }
-.cg-pistas-col{ background:#F7F4EC; border:1px solid #cfc9b8; border-radius:2px; padding:12px 14px; }
-.cg-pistas-col .gd-pista-titulo{ font-family:'Alegreya Sans',sans-serif; text-transform:uppercase; letter-spacing:0.5px; font-size:11px; border-bottom:1px solid #1a1a1a; padding-bottom:4px; }
+.cg-pistas-col{ background:var(--card2); border:1px solid var(--line-strong); border-radius:2px; padding:12px 14px; }
+.cg-pistas-col .gd-pista-titulo{ font-family:'Alegreya Sans',sans-serif; text-transform:uppercase; letter-spacing:0.5px; font-size:11px; border-bottom:1px solid var(--line-strong); padding-bottom:4px; color:var(--text); }
 .cg-pistas-col ul{ list-style:none; margin:0; padding:0; }
 .cg-pistas-col li{
-  font-family:Georgia,serif; font-size:11.5px; color:#333; margin-bottom:8px; line-height:1.4;
+  font-family:Georgia,serif; font-size:11.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;
 }
-.cg-pistas-col li b{ color:#1a1a1a; font-family:Georgia,serif; }
+.cg-pistas-col li b{ color:var(--text); font-family:Georgia,serif; }
 .cg-pistas-col li.cg-completa{ text-decoration:line-through; opacity:0.55; }
 @media (max-width:700px){
   .cg-layout{ grid-template-columns:1fr; }
@@ -7047,7 +7047,7 @@ function apMostrarDecision(){
   document.getElementById('cr-situacion-titulo').textContent = `⚽ Decisión ${apDecisionActual+1}`;
   document.getElementById('cr-situacion-texto').textContent = textoSituacion;
   const opcionesResueltas = sit.opciones.map(o => ({ ...o, ...apResolverPlantilla(o.etiqueta) }));
-  document.getElementById('cr-opciones').innerHTML = opcionesResueltas.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.texto} (+${o.puntos})</button>`).join('');
+  document.getElementById('cr-opciones').innerHTML = opcionesResueltas.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.texto}</button>`).join('');
   document.querySelectorAll('#cr-opciones button').forEach((btn,i)=>{
     btn.addEventListener('click', () => apElegirOpcion(opcionesResueltas[i]));
   });
@@ -7056,7 +7056,7 @@ function apMostrarDecision(){
 function apElegirOpcion(opcion){
   apPuntaje += opcion.puntos;
   document.getElementById('cr-puntaje').textContent = apPuntaje;
-  let feedback = `✅ ${opcion.texto} (+${opcion.puntos})`;
+  let feedback = `✅ ${opcion.texto}`;
   if(opcion.tipo === 'asistencia'){
     apAsistentePendiente = crJugadorNombre;
     feedback += ` — dejaste a ${opcion.companero} con una gran chance.`;
