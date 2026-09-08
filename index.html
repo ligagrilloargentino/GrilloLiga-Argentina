@@ -1465,6 +1465,7 @@ footer{
   <button class="tab-btn" data-tab="partidos">⚽ Partidos</button>
   <button class="tab-btn" data-tab="historicos">📜 Partidos Históricos</button>
   <button class="tab-btn" data-tab="jugadores">👤 Jugadores</button>
+  <button class="tab-btn" data-tab="comunicados">📢 Comunicados</button>
   <button class="tab-btn" data-tab="foro">💬 Foro general</button>
   <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
   <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
@@ -1594,6 +1595,22 @@ footer{
     </div>
     <div id="jugador-profile"></div>
     <div class="jugador-chip-row" id="jugador-chips-bottom"></div>
+  </section>
+
+  <!-- COMUNICADOS OFICIALES -->
+  <section id="panel-comunicados" class="panel">
+    <div class="section-head">
+      <h2>📢 Comunicados Oficiales</h2>
+    </div>
+    <div class="gd-intro">Anuncios de la organización de la Grillo Liga.</div>
+
+    <div id="com-publicar-wrap" style="display:none; margin-bottom:20px;">
+      <div class="auth-field"><label>Título</label><input type="text" id="com-titulo-input" placeholder="Título del comunicado"></div>
+      <div class="auth-field"><label>Contenido</label><textarea id="com-contenido-input" rows="4" style="width:100%; box-sizing:border-box; padding:9px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:13px;" placeholder="Escribí el comunicado…"></textarea></div>
+      <button class="auth-btn" id="com-publicar-btn" style="max-width:200px;">Publicar comunicado</button>
+    </div>
+
+    <div id="com-lista"></div>
   </section>
 
   <!-- FORO GENERAL -->
@@ -2728,6 +2745,7 @@ if(LOGIN_REQUERIDO && !modoInvitado){
       _labelUsuario.textContent = usuario;
       _labelUsuario.style.display = 'inline';
       document.getElementById('mini-card-carrera').style.display = '';
+      document.getElementById('com-publicar-wrap').style.display = (usuario === 'grillo') ? 'block' : 'none';
       document.getElementById('notif-campana-btn').style.display = 'inline-block';
       cargarNotificaciones();
 
@@ -9895,8 +9913,34 @@ document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
 });
 
 
+/* ---------- COMUNICADOS OFICIALES ---------- */
+async function cargarComunicados(){
+  const cont = document.getElementById('com-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const { data } = await sbClient.from('comunicados_oficiales').select('titulo, contenido, creado_en').order('creado_en', { ascending:false });
+  cont.innerHTML = (data && data.length)
+    ? data.map(c => `
+      <div class="cg-pistas-col" style="margin-bottom:12px;">
+        <div class="gd-pista-titulo">${c.titulo}</div>
+        <div class="gd-intro" style="margin-top:6px; white-space:pre-wrap;">${c.contenido}</div>
+        <div style="font-size:11px; color:var(--text-dimmer); margin-top:8px;">${formatearFechaForo(c.creado_en)}</div>
+      </div>`).join('')
+    : '<div class="cz-online-esperando">Todavía no hay comunicados publicados.</div>';
+}
+document.getElementById('com-publicar-btn').addEventListener('click', async ()=>{
+  const titulo = document.getElementById('com-titulo-input').value.trim();
+  const contenido = document.getElementById('com-contenido-input').value.trim();
+  if(!titulo || !contenido) return;
+  const { data: { user } } = await sbClient.auth.getUser();
+  await sbClient.from('comunicados_oficiales').insert({ usuario_id:user.id, titulo, contenido }).then(()=>{}, ()=>{});
+  document.getElementById('com-titulo-input').value = '';
+  document.getElementById('com-contenido-input').value = '';
+  cargarComunicados();
+});
+
 renderMatchChips();
 renderScoreboard();
+cargarComunicados();
 cargarYRenderizarComentarios('general', null, document.getElementById('foro-general-container'));
 
 
