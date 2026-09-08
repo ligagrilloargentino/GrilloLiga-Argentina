@@ -1968,6 +1968,7 @@ footer{
         <div class="cg-actual-texto">
           <span id="cg-actual-progreso">1/15</span> · <b id="cg-actual-numero">1</b> <span id="cg-actual-dir"></span> — <span id="cg-actual-pista">…</span>
         </div>
+        <span style="font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--red);" id="cg-cronometro">00:00</span>
         <button class="auth-btn" id="cg-saltar-btn" style="max-width:130px; margin:0;">Saltar ⏭</button>
       </div>
       <div class="cg-layout">
@@ -1980,6 +1981,10 @@ footer{
             <button class="auth-btn" id="cg-nuevo-btn" style="max-width:160px; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">🔄 Nuevo crucigrama</button>
           </div>
           <div id="cg-resultado" class="cg-resultado"></div>
+          <div class="cg-pistas-col" style="margin-top:16px;">
+            <div class="gd-pista-titulo">🏆 Mejores tiempos</div>
+            <div id="cg-ranking-lista" style="margin-top:8px;"></div>
+          </div>
         </div>
         <div class="cg-pistas">
           <div class="cg-pistas-col">
@@ -9548,6 +9553,51 @@ function cgNumerarYRecortar(resultado){
 
 let cgCola = [];
 let cgIndiceActual = 0;
+let cgSegundos = 0;
+let cgIntervaloCronometro = null;
+let cgTerminado = false;
+
+function cgFormatearTiempo(seg){
+  const m = Math.floor(seg/60), s = seg%60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+function cgIniciarCronometro(){
+  cgSegundos = 0;
+  cgTerminado = false;
+  document.getElementById('cg-cronometro').textContent = '00:00';
+  if(cgIntervaloCronometro) clearInterval(cgIntervaloCronometro);
+  cgIntervaloCronometro = setInterval(()=>{
+    cgSegundos++;
+    document.getElementById('cg-cronometro').textContent = cgFormatearTiempo(cgSegundos);
+  }, 1000);
+}
+async function cgGuardarMejorTiempo(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  const { data: actual } = await sbClient.from('crucigrillo_tiempos').select('mejor_tiempo_segundos').eq('usuario_id', user.id).maybeSingle();
+  if(!actual || cgSegundos < actual.mejor_tiempo_segundos){
+    await sbClient.from('crucigrillo_tiempos').upsert({ usuario_id:user.id, mejor_tiempo_segundos:cgSegundos, actualizado_en:new Date().toISOString() }).then(()=>{}, ()=>{});
+  }
+  cgCargarRanking();
+}
+async function cgCargarRanking(){
+  const cont = document.getElementById('cg-ranking-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: tiempos }, { data: perfiles }] = await Promise.all([
+    sbClient.from('crucigrillo_tiempos').select('usuario_id, mejor_tiempo_segundos'),
+    sbClient.from('perfiles_usuario').select('id, username')
+  ]);
+  if(!tiempos || !perfiles){ cont.innerHTML = ''; return; }
+  const nombrePorId = {};
+  perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
+  const lista = tiempos
+    .map(t => ({ nombre:nombrePorId[t.usuario_id]||'???', tiempo:t.mejor_tiempo_segundos }))
+    .sort((a,b) => a.tiempo - b.tiempo)
+    .slice(0,10);
+  cont.innerHTML = lista.length
+    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${cgFormatearTiempo(f.tiempo)}</b></div>`).join('')
+    : '<div class="cz-online-esperando">Todavía nadie completó uno. ¡Arrancá vos!</div>';
+}
 
 function cgConstruirCola(placed){
   const ordenado = [...placed].sort((a,b)=> a.numero - b.numero || (a.dir === 'H' ? -1 : 1));
@@ -9571,6 +9621,13 @@ function cgPalabraCompleta(palabra){
 }
 
 function cgActivarPalabra(indice){
+  // si ya recorrimos toda la lista, busca la primera palabra incompleta para volver a ofrecerla
+  if(indice >= cgCola.length){
+    const pendiente = cgCola.findIndex(p => !cgPalabraCompleta(p));
+    if(pendiente !== -1){
+      indice = pendiente;
+    }
+  }
   cgIndiceActual = indice;
 
   document.querySelectorAll('.cg-celda').forEach(div=>{
@@ -9585,7 +9642,7 @@ function cgActivarPalabra(indice){
     document.getElementById('cg-actual-progreso').textContent = `${cgCola.length}/${cgCola.length}`;
     document.getElementById('cg-actual-numero').textContent = '✅';
     document.getElementById('cg-actual-dir').textContent = '';
-    document.getElementById('cg-actual-pista').textContent = 'Recorriste todas las palabras. ¡Tocá "Corregir"!';
+    document.getElementById('cg-actual-pista').textContent = 'Completaste todas las palabras. ¡Tocá "Corregir"!';
     document.getElementById('cg-saltar-btn').disabled = true;
     return;
   }
@@ -9688,9 +9745,16 @@ function cgCorregir(){
     if(inp.value && inp.value === inp.dataset.letra){ celda.classList.add('cg-ok'); correctas++; }
     else if(inp.value){ celda.classList.add('cg-mal'); }
   });
-  document.getElementById('cg-resultado').textContent = correctas === total
-    ? '🎉 ¡Crucigrama completo!'
-    : `${correctas} de ${total} letras correctas.`;
+  if(correctas === total){
+    document.getElementById('cg-resultado').textContent = `🎉 ¡Crucigrama completo en ${cgFormatearTiempo(cgSegundos)}!`;
+    if(!cgTerminado){
+      cgTerminado = true;
+      clearInterval(cgIntervaloCronometro);
+      cgGuardarMejorTiempo();
+    }
+  } else {
+    document.getElementById('cg-resultado').textContent = `${correctas} de ${total} letras correctas.`;
+  }
 }
 
 function cgNuevoCrucigrama(){
@@ -9700,6 +9764,8 @@ function cgNuevoCrucigrama(){
   const bruto = cgGenerarCrucigrama(pool, 15);
   const final = cgNumerarYRecortar(bruto);
   cgRenderizar(final);
+  cgIniciarCronometro();
+  cgCargarRanking();
 }
 
 document.getElementById('cg-corregir-btn').addEventListener('click', cgCorregir);
@@ -9712,6 +9778,7 @@ document.getElementById('mini-card-crucigrillo').addEventListener('click', ()=>{
   cgNuevoCrucigrama();
 });
 document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
+  if(cgIntervaloCronometro) clearInterval(cgIntervaloCronometro);
   document.getElementById('mini-crucigrillo').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'flex';
 });
