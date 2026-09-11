@@ -2842,6 +2842,22 @@ function abrirCajonMenu(){
   drawerOverlayEl.classList.add('abierto');
 }
 
+function activarTab(nombreTab, empujarHistoria){
+  const btn = Array.from(tabBtns).find(b => b.dataset.tab === nombreTab);
+  if(!btn) return;
+  tabBtns.forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+nombreTab).classList.add('active');
+  if(nombreTab === 'simulador') simAbrirPantalla();
+  if(nombreTab === 'minijuegos') renderRankingMinijuegos();
+  if(empujarHistoria) history.pushState({ tab: nombreTab }, '', location.pathname + location.search);
+}
+window.addEventListener('popstate', (e)=>{
+  if(e.state && e.state.tab) activarTab(e.state.tab, false);
+});
+history.replaceState({ tab: document.querySelector('.tab-btn.active')?.dataset.tab || 'estadisticas' }, '', location.pathname + location.search);
+
 tabBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(modoInvitado && !TABS_PUBLICAS.includes(btn.dataset.tab)){
@@ -2849,13 +2865,8 @@ tabBtns.forEach(btn=>{
       authOverlay.style.display = 'flex';
       return;
     }
-    tabBtns.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    activarTab(btn.dataset.tab, true);
     cerrarCajonMenu();
-    if(btn.dataset.tab === 'simulador') simAbrirPantalla();
-    if(btn.dataset.tab === 'minijuegos') renderRankingMinijuegos();
   });
 });
 const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
@@ -6880,6 +6891,15 @@ function apResolverPlantilla(texto){
   return { texto: texto.replace(/\{compañero2\}/g, comp2).replace(/\{compañero\}/g, comp1), companero: comp1 };
 }
 
+const AP_OPCIONES_MALAS = [
+  'Te la rebuscás de más y perdés la pelota',
+  'Te la agarra el rival por apurarte',
+  'Pisás mal y perdés el control',
+  'Te anticipan la jugada y te la quitan',
+  'Intentás algo de fantasía y te sale mal',
+  'Te resbalás justo en el momento clave'
+];
+
 function apMostrarDecision(){
   document.getElementById('cr-num-decision').textContent = apDecisionActual + 1;
   document.getElementById('cr-puntaje').textContent = apPuntaje;
@@ -6888,7 +6908,9 @@ function apMostrarDecision(){
   const { texto: textoSituacion } = apResolverPlantilla(sit.texto);
   document.getElementById('cr-situacion-titulo').textContent = `⚽ Decisión ${apDecisionActual+1}`;
   document.getElementById('cr-situacion-texto').textContent = textoSituacion;
-  const opcionesResueltas = sit.opciones.map(o => ({ ...o, ...apResolverPlantilla(o.etiqueta) }));
+  const opcionMala = { texto: AP_OPCIONES_MALAS[Math.floor(Math.random()*AP_OPCIONES_MALAS.length)], puntos:-10, tipo:null };
+  const opcionesResueltas = [...sit.opciones.map(o => ({ ...o, ...apResolverPlantilla(o.etiqueta) })), opcionMala]
+    .sort(() => Math.random()-0.5); // siempre desordenadas, sin patrón fijo
   document.getElementById('cr-opciones').innerHTML = opcionesResueltas.map((o,i) => `<button class="auth-btn tr-btn-chico" data-idx="${i}">${o.texto}</button>`).join('');
   document.querySelectorAll('#cr-opciones button').forEach((btn,i)=>{
     btn.addEventListener('click', () => apElegirOpcion(opcionesResueltas[i]));
@@ -6898,7 +6920,7 @@ function apMostrarDecision(){
 function apElegirOpcion(opcion){
   apPuntaje += opcion.puntos;
   document.getElementById('cr-puntaje').textContent = apPuntaje;
-  let feedback = `✅ ${opcion.texto}`;
+  let feedback = `${opcion.puntos >= 0 ? '✅' : '❌'} ${opcion.texto}`;
   if(opcion.tipo === 'asistencia'){
     apAsistentePendiente = crJugadorNombre;
     feedback += ` — dejaste a ${opcion.companero} con una gran chance.`;
