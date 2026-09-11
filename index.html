@@ -2527,6 +2527,7 @@ const AP_SITUACIONES = [
   ]}
 ];
 
+const CR_POSICIONES_TODAS = ['delantero','mediocampista','defensor','arquero'];
 const CR_SITUACIONES = [
   { titulo:'Recibís la pelota en el medio', texto:'Tenés espacio para jugar.', posiciones:['delantero','mediocampista','defensor'], opciones:[
     { etiqueta:'Pase simple', atributo:'pase', prob:0.85, puntosExito:5, puntosFallo:-2 },
@@ -6662,7 +6663,6 @@ const CR_UMBRAL_PARTIDO2 = 90;
 // {compañero} se reemplaza en pantalla por un jugador al azar de TU equipo (sin contar a vos mismo).
 
 
-const CR_POSICIONES_TODAS = ['delantero','mediocampista','defensor','arquero'];
 
 
 function crSituacionesParaPosicion(posicion, cantidad){
