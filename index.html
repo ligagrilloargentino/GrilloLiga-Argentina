@@ -7133,12 +7133,12 @@ function apResolverPlantilla(texto){
 }
 
 const AP_OPCIONES_MALAS = [
-  'Te la rebuscás de más y perdés la pelota',
-  'Te la agarra el rival por apurarte',
-  'Pisás mal y perdés el control',
-  'Te anticipan la jugada y te la quitan',
-  'Intentás algo de fantasía y te sale mal',
-  'Te resbalás justo en el momento clave'
+  'Probás una jugada de fantasía',
+  'Vas por una gambeta arriesgada',
+  'Intentás un caño en el momento menos pensado',
+  'Buscás un desborde por afuera',
+  'Te la jugás con un amague',
+  'Probás una pausa antes de definir'
 ];
 
 function apMostrarDecision(){
@@ -7161,7 +7161,7 @@ function apMostrarDecision(){
 function apElegirOpcion(opcion){
   apPuntaje += opcion.puntos;
   document.getElementById('cr-puntaje').textContent = apPuntaje;
-  let feedback = `${opcion.puntos >= 0 ? '✅' : '❌'} ${opcion.texto}`;
+  let feedback = opcion.puntos >= 0 ? `✅ ${opcion.texto}` : `❌ ${opcion.texto}… y no te sale bien.`;
   if(opcion.tipo === 'asistencia'){
     apAsistentePendiente = crJugadorNombre;
     feedback += ` — dejaste a ${opcion.companero} con una gran chance.`;
