@@ -1,0 +1,15 @@
+{
+  "name": "Grillo Liga Argentina",
+  "short_name": "Grillo Liga",
+  "description": "La app oficial de la Grillo Liga Argentina: estadísticas, minijuegos, Modo Carrera y más.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EAE2CC",
+  "theme_color": "#B33B22",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

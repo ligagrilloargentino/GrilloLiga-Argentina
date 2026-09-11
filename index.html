@@ -14,6 +14,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
 <meta name="twitter:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#B33B22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grillo Liga">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&display=swap');
 
@@ -180,6 +188,26 @@ body.tema-oscuro{
   .usuario-mini-menu{ min-width:180px !important; padding:11px 13px !important; }
 }
 /* ---------- MINIJUEGOS ---------- */
+/* ---------- BARRA DE NAVEGACIÓN INFERIOR (tipo app, solo celular) ---------- */
+#nav-inferior{
+  display:none; position:fixed; bottom:0; left:0; right:0; z-index:200;
+  background:var(--card); border-top:1px solid var(--line-strong);
+  box-shadow:0 -2px 10px rgba(0,0,0,.15);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width:700px){
+  #nav-inferior{ display:flex; justify-content:space-around; align-items:center; }
+  body:not(.cz-pantalla-completa){ padding-bottom:66px; }
+}
+body.cz-pantalla-completa #nav-inferior{ display:none !important; }
+.nav-inferior-item{
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  font-family:'Alegreya Sans',sans-serif; font-size:10px; color:var(--text-dim);
+  cursor:pointer; flex:1; padding:4px 0; border-radius:8px; background:none; border:none;
+}
+.nav-inferior-item.active{ color:var(--red); font-weight:700; }
+.nav-inferior-item .nav-icono{ font-size:19px; line-height:1; }
+
 .mini-juegos-lista{ display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; }
 @media (max-width:800px){ .mini-juegos-lista{ grid-template-columns:repeat(3, 1fr); } }
 @media (max-width:520px){ .mini-juegos-lista{ grid-template-columns:repeat(2, 1fr); } }
@@ -1504,6 +1532,7 @@ footer{
       <h2>Estadísticas</h2>
       <span class="pill-count" id="stats-count"></span>
     </div>
+    <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
     <div class="search-box">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="stats-search" placeholder="Buscar jugador…">
@@ -2940,6 +2969,38 @@ verificarSesion();
   });
 })();
 
+// PWA: registro del Service Worker con auto-actualización, y botón de instalar.
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  let refrescandoPorActualizacion = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(refrescandoPorActualizacion) return;
+    refrescandoPorActualizacion = true;
+    window.location.reload();
+  });
+}
+let eventoInstalacionPWA = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  eventoInstalacionPWA = e;
+  const btn = document.getElementById('instalar-app-btn');
+  if(btn) btn.style.display = 'block';
+});
+document.getElementById('instalar-app-btn').addEventListener('click', async ()=>{
+  if(!eventoInstalacionPWA){
+    alert('Para instalarla: en Chrome/Android tocá el menú ⋮ y elegí "Instalar app". En iPhone: tocá Compartir y luego "Agregar a pantalla de inicio".');
+    return;
+  }
+  eventoInstalacionPWA.prompt();
+  await eventoInstalacionPWA.userChoice;
+  eventoInstalacionPWA = null;
+  document.getElementById('instalar-app-btn').style.display = 'none';
+});
+window.addEventListener('appinstalled', ()=>{
+  const btn = document.getElementById('instalar-app-btn');
+  if(btn) btn.style.display = 'none';
+});
+
 async function cargarNotificaciones(){
   const { data: { user } } = await sbClient.auth.getUser();
   if(!user) return;
@@ -3084,22 +3145,6 @@ function abrirCajonMenu(){
   drawerOverlayEl.classList.add('abierto');
 }
 
-function activarTab(nombreTab, empujarHistoria){
-  const btn = Array.from(tabBtns).find(b => b.dataset.tab === nombreTab);
-  if(!btn) return;
-  tabBtns.forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+nombreTab).classList.add('active');
-  if(nombreTab === 'simulador') simAbrirPantalla();
-  if(nombreTab === 'minijuegos') renderRankingMinijuegos();
-  if(empujarHistoria) history.pushState({ tab: nombreTab }, '', location.pathname + location.search);
-}
-window.addEventListener('popstate', (e)=>{
-  if(e.state && e.state.tab) activarTab(e.state.tab, false);
-});
-history.replaceState({ tab: document.querySelector('.tab-btn.active')?.dataset.tab || 'estadisticas' }, '', location.pathname + location.search);
-
 tabBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(modoInvitado && !TABS_PUBLICAS.includes(btn.dataset.tab)){
@@ -3107,8 +3152,13 @@ tabBtns.forEach(btn=>{
       authOverlay.style.display = 'flex';
       return;
     }
-    activarTab(btn.dataset.tab, true);
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     cerrarCajonMenu();
+    if(btn.dataset.tab === 'simulador') simAbrirPantalla();
+    if(btn.dataset.tab === 'minijuegos') renderRankingMinijuegos();
   });
 });
 const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
@@ -3116,6 +3166,34 @@ if(menuHamburguesaBtn){
   menuHamburguesaBtn.addEventListener('click', abrirCajonMenu);
 }
 document.getElementById('drawer-cerrar-btn').addEventListener('click', cerrarCajonMenu);
+
+/* ---------- BARRA DE NAVEGACIÓN INFERIOR (tipo app) ---------- */
+function navInferiorMarcarActivo(id){
+  document.querySelectorAll('.nav-inferior-item').forEach(i => i.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+}
+document.getElementById('nav-inicio').addEventListener('click', ()=>{
+  document.querySelector('.tab-btn[data-tab="estadisticas"]')?.click();
+  navInferiorMarcarActivo('nav-inicio');
+});
+document.getElementById('nav-minijuegos').addEventListener('click', ()=>{
+  document.querySelector('.tab-btn[data-tab="minijuegos"]')?.click();
+  navInferiorMarcarActivo('nav-minijuegos');
+});
+document.getElementById('nav-carrera').addEventListener('click', ()=>{
+  document.querySelector('.tab-btn[data-tab="minijuegos"]')?.click();
+  setTimeout(()=> document.getElementById('mini-card-carrera')?.click(), 50);
+  navInferiorMarcarActivo('nav-carrera');
+});
+document.getElementById('nav-foro').addEventListener('click', ()=>{
+  document.querySelector('.tab-btn[data-tab="foro"]')?.click();
+  navInferiorMarcarActivo('nav-foro');
+});
+document.getElementById('nav-mas').addEventListener('click', ()=>{
+  abrirCajonMenu();
+  navInferiorMarcarActivo('nav-mas');
+});
+
 if(modoInvitado){
   const tabEstadisticas = document.querySelector('.tab-btn[data-tab="estadisticas"]');
   if(tabEstadisticas) tabEstadisticas.click();
@@ -10356,5 +10434,12 @@ renderJugadorChips();
 renderJugadorProfile();
 } // fin de iniciarApp()
 </script>
+<nav id="nav-inferior">
+  <button class="nav-inferior-item active" id="nav-inicio" data-tab="estadisticas"><span class="nav-icono">🏠</span>Inicio</button>
+  <button class="nav-inferior-item" id="nav-minijuegos" data-tab="minijuegos"><span class="nav-icono">🎮</span>Juegos</button>
+  <button class="nav-inferior-item" id="nav-carrera" data-tab="minijuegos"><span class="nav-icono">🌟</span>Carrera</button>
+  <button class="nav-inferior-item" id="nav-foro" data-tab="foro"><span class="nav-icono">💬</span>Foro</button>
+  <button class="nav-inferior-item" id="nav-mas"><span class="nav-icono">☰</span>Más</button>
+</nav>
 </body>
 </html>
