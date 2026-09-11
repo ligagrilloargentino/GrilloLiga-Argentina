@@ -7169,8 +7169,9 @@ function apElegirOpcion(opcion){
     apAsistentePendiente = opcion.companero;
     feedback += ` — ${opcion.companero} te dejó una gran chance a vos.`;
   } else if(opcion.tipo === 'gol_vos'){
-    apGoles.push({ jugador: crJugadorNombre, asistencia: apAsistentePendiente });
-    feedback += apAsistentePendiente ? ` — ¡GOL tuyo, asistencia de ${apAsistentePendiente}!` : ' — ¡GOL tuyo!';
+    const asistenciaValida = apAsistentePendiente && apAsistentePendiente !== crJugadorNombre ? apAsistentePendiente : null;
+    apGoles.push({ jugador: crJugadorNombre, asistencia: asistenciaValida });
+    feedback += asistenciaValida ? ` — ¡GOL tuyo, asistencia de ${asistenciaValida}!` : ' — ¡GOL tuyo!';
     apAsistentePendiente = null;
   }
   document.getElementById('cr-feedback').textContent = feedback;
