@@ -7797,7 +7797,7 @@ function crIniciarTemporada(){
     { rival:r, local:false, jugado:false, resultado:null }
   ]).sort(() => Math.random()-0.5);
 
-  document.getElementById('cr-temp-final').style.display = 'none';
+  document.getElementById('cr-temporada-final').style.display = 'none';
   document.getElementById('cr-temporada-wrap').style.display = 'block';
   document.getElementById('cr-temp-num').textContent = crTemporadaNum;
   document.getElementById('cr-temp-club-liga').textContent = `${miClub} — ${crOfertaElegida.liga}`;
