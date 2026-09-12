@@ -1508,6 +1508,7 @@ footer{
     <div class="section-head">
       <h2>Resumen del torneo</h2>
     </div>
+    <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
     <div class="stat-grid" id="stat-grid"></div>
 
     <div class="section-head" style="margin-top:26px;">
@@ -1532,7 +1533,6 @@ footer{
       <h2>Estadísticas</h2>
       <span class="pill-count" id="stats-count"></span>
     </div>
-    <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
     <div class="search-box">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="stats-search" placeholder="Buscar jugador…">
@@ -3159,7 +3159,7 @@ tabBtns.forEach(btn=>{
     cerrarCajonMenu();
     if(btn.dataset.tab === 'simulador') simAbrirPantalla();
     if(btn.dataset.tab === 'minijuegos') renderRankingMinijuegos();
-    if(btn.dataset.tab !== 'estadisticas') history.pushState({ appNav:true }, '', location.pathname + location.search);
+    if(btn.dataset.tab !== 'inicio') history.pushState({ appNav:true }, '', location.pathname + location.search);
   });
 });
 
@@ -3172,8 +3172,8 @@ let pwaConfirmoSalir = false;
 window.addEventListener('popstate', ()=>{
   if(pwaConfirmoSalir) return;
   const tabActivo = document.querySelector('.tab-btn.active')?.dataset.tab;
-  if(tabActivo && tabActivo !== 'estadisticas'){
-    document.querySelector('.tab-btn[data-tab="estadisticas"]')?.click();
+  if(tabActivo && tabActivo !== 'inicio'){
+    document.querySelector('.tab-btn[data-tab="inicio"]')?.click();
     pwaDejarGuardiaEnInicio();
   } else {
     document.getElementById('confirmar-salir-overlay').style.display = 'flex';
@@ -3201,7 +3201,7 @@ function navInferiorMarcarActivo(id){
   document.getElementById(id)?.classList.add('active');
 }
 document.getElementById('nav-inicio').addEventListener('click', ()=>{
-  document.querySelector('.tab-btn[data-tab="estadisticas"]')?.click();
+  document.querySelector('.tab-btn[data-tab="inicio"]')?.click();
   navInferiorMarcarActivo('nav-inicio');
 });
 document.getElementById('nav-minijuegos').addEventListener('click', ()=>{
@@ -3223,7 +3223,7 @@ document.getElementById('nav-mas').addEventListener('click', ()=>{
 });
 
 if(modoInvitado){
-  const tabEstadisticas = document.querySelector('.tab-btn[data-tab="estadisticas"]');
+  const tabEstadisticas = document.querySelector('.tab-btn[data-tab="inicio"]');
   if(tabEstadisticas) tabEstadisticas.click();
 }
 drawerOverlayEl.addEventListener('click', cerrarCajonMenu);
@@ -10472,7 +10472,7 @@ renderJugadorProfile();
   </div>
 </div>
 <nav id="nav-inferior">
-  <button class="nav-inferior-item active" id="nav-inicio" data-tab="estadisticas"><span class="nav-icono">🏠</span>Inicio</button>
+  <button class="nav-inferior-item active" id="nav-inicio" data-tab="inicio"><span class="nav-icono">🏠</span>Inicio</button>
   <button class="nav-inferior-item" id="nav-minijuegos" data-tab="minijuegos"><span class="nav-icono">🎮</span>Juegos</button>
   <button class="nav-inferior-item" id="nav-carrera" data-tab="minijuegos"><span class="nav-icono">🌟</span>Carrera</button>
   <button class="nav-inferior-item" id="nav-foro" data-tab="foro"><span class="nav-icono">💬</span>Foro</button>
