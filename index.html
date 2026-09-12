@@ -3159,7 +3159,35 @@ tabBtns.forEach(btn=>{
     cerrarCajonMenu();
     if(btn.dataset.tab === 'simulador') simAbrirPantalla();
     if(btn.dataset.tab === 'minijuegos') renderRankingMinijuegos();
+    if(btn.dataset.tab !== 'estadisticas') history.pushState({ appNav:true }, '', location.pathname + location.search);
   });
+});
+
+/* ---------- Botón "atrás" del celular: dentro de la app va a Inicio, en Inicio pregunta si salir ---------- */
+function pwaDejarGuardiaEnInicio(){
+  history.pushState({ appNav:true }, '', location.pathname + location.search);
+}
+pwaDejarGuardiaEnInicio();
+let pwaConfirmoSalir = false;
+window.addEventListener('popstate', ()=>{
+  if(pwaConfirmoSalir) return;
+  const tabActivo = document.querySelector('.tab-btn.active')?.dataset.tab;
+  if(tabActivo && tabActivo !== 'estadisticas'){
+    document.querySelector('.tab-btn[data-tab="estadisticas"]')?.click();
+    pwaDejarGuardiaEnInicio();
+  } else {
+    document.getElementById('confirmar-salir-overlay').style.display = 'flex';
+  }
+});
+document.getElementById('confirmar-salir-no-btn').addEventListener('click', ()=>{
+  document.getElementById('confirmar-salir-overlay').style.display = 'none';
+  pwaDejarGuardiaEnInicio();
+});
+document.getElementById('confirmar-salir-si-btn').addEventListener('click', ()=>{
+  document.getElementById('confirmar-salir-overlay').style.display = 'none';
+  pwaConfirmoSalir = true;
+  window.close(); // funciona en algunos navegadores/PWA instaladas; si no hace nada, no pasa nada malo
+  // no volvemos a dejar guardia: así, si el usuario aprieta "atrás" de nuevo, ya no lo interceptamos
 });
 const menuHamburguesaBtn = document.getElementById('menu-hamburguesa-btn');
 if(menuHamburguesaBtn){
@@ -10434,6 +10462,15 @@ renderJugadorChips();
 renderJugadorProfile();
 } // fin de iniciarApp()
 </script>
+<div id="confirmar-salir-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.5); align-items:center; justify-content:center;">
+  <div class="auth-card" style="max-width:300px; text-align:center;">
+    <h1 style="font-size:19px;">👋 ¿Salir de la Grillo Liga?</h1>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="auth-btn" id="confirmar-salir-si-btn" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Sí, salir</button>
+      <button class="auth-btn" id="confirmar-salir-no-btn">No, seguir</button>
+    </div>
+  </div>
+</div>
 <nav id="nav-inferior">
   <button class="nav-inferior-item active" id="nav-inicio" data-tab="estadisticas"><span class="nav-icono">🏠</span>Inicio</button>
   <button class="nav-inferior-item" id="nav-minijuegos" data-tab="minijuegos"><span class="nav-icono">🎮</span>Juegos</button>
