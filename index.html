@@ -6966,6 +6966,7 @@ function crAvanzarRondaMundialSiCorresponde(){
 
 function crRenderizarMundial(){
   if(!crMundial) return;
+  crGuardarProgresoTemporada();
   const cont = document.getElementById('cr-mundial-lista');
   const contTabla = document.getElementById('cr-mundial-tabla-grupo');
   const notaPrensa = crUltimaNoticiaTexto ? `<div class="cz-online-esperando">${crUltimaNoticiaTexto}</div>` : '';
@@ -7441,9 +7442,7 @@ function crMostrarEleccionPartido2(){
   });
 }
 
-document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
-  document.getElementById('mini-lista').style.display = 'none';
-  document.getElementById('mini-carrera').style.display = 'block';
+function crMostrarCreacionDesdeCero(){
   document.getElementById('cr-creacion').style.display = 'block';
   document.getElementById('cr-equipos-wrap').style.display = 'none';
   document.getElementById('cr-partido-wrap').style.display = 'none';
@@ -7466,6 +7465,82 @@ document.getElementById('mini-card-carrera').addEventListener('click', ()=>{
   document.getElementById('cr-mundial-wrap').style.display = 'none';
   document.getElementById('cr-input-jugador').value = '';
   document.getElementById('cr-empezar-btn').disabled = true;
+}
+
+function crOcultarTodasLasPantallasDeCarrera(){
+  ['cr-creacion','cr-equipos-wrap','cr-partido-wrap','cr-final','cr-ofertas-wrap','cr-ofertas-europa-wrap','cr-firma-wrap','cr-temporada-wrap','cr-temporada-final','cr-mundial-wrap'].forEach(id=>{
+    document.getElementById(id).style.display = 'none';
+  });
+}
+
+function crReanudarCarreraDesdeFila(fila){
+  crJugadorNombre = fila.nombre_jugador;
+  crPosicion = fila.posicion;
+  crMedia = fila.media ?? 70;
+  crPuntosLogros = fila.puntos_logros ?? 0;
+  crBeneficiosComprados = new Set(fila.beneficios_comprados || []);
+  crGolesCarrera = fila.goles_carrera ?? 0;
+  crAsistenciasCarrera = fila.asistencias_carrera ?? 0;
+  crTitulosCarrera = fila.titulos_carrera ?? 0;
+  crBalonesDeOro = fila.balones_de_oro ?? 0;
+  crClubesHistorial = fila.clubes_historial || [];
+  crSueldoActual = fila.sueldo_actual ?? 0;
+  crSueldoTotalCarrera = fila.sueldo_total_carrera ?? 0;
+  crHistorialMedia = fila.historial_media || [];
+  crFueConvocadoAlgunaVez = !!fila.convocado_seleccion;
+  crAtributos = { velocidad:fila.velocidad ?? 50, pase:fila.pase ?? 50, definicion:fila.definicion ?? 50, regate:fila.regate ?? 50, defensa:fila.defensa ?? 50 };
+  crTemporadaNum = fila.temporada || 1;
+  crLesionado = false; crPartidosLesionRestantes = 0; crMotivoLesion = '';
+
+  crOcultarTodasLasPantallasDeCarrera();
+
+  if(fila.fase === 'en_club' && fila.club_actual){
+    const ligaEncontrada = Object.values(CR_LIGAS).find(l => l.nombre === fila.liga_actual);
+    crOfertaElegida = { club: fila.club_actual, liga: fila.liga_actual, pais: ligaEncontrada ? ligaEncontrada.pais : '' };
+    const progreso = fila.progreso_temporada || {};
+    crFixtureMiClub = progreso.fixtureMiClub || [];
+    crTablaLiga = progreso.tablaLiga || {};
+    crCopaBracket = progreso.copaBracket || null;
+    crCopaAmBracket = progreso.copaAmBracket || null;
+    crMundial = progreso.mundial || null;
+    crJugadoresFichados = progreso.jugadoresFichados || [];
+    crRivales = progreso.rivales || [];
+
+    document.getElementById('cr-temporada-wrap').style.display = 'block';
+    document.getElementById('cr-temp-num').textContent = crTemporadaNum;
+    document.getElementById('cr-temp-club-liga').textContent = `${crOfertaElegida.club} — ${crOfertaElegida.liga}`;
+    document.getElementById('cr-emigrar-link').style.display = crEstaEnEuropa() ? 'none' : 'inline';
+    crRenderizarFixtureYTabla();
+    if(crCopaBracket) crRenderizarCopa();
+    if(crCopaAmBracket) crRenderizarCopaAm();
+    if(crMundial && !crMundial.terminado){
+      document.getElementById('cr-mundial-wrap').style.display = 'block';
+      crRenderizarMundial();
+    }
+  } else {
+    // fases anteriores a tener club (todavía en pruebas con el ojeador): retomamos armando equipos de nuevo
+    const numeroPartido = (fila.fase === 'partido2' || fila.fase === 'ojeador_ok' || fila.fase === 'ojeador_no') ? 2 : 1;
+    crEquipoJugador = []; crEquipoRival = [];
+    document.getElementById('cr-equipos-wrap').style.display = 'block';
+    document.getElementById('carrera-intro-fase').textContent = numeroPartido === 2
+      ? '⭐ Retomando tu carrera: armá los equipos para tu Partido 2 con el ojeador mirándote.'
+      : 'Retomando tu carrera: armá los equipos para tu Partido 1 en Apanovi.';
+    document.getElementById('cr-confirmar-equipos-btn').textContent = numeroPartido === 2 ? 'Jugar el Partido 2 en Apanovi' : 'Jugar el Partido 1 en Apanovi';
+    document.getElementById('cr-confirmar-equipos-btn').onclick = () => apIniciarPartido(numeroPartido);
+  }
+}
+
+document.getElementById('mini-card-carrera').addEventListener('click', async ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-carrera').style.display = 'block';
+  const { data: { user } } = await sbClient.auth.getUser();
+  let fila = null;
+  if(user){
+    const { data } = await sbClient.from('carrera_estado').select('*').eq('usuario_id', user.id).maybeSingle();
+    if(data && !data.retirado && data.fase) fila = data;
+  }
+  if(fila) crReanudarCarreraDesdeFila(fila);
+  else crMostrarCreacionDesdeCero();
 });
 
 /* --- Historial de carrera (público) --- */
@@ -7750,6 +7825,22 @@ let apModoFixture = false;
 let apRivalDelPartido = null;
 let apFixtureIdxPendiente = null;
 
+/* ---------- Guardado/restauración del progreso de la temporada en curso ---------- */
+async function crGuardarProgresoTemporada(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  const blob = {
+    fixtureMiClub: crFixtureMiClub,
+    tablaLiga: crTablaLiga,
+    copaBracket: crCopaBracket,
+    copaAmBracket: crCopaAmBracket,
+    mundial: crMundial,
+    jugadoresFichados: crJugadoresFichados,
+    rivales: crRivales
+  };
+  await sbClient.from('carrera_estado').update({ progreso_temporada: blob }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+}
+
 function crGolesAlAzar(){ return Math.floor(Math.random()*4); }
 
 const CR_ATRIBUTOS_LISTA = [
@@ -7805,6 +7896,7 @@ function crIniciarTemporada(){
   crGenerarCopaNacional();
   crGenerarCopaAmericana();
   crRenderizarFixtureYTabla();
+  crGuardarProgresoTemporada();
 }
 
 /* --- Copa Nacional: eliminación directa a partido único --- */
@@ -7884,6 +7976,7 @@ function crAplicarResultadoCopaAm(idx, golesA, golesB){
   p.resultado = `${golesA}-${golesB}`;
   p.ganador = golesA > golesB ? p.clubA : p.clubB;
   crAvanzarRondaCopaAmSiCorresponde();
+  crGuardarProgresoTemporada();
 }
 
 function crAvanzarRondaCopaAmSiCorresponde(){
@@ -7967,6 +8060,7 @@ function crAplicarResultadoCopa(idx, golesA, golesB){
   p.resultado = `${golesA}-${golesB}`;
   p.ganador = golesA > golesB ? p.clubA : p.clubB;
   crAvanzarRondaCopaSiCorresponde();
+  crGuardarProgresoTemporada();
 }
 
 function crAvanzarRondaCopaSiCorresponde(){
@@ -8184,6 +8278,7 @@ function crAplicarResultadoFixture(idx, golesMios, golesRival){
   if(f.local) crSumarResultado(crTablaLiga, miClub, golesMios, f.rival, golesRival);
   else crSumarResultado(crTablaLiga, f.rival, golesRival, miClub, golesMios);
   crRenderizarFixtureYTabla();
+  crGuardarProgresoTemporada();
 }
 
 async function crTerminarTemporada(){
