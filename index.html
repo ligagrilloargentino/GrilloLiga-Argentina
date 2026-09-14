@@ -1734,7 +1734,11 @@ footer{
       </div>
       <div class="mini-juego-card" id="mini-card-carrera" style="display:none;">
         <h3>🌟 Modo Carrera</h3>
-        <p>Jugá tu partido de prueba y soñá con que te vea un ojeador. (En construcción — Fase 1)</p>
+        <p>Empezá desde una prueba con el ojeador y armá tu carrera profesional completa: ligas, copas, el Mundial, y mucho más.</p>
+      </div>
+      <div class="mini-juego-card" id="mini-card-akinator">
+        <h3>🔮 Akinator de la Grillo Liga</h3>
+        <p>Adiviná en quién pensás, o pensá vos uno y que un amigo lo adivine, a pura estadística.</p>
       </div>
 
       <div class="cg-pistas-col" style="margin-top:10px; grid-column:1 / -1;">
@@ -2095,6 +2099,55 @@ footer{
           </div>
         </div>
       </div>
+      </div>
+    </div>
+
+    <div id="mini-akinator" style="display:none;">
+      <span class="rps-volver" id="akinator-volver">← Volver a Minijuegos</span>
+      <h2 class="pm-titulo-juego">🔮 Akinator de la Grillo Liga</h2>
+      <div class="gd-intro">Adivina jugadores reales de la liga a pura estadística (goles, asistencias, partidos jugados y rachas). Solo entran jugadores con 5 partidos jugados o más.</div>
+
+      <div id="ak-elegir-modo" class="cz-elegir-fila" style="margin:16px 0;">
+        <button class="auth-btn" id="ak-modo-sistema-btn">🔮 Pensá un jugador — yo lo adivino</button>
+        <button class="auth-btn" id="ak-modo-usuario-btn" style="background:transparent; color:var(--red); border-color:var(--red);">🤔 Pensé uno yo — adivinalo vos</button>
+      </div>
+
+      <div id="ak-sistema-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>Candidatos<br><b id="ak-cant-candidatos">0</b></div>
+          <div class="pen-ronda">Pregunta <b id="ak-num-pregunta">1</b></div>
+          <div>&nbsp;</div>
+        </div>
+        <div class="cg-pistas-col" style="margin:16px 0;">
+          <div class="gd-pista-titulo">❓ Pregunta</div>
+          <div class="gd-intro" id="ak-pregunta-texto" style="margin-top:8px; font-size:15px;">Pensando…</div>
+        </div>
+        <div class="cz-elegir-fila" id="ak-botones-si-no">
+          <button class="auth-btn" id="ak-btn-si">Sí</button>
+          <button class="auth-btn" id="ak-btn-no" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">No</button>
+        </div>
+        <div id="ak-resultado-sistema" style="display:none; text-align:center; margin-top:16px;">
+          <div class="pen-final-titulo" id="ak-nombre-adivinado"></div>
+          <div class="cz-elegir-fila" style="margin-top:14px;">
+            <button class="auth-btn" id="ak-acerte-btn">¡Acertaste! 🎉</button>
+            <button class="auth-btn" id="ak-no-acerte-btn" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">No era</button>
+          </div>
+        </div>
+        <button class="auth-btn" id="ak-jugar-de-nuevo-sistema" style="display:none; max-width:220px; margin:16px auto 0;">Jugar de nuevo</button>
+      </div>
+
+      <div id="ak-usuario-wrap" style="display:none;">
+        <div class="gd-intro">Ya elegí un jugador secreto. Tocá las preguntas que quieras (una por vez) para ir descartando, y cuando quieras arriesgá el nombre.</div>
+        <div id="ak-preguntas-lista" style="margin:14px 0;"></div>
+        <div class="auth-field" style="max-width:320px; margin:16px auto 0;">
+          <label>Arriesgar el nombre</label>
+          <input type="text" id="ak-input-adivinanza" placeholder="Buscá un jugador…">
+        </div>
+        <button class="auth-btn" id="ak-arriesgar-btn" style="max-width:220px; margin:10px auto 0;">Arriesgar</button>
+        <div id="ak-resultado-usuario" style="display:none; text-align:center; margin-top:16px;">
+          <div class="pen-final-titulo" id="ak-usuario-final-titulo"></div>
+        </div>
+        <button class="auth-btn" id="ak-jugar-de-nuevo-usuario" style="display:none; max-width:220px; margin:16px auto 0;">Jugar de nuevo</button>
       </div>
     </div>
 
@@ -4994,7 +5047,7 @@ function gdAdivinar(){
 document.getElementById('gd-adivinar').addEventListener('click', gdAdivinar);
 document.getElementById('gd-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') gdAdivinar(); });
 gdCargarListaJugadores();
-['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador','cr-equipos-input','cmp-input-a','cmp-input-b'].forEach(id=>{
+['gd-input','mg-buscador-input','cz-input-j1','cz-input-j2','sim-buscador-input','pm-input-jugador','tr-input-jugador','cr-input-jugador','cr-equipos-input','cmp-input-a','cmp-input-b','ak-input-adivinanza'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) crearAutocompletado(el);
 });
@@ -6330,6 +6383,189 @@ function cmpRenderizar(){
 }
 document.getElementById('cmp-input-a').addEventListener('change', ()=>{ cmpJugadorA = cmpBuscarPorInput('cmp-input-a'); cmpRenderizar(); });
 document.getElementById('cmp-input-b').addEventListener('change', ()=>{ cmpJugadorB = cmpBuscarPorInput('cmp-input-b'); cmpRenderizar(); });
+
+/* ---------- AKINATOR DE LA GRILLO LIGA ---------- */
+function akAtributos(jugadorRow){
+  const pj = jugadorRow.PJ || 0, goles = jugadorRow.Goles || 0, ast = jugadorRow.Ast || 0;
+  const partidos = playerMatches(jugadorRow.Jugador);
+  const victorias = partidos.filter(m => m.resultado === 'win').length;
+  const derrotas = partidos.filter(m => m.resultado === 'loss').length;
+  const rachas = jpCalcularRachas(partidos);
+  return { pj, goles, ast, victorias, derrotas, ...rachas };
+}
+
+function akPoolElegible(){
+  return DATA.estadisticas.filter(j => (j.PJ||0) >= 5).map(j => ({ nombre:j.Jugador, attrs: akAtributos(j) }));
+}
+
+function akCamposPregunta(){
+  return [
+    { clave:'goles', texto:v => `¿Hizo más de ${v} goles en su carrera?` },
+    { clave:'ast', texto:v => `¿Dio más de ${v} asistencias en su carrera?` },
+    { clave:'pj', texto:v => `¿Jugó más de ${v} partidos?` },
+    { clave:'victorias', texto:v => `¿Ganó más de ${v} partidos?` },
+    { clave:'derrotas', texto:v => `¿Perdió más de ${v} partidos?` },
+    { clave:'mejorRachaGan', texto:v => `¿Su mejor racha ganando fue de más de ${v} partidos seguidos?` },
+    { clave:'peorRachaPer', texto:v => `¿Su peor racha perdiendo fue de más de ${v} partidos seguidos?` },
+    { clave:'mejorRachaGol', texto:v => `¿Alguna vez metió gol en más de ${v} partidos seguidos?` },
+    { clave:'mejorRachaAst', texto:v => `¿Alguna vez dio asistencia en más de ${v} partidos seguidos?` },
+  ];
+}
+
+function akGenerarPreguntas(pool){
+  const preguntas = akCamposPregunta().map(c=>{
+    const valores = pool.map(x => x.attrs[c.clave]).sort((a,b)=>a-b);
+    const mediana = valores[Math.floor(valores.length/2)];
+    return { clave:c.clave, texto:c.texto(mediana), evaluar: attrs => attrs[c.clave] > mediana };
+  });
+  preguntas.push({ clave:'masGolQueAst', texto:'¿Tiene más goles que asistencias en su carrera?', evaluar: a => a.goles > a.ast });
+  preguntas.push({ clave:'masVicQueDerr', texto:'¿Ganó más partidos de los que perdió?', evaluar: a => a.victorias > a.derrotas });
+  return preguntas;
+}
+
+function akElegirMejorPregunta(candidatos, usadas){
+  const preguntas = akGenerarPreguntas(candidatos).filter(p => !usadas.includes(p.clave));
+  let mejor = null, mejorDif = Infinity;
+  preguntas.forEach(p=>{
+    const siCant = candidatos.filter(c => p.evaluar(c.attrs)).length;
+    const dif = Math.abs(siCant - (candidatos.length - siCant));
+    if(siCant > 0 && siCant < candidatos.length && dif < mejorDif){ mejorDif = dif; mejor = p; }
+  });
+  return mejor;
+}
+
+// --- Modo 1: el sistema adivina ---
+let akCandidatos = [];
+let akPreguntasUsadas = [];
+let akPreguntaActual = null;
+let akNumPregunta = 1;
+
+function akIniciarSistemaAdivina(){
+  akCandidatos = akPoolElegible();
+  akPreguntasUsadas = [];
+  akNumPregunta = 1;
+  document.getElementById('ak-resultado-sistema').style.display = 'none';
+  document.getElementById('ak-botones-si-no').style.display = 'flex';
+  document.getElementById('ak-jugar-de-nuevo-sistema').style.display = 'none';
+  akSiguientePreguntaSistema();
+}
+
+function akSiguientePreguntaSistema(){
+  document.getElementById('ak-cant-candidatos').textContent = akCandidatos.length;
+  document.getElementById('ak-num-pregunta').textContent = akNumPregunta;
+  if(akCandidatos.length <= 1){
+    akMostrarAdivinanzaSistema(akCandidatos[0] ? akCandidatos[0].nombre : '???');
+    return;
+  }
+  const p = akElegirMejorPregunta(akCandidatos, akPreguntasUsadas);
+  if(!p){
+    const masParecido = [...akCandidatos].sort((a,b)=> b.attrs.pj - a.attrs.pj)[0];
+    akMostrarAdivinanzaSistema(masParecido.nombre);
+    return;
+  }
+  akPreguntaActual = p;
+  document.getElementById('ak-pregunta-texto').textContent = p.texto;
+}
+
+function akMostrarAdivinanzaSistema(nombre){
+  document.getElementById('ak-botones-si-no').style.display = 'none';
+  document.getElementById('ak-pregunta-texto').textContent = '¡Ya tengo mi respuesta!';
+  document.getElementById('ak-resultado-sistema').style.display = 'block';
+  document.getElementById('ak-nombre-adivinado').textContent = `🔮 Estás pensando en... ¿${nombre}?`;
+}
+
+document.getElementById('ak-btn-si').addEventListener('click', ()=>{
+  akPreguntasUsadas.push(akPreguntaActual.clave);
+  akCandidatos = akCandidatos.filter(c => akPreguntaActual.evaluar(c.attrs));
+  akNumPregunta++;
+  akSiguientePreguntaSistema();
+});
+document.getElementById('ak-btn-no').addEventListener('click', ()=>{
+  akPreguntasUsadas.push(akPreguntaActual.clave);
+  akCandidatos = akCandidatos.filter(c => !akPreguntaActual.evaluar(c.attrs));
+  akNumPregunta++;
+  akSiguientePreguntaSistema();
+});
+document.getElementById('ak-acerte-btn').addEventListener('click', ()=>{
+  document.getElementById('ak-nombre-adivinado').textContent = '🎉 ¡Sabía que era esa/e!';
+  document.getElementById('ak-jugar-de-nuevo-sistema').style.display = 'block';
+});
+document.getElementById('ak-no-acerte-btn').addEventListener('click', ()=>{
+  akCandidatos = akCandidatos.filter(c => c.nombre !== document.getElementById('ak-nombre-adivinado').textContent.split('¿')[1]?.replace('?',''));
+  if(akCandidatos.length === 0){
+    document.getElementById('ak-nombre-adivinado').textContent = '😅 Me quedé sin ideas, ¡ganaste!';
+    document.getElementById('ak-jugar-de-nuevo-sistema').style.display = 'block';
+    return;
+  }
+  akMostrarAdivinanzaSistema(akCandidatos[0].nombre);
+});
+document.getElementById('ak-jugar-de-nuevo-sistema').addEventListener('click', akIniciarSistemaAdivina);
+
+// --- Modo 2: el usuario adivina ---
+let akJugadorSecreto = null;
+let akPreguntasUsuario = [];
+
+function akIniciarUsuarioAdivina(){
+  const pool = akPoolElegible();
+  akJugadorSecreto = pool[Math.floor(Math.random()*pool.length)];
+  akPreguntasUsuario = akGenerarPreguntas(pool);
+  document.getElementById('ak-resultado-usuario').style.display = 'none';
+  document.getElementById('ak-jugar-de-nuevo-usuario').style.display = 'none';
+  document.getElementById('ak-input-adivinanza').value = '';
+  akRenderizarPreguntasUsuario();
+}
+
+function akRenderizarPreguntasUsuario(){
+  const cont = document.getElementById('ak-preguntas-lista');
+  cont.innerHTML = akPreguntasUsuario.map((p,i) => `
+    <div class="cr-fixture-fila">
+      <span>${p.texto}</span>
+      <button class="auth-btn tr-btn-chico" data-preg="${i}">Preguntar</button>
+    </div>
+  `).join('');
+  cont.querySelectorAll('[data-preg]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const p = akPreguntasUsuario[parseInt(btn.dataset.preg)];
+      const resp = p.evaluar(akJugadorSecreto.attrs) ? 'Sí ✅' : 'No ❌';
+      btn.textContent = resp;
+      btn.disabled = true;
+    });
+  });
+}
+
+document.getElementById('ak-arriesgar-btn').addEventListener('click', ()=>{
+  const intento = normalizarTexto(document.getElementById('ak-input-adivinanza').value);
+  const gano = intento && intento === normalizarTexto(akJugadorSecreto.nombre);
+  document.getElementById('ak-resultado-usuario').style.display = 'block';
+  document.getElementById('ak-usuario-final-titulo').textContent = gano
+    ? `🎉 ¡Exacto! Era ${akJugadorSecreto.nombre}.`
+    : `😢 No era. Era ${akJugadorSecreto.nombre}.`;
+  document.getElementById('ak-jugar-de-nuevo-usuario').style.display = 'block';
+});
+document.getElementById('ak-jugar-de-nuevo-usuario').addEventListener('click', akIniciarUsuarioAdivina);
+
+document.getElementById('ak-modo-sistema-btn').addEventListener('click', ()=>{
+  document.getElementById('ak-elegir-modo').style.display = 'none';
+  document.getElementById('ak-sistema-wrap').style.display = 'block';
+  akIniciarSistemaAdivina();
+});
+document.getElementById('ak-modo-usuario-btn').addEventListener('click', ()=>{
+  document.getElementById('ak-elegir-modo').style.display = 'none';
+  document.getElementById('ak-usuario-wrap').style.display = 'block';
+  akIniciarUsuarioAdivina();
+});
+document.getElementById('mini-card-akinator').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-akinator').style.display = 'block';
+  document.getElementById('ak-sistema-wrap').style.display = 'none';
+  document.getElementById('ak-usuario-wrap').style.display = 'none';
+  document.getElementById('ak-elegir-modo').style.display = 'flex';
+});
+document.getElementById('akinator-volver').addEventListener('click', ()=>{
+  document.getElementById('mini-akinator').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'grid';
+});
+
 
 /* ---------- MINIJUEGO: TRUCO GRILLERO ---------- */
 // Motor de reglas de Truco Argentino (2 jugadores, 30 puntos).
