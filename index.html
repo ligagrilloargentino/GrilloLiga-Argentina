@@ -2226,8 +2226,18 @@ footer{
       </div>
 
       <div id="tr-online-lobby" style="display:none;">
-        <div class="gd-intro">Estás en la sala de espera del Truco. Si hay alguien más, elegilo para desafiarlo — si no, esperá a que entre alguien.</div>
+        <div class="gd-intro">Estás en la sala de espera del Truco. Elegí el formato y armá tu partida.</div>
+        <div class="mg-toggle-row" id="tr-formato-row">
+          <button class="mg-toggle activo" data-formato="1v1">1 vs 1</button>
+          <button class="mg-toggle" data-formato="2v2">2 vs 2</button>
+          <button class="mg-toggle" data-formato="3v3">3 vs 3</button>
+        </div>
         <div id="tr-online-lista"></div>
+        <div id="tr-equipos-armado-wrap" style="display:none;">
+          <div class="gd-intro">Marcá con quiénes querés jugar (van armándose los equipos por orden de invitación: vos y el 2º invitado van juntos en 2vs2; en 3vs3, vos + el 2º y 3º invitado son un equipo, y el resto el otro).</div>
+          <div id="tr-equipos-checklist"></div>
+          <button class="auth-btn" id="tr-invitar-equipo-btn" style="max-width:220px; margin:14px auto 0;" disabled>Invitar y crear sala</button>
+        </div>
         <button class="auth-btn" id="tr-online-salir-btn" style="max-width:220px; margin:18px auto 0; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Salir de la sala</button>
       </div>
 
@@ -2265,6 +2275,18 @@ footer{
         </div>
 
         <div id="tr-log" class="cz-controles-info"></div>
+      </div>
+
+      <div id="tr-mesa-equipos-wrap" style="display:none;">
+        <div class="pen-marcador">
+          <div>Equipo A<br><b id="treq-puntos-a">0</b></div>
+          <div class="pen-ronda" id="treq-titulo">Truco en equipos</div>
+          <div>Equipo B<br><b id="treq-puntos-b">0</b></div>
+        </div>
+        <div class="gd-intro" id="treq-info">Esperando…</div>
+        <div id="treq-mesa-jugadas" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:10px 0;"></div>
+        <div id="treq-mi-mano" class="tr-mano" style="margin:10px 0;"></div>
+        <div id="treq-log" class="cz-controles-info"></div>
       </div>
 
       <div id="tr-final" style="display:none;">
@@ -6639,7 +6661,7 @@ function trResolverEnvido(){
 function trIrseAlMazo(){
   if(trTurno !== 'yo' || trPendiente) return;
   if(trModoJuego === 'online' && !trEsHostOnline){ trEnviarAccionInvitado('irse_mazo'); return; }
-  const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel;
+  const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel + 1; // corrección: truco=2, retruco=3, vale cuatro=4 (no 1/2/3)
   trSumarPuntos('rival', puntos);
   trLog(`${trNombreJugadorTr} se fue al mazo. Se lleva ${puntos} ${trNombreRivalTr}.`);
   trManoTerminada = true;
@@ -6695,13 +6717,21 @@ function trEvaluarGanadorMano(){
   r.forEach(x => { if(x !== 'parda') cuenta[x]++; });
   if(cuenta.yo >= 2) return 'yo';
   if(cuenta.rival >= 2) return 'rival';
-  if(r.length === 3) return r[2] === 'parda' ? trQuienEsMano : r[2];
-  if(r.length === 2 && r[0] === 'parda' && r[1] !== 'parda') return r[1];
+  if(r.length === 2){
+    if(r[0] === 'parda' && r[1] !== 'parda') return r[1]; // parda y después gana uno: gana ese
+    if(r[1] === 'parda' && r[0] !== 'parda') return r[0]; // gana uno y después parda: gana el que ganó la 1ra
+    return null; // las dos pardas, sigue a la 3ra ronda
+  }
+  if(r.length === 3){
+    if(r[2] !== 'parda') return r[2]; // la 3ra decide si no es parda
+    if(r[0] !== 'parda') return r[0]; // 3ra parda: gana quien ganó la 1ra (si la hubo)
+    return trQuienEsMano; // las 3 rondas fueron pardas: gana el mano
+  }
   return null;
 }
 
 function trTerminarMano(ganador){
-  const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel;
+  const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel + 1; // sin truco=1, truco=2, retruco=3, vale cuatro=4
   trSumarPuntos(ganador, puntos);
   trLog(`${ganador==='yo'?trNombreJugadorTr:trNombreRivalTr} se llevó la mano (${puntos} punto${puntos===1?'':'s'}).`);
   setTimeout(() => trSiguienteManoOFin(), 1400);
@@ -6915,6 +6945,11 @@ async function trEntrarSalaEsperaTruco(){
   document.getElementById('tr-armado').style.display = 'none';
   document.getElementById('tr-online-lobby').style.display = 'block';
   document.getElementById('tr-online-lista').innerHTML = '<div class="cz-online-esperando">Conectando a la sala…</div>';
+  trFormatoSeleccionado = '1v1';
+  trInvitacionEquipoPendiente = null;
+  document.querySelectorAll('#tr-formato-row [data-formato]').forEach(b=>b.classList.remove('activo'));
+  document.querySelector('#tr-formato-row [data-formato="1v1"]').classList.add('activo');
+  document.getElementById('tr-equipos-armado-wrap').style.display = 'none';
 
   trLobbyChannel = sbClient.channel('truco-lobby-online', { config:{ presence:{ key: trMiUsernameOnlineTr } } });
   trLobbyChannel.on('presence', { event:'sync' }, ()=> trRenderizarSalaEsperaTruco());
@@ -6927,17 +6962,54 @@ async function trEntrarSalaEsperaTruco(){
   trLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
     if(msg.payload.para === trMiUsernameOnlineTr){ alert(msg.payload.de + ' rechazó tu desafío.'); trRenderizarSalaEsperaTruco(); }
   });
+  trLobbyChannel.on('broadcast', { event:'invitacion_equipo' }, (msg)=>{
+    if(msg.payload.para === trMiUsernameOnlineTr) trMostrarInvitacionEquipo(msg.payload);
+  });
+  trLobbyChannel.on('broadcast', { event:'invitacion_equipo_aceptada' }, (msg)=>{
+    if(!trInvitacionEquipoPendiente || msg.payload.roomId !== trInvitacionEquipoPendiente.roomId) return;
+    if(!trInvitacionEquipoPendiente.aceptaron.includes(msg.payload.de)) trInvitacionEquipoPendiente.aceptaron.push(msg.payload.de);
+    trActualizarEsperaInvitacionesEquipo();
+  });
+  trLobbyChannel.on('broadcast', { event:'invitacion_equipo_rechazada' }, (msg)=>{
+    if(!trInvitacionEquipoPendiente || msg.payload.roomId !== trInvitacionEquipoPendiente.roomId) return;
+    alert(msg.payload.de + ' rechazó la invitación. Se cancela la sala.');
+    trInvitacionEquipoPendiente = null;
+    trRenderizarSalaEsperaTruco();
+  });
+  trLobbyChannel.on('broadcast', { event:'equipo_partida_iniciada' }, (msg)=>{
+    if(msg.payload.participantes.includes(trMiUsernameOnlineTr)) trIniciarOnlineEquipos(msg.payload);
+  });
   trLobbyChannel.subscribe(async (status)=>{
     if(status === 'SUBSCRIBED') await trLobbyChannel.track({ username: trMiUsernameOnlineTr, cabeza: trNombreJugadorTr });
   });
 }
 
+let trFormatoSeleccionado = '1v1';
+let trInvitacionEquipoPendiente = null; // { roomId, formato, participantes:[...usernames], aceptaron:[...] }
+
+document.querySelectorAll('#tr-formato-row [data-formato]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tr-formato-row [data-formato]').forEach(b=>b.classList.remove('activo'));
+    btn.classList.add('activo');
+    trFormatoSeleccionado = btn.dataset.formato;
+    trRenderizarSalaEsperaTruco();
+  });
+});
+
 function trRenderizarSalaEsperaTruco(){
   if(!trLobbyChannel) return;
   const estado = trLobbyChannel.presenceState();
-  const lista = document.getElementById('tr-online-lista');
   const otros = [];
   Object.values(estado).forEach(arr => arr.forEach(p=>{ if(p.username !== trMiUsernameOnlineTr) otros.push(p); }));
+
+  if(trFormatoSeleccionado !== '1v1'){
+    document.getElementById('tr-online-lista').innerHTML = '';
+    document.getElementById('tr-equipos-armado-wrap').style.display = 'block';
+    trRenderizarChecklistEquipos(otros);
+    return;
+  }
+  document.getElementById('tr-equipos-armado-wrap').style.display = 'none';
+  const lista = document.getElementById('tr-online-lista');
   if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
   lista.innerHTML = otros.map(p => `
     <div class="cz-online-fila"><b>${p.username}</b><button class="auth-btn" style="max-width:130px; margin:0;" data-desafiar="${p.username}">Desafiar</button></div>
@@ -6950,8 +7022,57 @@ function trRenderizarSalaEsperaTruco(){
   });
 }
 
-function trMostrarDesafioTruco(payload){
-  document.getElementById('cz-desafio-texto').textContent = `${payload.de} te quiere desafiar a un Truco online. ¿Aceptás?`;
+function trRenderizarChecklistEquipos(otros){
+  const cont = document.getElementById('tr-equipos-checklist');
+  const necesarios = trFormatoSeleccionado === '2v2' ? 3 : 5;
+  if(!otros.length){ cont.innerHTML = '<div class="cz-online-esperando">No hay nadie más conectado todavía.</div>'; return; }
+  cont.innerHTML = otros.map(p => `
+    <label class="cz-online-fila" style="cursor:pointer;">
+      <span><input type="checkbox" class="tr-check-invitado" value="${p.username}"> <b>${p.username}</b></span>
+    </label>
+  `).join('');
+  const btnInvitar = document.getElementById('tr-invitar-equipo-btn');
+  btnInvitar.textContent = `Invitar y crear sala (necesitás marcar ${necesarios})`;
+  btnInvitar.disabled = true;
+  cont.querySelectorAll('.tr-check-invitado').forEach(chk=>{
+    chk.addEventListener('change', ()=>{
+      const marcados = cont.querySelectorAll('.tr-check-invitado:checked');
+      if(marcados.length > necesarios){ chk.checked = false; return; }
+      btnInvitar.disabled = marcados.length !== necesarios;
+    });
+  });
+}
+
+document.getElementById('tr-invitar-equipo-btn').addEventListener('click', ()=>{
+  const seleccionados = Array.from(document.querySelectorAll('.tr-check-invitado:checked')).map(c=>c.value);
+  const roomId = 'truco-equipo-' + Math.random().toString(36).slice(2,10);
+  const participantes = [trMiUsernameOnlineTr, ...seleccionados]; // orden de asiento: host primero, después en el orden que los marcaste
+  trInvitacionEquipoPendiente = { roomId, formato:trFormatoSeleccionado, participantes, aceptaron:[trMiUsernameOnlineTr] };
+  seleccionados.forEach(username=>{
+    trLobbyChannel.send({ type:'broadcast', event:'invitacion_equipo', payload:{
+      de:trMiUsernameOnlineTr, para:username, roomId, formato:trFormatoSeleccionado, participantes
+    }});
+  });
+  trActualizarEsperaInvitacionesEquipo();
+});
+
+function trActualizarEsperaInvitacionesEquipo(){
+  const p = trInvitacionEquipoPendiente;
+  if(!p) return;
+  const cont = document.getElementById('tr-equipos-checklist');
+  cont.innerHTML = `<div class="gd-pista-titulo">Esperando confirmaciones…</div>` + p.participantes.map(u => `
+    <div class="cz-online-fila"><b>${u}</b><span>${p.aceptaron.includes(u) ? '✅ Confirmado' : '⏳ Esperando…'}</span></div>
+  `).join('');
+  document.getElementById('tr-invitar-equipo-btn').style.display = 'none';
+  if(p.aceptaron.length === p.participantes.length){
+    trLobbyChannel.send({ type:'broadcast', event:'equipo_partida_iniciada', payload:{ roomId:p.roomId, formato:p.formato, participantes:p.participantes } });
+    trIniciarOnlineEquipos({ roomId:p.roomId, formato:p.formato, participantes:p.participantes });
+  }
+}
+
+function trMostrarInvitacionEquipo(payload){
+  const otros = payload.participantes.filter(u => u !== trMiUsernameOnlineTr);
+  document.getElementById('cz-desafio-texto').textContent = `${payload.de} te invita a un Truco ${payload.formato.replace('v',' vs ')} con: ${otros.join(', ')}. ¿Aceptás?`;
   document.getElementById('cz-desafio-overlay').style.display = 'block';
   document.getElementById('cz-desafio-modal').style.display = 'flex';
   const aceptarBtn = document.getElementById('cz-desafio-aceptar-btn');
@@ -6960,13 +7081,12 @@ function trMostrarDesafioTruco(payload){
   aceptarBtn.replaceWith(aceptarNuevo); rechazarBtn.replaceWith(rechazarNuevo);
   const limpiar = ()=>{ document.getElementById('cz-desafio-overlay').style.display='none'; document.getElementById('cz-desafio-modal').style.display='none'; };
   aceptarNuevo.addEventListener('click', ()=>{
-    const roomId = 'truco-' + Math.random().toString(36).slice(2,10);
-    trLobbyChannel.send({ type:'broadcast', event:'desafio_aceptado', payload:{ de:trMiUsernameOnlineTr, cabezaDe:trNombreJugadorTr, para:payload.de, roomId } });
+    trLobbyChannel.send({ type:'broadcast', event:'invitacion_equipo_aceptada', payload:{ de:trMiUsernameOnlineTr, roomId:payload.roomId } });
     limpiar();
-    trIniciarOnline(true, roomId, payload.de, payload.cabezaDe);
+    document.getElementById('tr-online-lista').innerHTML = '<div class="cz-online-esperando">Aceptaste. Esperando que confirmen los demás…</div>';
   });
   rechazarNuevo.addEventListener('click', ()=>{
-    trLobbyChannel.send({ type:'broadcast', event:'desafio_rechazado', payload:{ de:trMiUsernameOnlineTr, para:payload.de } });
+    trLobbyChannel.send({ type:'broadcast', event:'invitacion_equipo_rechazada', payload:{ de:trMiUsernameOnlineTr, roomId:payload.roomId } });
     limpiar();
   });
 }
@@ -7059,7 +7179,7 @@ function trProcesarAccionRemota(accion){
   else if(accion.tipo === 'cantar') trIniciarCanto(accion.valor, 'rival');
   else if(accion.tipo === 'responder') trAplicarRespuesta(accion.valor, 'rival');
   else if(accion.tipo === 'irse_mazo'){
-    const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel;
+    const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel + 1; // misma corrección
     trSumarPuntos('yo', puntos);
     trManoTerminada = true;
     setTimeout(() => trSiguienteManoOFin(), 1200);
@@ -7074,12 +7194,206 @@ function trEnviarAccionInvitado(tipo, valor, idx){
 function trSalirModoOnlineTruco(){
   if(trLobbyChannel){ trLobbyChannel.unsubscribe(); trLobbyChannel = null; }
   if(trMatchChannel){ trMatchChannel.unsubscribe(); trMatchChannel = null; }
+  if(trEqMatchChannel){ trEqMatchChannel.unsubscribe(); trEqMatchChannel = null; }
+  trEqActivo = false;
   document.getElementById('tr-online-lobby').style.display = 'none';
+  document.getElementById('tr-mesa-equipos-wrap').style.display = 'none';
 }
 document.getElementById('tr-online-salir-btn').addEventListener('click', ()=>{
   trSalirModoOnlineTruco();
   document.getElementById('tr-armado').style.display = 'block';
 });
+
+/* --- Truco en Equipos (2vs2 / 3vs3): base de sala, reparto y turnos ---
+   Fase 1 (esta implementación): armado de sala, reparto de cartas, jugar por turnos, gana la ronda
+   el equipo con la carta más fuerte, gana la mano el equipo que gana 2 de 3 rondas (con las mismas
+   reglas de "parda" ya corregidas). Envido/Truco cantados en equipo quedan para la fase 2. */
+let trEqActivo = false;
+let trEqRoomId = null, trEqFormato = null;
+let trEqParticipantes = []; // usernames en orden de asiento (alternado por equipo)
+let trEqEquipoDe = {}; // username -> 'A' | 'B'
+let trEqEsHost = false;
+let trEqManos = {}; // username -> [cartas]
+let trEqTurnoIdx = 0;
+let trEqJugadasRonda = []; // [{username, carta}]
+let trEqRondaActual = 0;
+let trEqResultadosRondas = []; // 'A' | 'B' | 'parda'
+let trEqPuntosA = 0, trEqPuntosB = 0;
+let trEqManoIdx = 0;
+let trEqMatchChannel = null;
+
+function trIniciarOnlineEquipos(payload){
+  trEqActivo = true;
+  trEqRoomId = payload.roomId;
+  trEqFormato = payload.formato;
+  trEqParticipantes = payload.participantes;
+  trEqEquipoDe = {};
+  trEqParticipantes.forEach((u,i)=>{ trEqEquipoDe[u] = i%2===0 ? 'A' : 'B'; });
+  trEqEsHost = trEqParticipantes[0] === trMiUsernameOnlineTr;
+  trEqPuntosA = 0; trEqPuntosB = 0; trEqManoIdx = 0;
+
+  if(trLobbyChannel){ trLobbyChannel.unsubscribe(); trLobbyChannel = null; }
+  document.getElementById('tr-online-lobby').style.display = 'none';
+  document.getElementById('tr-armado').style.display = 'none';
+  document.getElementById('tr-mesa-equipos-wrap').style.display = 'block';
+  document.getElementById('treq-titulo').textContent = `Truco ${trEqFormato.replace('v',' vs ')} — Equipo ${trEqEquipoDe[trMiUsernameOnlineTr]}`;
+
+  trEqMatchChannel = sbClient.channel('truco-equipo-match-' + trEqRoomId);
+  trEqMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{ if(trEqEsHost) trEqProcesarAccionRemota(msg.payload); });
+  trEqMatchChannel.on('broadcast', { event:'estado' }, (msg)=> trEqAplicarEstadoRemoto(msg.payload));
+  trEqMatchChannel.subscribe(async (status)=>{
+    if(status !== 'SUBSCRIBED') return;
+    await trEqMatchChannel.track({ username: trMiUsernameOnlineTr });
+    if(trEqEsHost) trEqIniciarMano();
+  });
+}
+
+function trEqCrearMazoYRepartir(){
+  const mazo = trCrearMazo();
+  const manos = {};
+  trEqParticipantes.forEach(u => { manos[u] = mazo.splice(0,3); });
+  return manos;
+}
+
+function trEqIniciarMano(){
+  trEqManos = trEqCrearMazoYRepartir();
+  trEqJugadasRonda = [];
+  trEqRondaActual = 0;
+  trEqResultadosRondas = [];
+  trEqTurnoIdx = trEqManoIdx;
+  trEqBroadcastEstado();
+}
+
+function trEqBroadcastEstado(){
+  const estado = {
+    manos: trEqManos, turnoIdx: trEqTurnoIdx, jugadasRonda: trEqJugadasRonda,
+    rondaActual: trEqRondaActual, resultadosRondas: trEqResultadosRondas,
+    puntosA: trEqPuntosA, puntosB: trEqPuntosB, manoIdx: trEqManoIdx, terminado:false
+  };
+  trEqMatchChannel.send({ type:'broadcast', event:'estado', payload: estado });
+  trEqAplicarEstadoRemoto(estado);
+}
+
+function trEqBroadcastEstadoFinal(ganador){
+  const estado = { manos:trEqManos, turnoIdx:trEqTurnoIdx, jugadasRonda:[], rondaActual:trEqRondaActual,
+    resultadosRondas:trEqResultadosRondas, puntosA:trEqPuntosA, puntosB:trEqPuntosB, manoIdx:trEqManoIdx,
+    terminado:true, ganador };
+  trEqMatchChannel.send({ type:'broadcast', event:'estado', payload: estado });
+  trEqAplicarEstadoRemoto(estado);
+}
+
+function trEqAplicarEstadoRemoto(estado){
+  trEqManos = estado.manos; trEqTurnoIdx = estado.turnoIdx; trEqJugadasRonda = estado.jugadasRonda;
+  trEqRondaActual = estado.rondaActual; trEqResultadosRondas = estado.resultadosRondas;
+  trEqPuntosA = estado.puntosA; trEqPuntosB = estado.puntosB; trEqManoIdx = estado.manoIdx;
+  trEqRenderizar();
+  if(estado.terminado){
+    document.getElementById('treq-info').textContent = `🏆 ¡Ganó el Equipo ${estado.ganador}!`;
+  }
+}
+
+function trEqRenderizar(){
+  document.getElementById('treq-puntos-a').textContent = trEqPuntosA;
+  document.getElementById('treq-puntos-b').textContent = trEqPuntosB;
+  const jugadorTurno = trEqParticipantes[trEqTurnoIdx];
+  const miTurno = jugadorTurno === trMiUsernameOnlineTr;
+  document.getElementById('treq-info').textContent = miTurno
+    ? 'Te toca jugar una carta.'
+    : `Turno de ${jugadorTurno} (Equipo ${trEqEquipoDe[jugadorTurno]})`;
+
+  document.getElementById('treq-mesa-jugadas').innerHTML = trEqJugadasRonda.map(j => `
+    <div style="text-align:center;">
+      ${trHtmlCarta(j.carta)}
+      <div style="font-size:10px; margin-top:2px;">${j.username} (${trEqEquipoDe[j.username]})</div>
+    </div>
+  `).join('') || '<div class="cz-online-esperando">Nadie tiró carta todavía en esta ronda.</div>';
+
+  const miMano = trEqManos[trMiUsernameOnlineTr] || [];
+  const cont = document.getElementById('treq-mi-mano');
+  cont.innerHTML = miMano.map(() => '').join(''); // se llena abajo con nodos reales para poder ponerle onclick
+  cont.innerHTML = '';
+  miMano.forEach((c,i)=>{
+    const div = document.createElement('div');
+    div.innerHTML = trHtmlCarta(c);
+    const el = div.firstElementChild;
+    el.style.cursor = miTurno ? 'pointer' : 'default';
+    if(miTurno) el.addEventListener('click', ()=> trEqJugarCarta(i));
+    cont.appendChild(el);
+  });
+}
+
+function trEqJugarCarta(idx){
+  if(trEqParticipantes[trEqTurnoIdx] !== trMiUsernameOnlineTr) return;
+  const carta = trEqManos[trMiUsernameOnlineTr][idx];
+  if(trEqEsHost){
+    trEqAplicarJugada(trMiUsernameOnlineTr, carta, idx);
+  } else {
+    trEqMatchChannel.send({ type:'broadcast', event:'accion', payload:{ tipo:'jugar', de:trMiUsernameOnlineTr, idx } });
+  }
+}
+
+function trEqProcesarAccionRemota(accion){
+  if(accion.tipo === 'jugar'){
+    const carta = trEqManos[accion.de][accion.idx];
+    trEqAplicarJugada(accion.de, carta, accion.idx);
+  }
+}
+
+function trEqEvaluarGanadorMano(){
+  const r = trEqResultadosRondas;
+  const cuenta = { A:0, B:0 };
+  r.forEach(x=>{ if(x!=='parda') cuenta[x]++; });
+  if(cuenta.A >= 2) return 'A';
+  if(cuenta.B >= 2) return 'B';
+  if(r.length === 2){
+    if(r[0]==='parda' && r[1]!=='parda') return r[1];
+    if(r[1]==='parda' && r[0]!=='parda') return r[0];
+    return null;
+  }
+  if(r.length === 3){
+    if(r[2]!=='parda') return r[2];
+    if(r[0]!=='parda') return r[0];
+    return trEqEquipoDe[trEqParticipantes[trEqManoIdx]];
+  }
+  return null;
+}
+
+function trEqAplicarJugada(username, carta, idx){
+  trEqManos[username] = trEqManos[username].filter((_,i)=> i!==idx);
+  trEqJugadasRonda.push({ username, carta });
+  if(trEqJugadasRonda.length < trEqParticipantes.length){
+    trEqTurnoIdx = (trEqTurnoIdx+1) % trEqParticipantes.length;
+    trEqBroadcastEstado();
+    return;
+  }
+  let mejor = trEqJugadasRonda[0];
+  let hayEmpateTope = false;
+  trEqJugadasRonda.forEach(j=>{
+    const v = trValorTruco(j.carta), vMejor = trValorTruco(mejor.carta);
+    if(v > vMejor){ mejor = j; hayEmpateTope = false; }
+    else if(v === vMejor && j !== mejor) hayEmpateTope = true;
+  });
+  const ganadorRonda = hayEmpateTope ? 'parda' : trEqEquipoDe[mejor.username];
+  trEqResultadosRondas.push(ganadorRonda);
+  trEqRondaActual++;
+  trEqJugadasRonda = [];
+
+  const ganadorMano = trEqEvaluarGanadorMano();
+  if(ganadorMano){
+    if(ganadorMano === 'A') trEqPuntosA = Math.min(30, trEqPuntosA+1); else trEqPuntosB = Math.min(30, trEqPuntosB+1);
+    if(trEqPuntosA >= 30 || trEqPuntosB >= 30){
+      trEqBroadcastEstadoFinal(trEqPuntosA >= 30 ? 'A' : 'B');
+      return;
+    }
+    trEqManoIdx = (trEqManoIdx+1) % trEqParticipantes.length;
+    trEqBroadcastEstado();
+    setTimeout(()=> trEqIniciarMano(), 1400);
+    return;
+  }
+  trEqTurnoIdx = trEqManoIdx;
+  trEqBroadcastEstado();
+}
+
 
 /* ---------- MODO CARRERA (Fase 1: partidos de prueba + ojeador) ---------- */
 const CR_UMBRAL_PARTIDO1 = 70;
