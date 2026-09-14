@@ -1515,6 +1515,18 @@ footer{
       <h2>Resumen del torneo</h2>
     </div>
     <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
+    <div id="ios-instalar-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.55); align-items:center; justify-content:center;">
+      <div class="auth-card" style="max-width:320px; text-align:center;">
+        <h1 style="font-size:18px;">📱 Instalar en iPhone/iPad</h1>
+        <div class="gd-intro" style="text-align:left; margin-top:10px;">
+          1. Tocá el ícono de <b>Compartir</b> (el cuadrado con la flecha hacia arriba), abajo en Safari.<br><br>
+          2. Deslizá y elegí <b>"Agregar a pantalla de inicio"</b>.<br><br>
+          3. Tocá <b>"Agregar"</b> arriba a la derecha.<br><br>
+          Listo — te va a quedar el ícono de la Grillo Liga en tu pantalla, como una app de verdad.
+        </div>
+        <button class="auth-btn" id="ios-instalar-cerrar-btn" style="margin-top:16px;">Entendido</button>
+      </div>
+    </div>
     <div class="stat-grid" id="stat-grid"></div>
 
     <div class="section-head" style="margin-top:26px;">
@@ -3005,6 +3017,13 @@ if('serviceWorker' in navigator){
   });
 }
 let eventoInstalacionPWA = null;
+function pwaEsIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; }
+function pwaYaEstaInstalada(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+
+if(pwaEsIOS() && !pwaYaEstaInstalada()){
+  const btn = document.getElementById('instalar-app-btn');
+  if(btn) btn.style.display = 'block';
+}
 window.addEventListener('beforeinstallprompt', (e)=>{
   e.preventDefault();
   eventoInstalacionPWA = e;
@@ -3012,14 +3031,21 @@ window.addEventListener('beforeinstallprompt', (e)=>{
   if(btn) btn.style.display = 'block';
 });
 document.getElementById('instalar-app-btn').addEventListener('click', async ()=>{
+  if(pwaEsIOS()){
+    document.getElementById('ios-instalar-overlay').style.display = 'flex';
+    return;
+  }
   if(!eventoInstalacionPWA){
-    alert('Para instalarla: en Chrome/Android tocá el menú ⋮ y elegí "Instalar app". En iPhone: tocá Compartir y luego "Agregar a pantalla de inicio".');
+    alert('Para instalarla, abrí este sitio con Chrome y tocá el menú ⋮ → "Instalar app".');
     return;
   }
   eventoInstalacionPWA.prompt();
   await eventoInstalacionPWA.userChoice;
   eventoInstalacionPWA = null;
   document.getElementById('instalar-app-btn').style.display = 'none';
+});
+document.getElementById('ios-instalar-cerrar-btn').addEventListener('click', ()=>{
+  document.getElementById('ios-instalar-overlay').style.display = 'none';
 });
 window.addEventListener('appinstalled', ()=>{
   const btn = document.getElementById('instalar-app-btn');
