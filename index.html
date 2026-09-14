@@ -1390,7 +1390,7 @@ footer{
       <div class="auth-error" id="perfil-error"></div>
       <div class="auth-field"><label>Nombre</label><input type="text" id="perfil-nombre"></div>
       <div class="auth-field"><label>Fecha de nacimiento</label><input type="date" id="perfil-fecha"></div>
-      <div class="auth-field"><label>Jugador favorito</label><select id="perfil-jugador"><option value="">Elegí un jugador…</option></select></div>
+      <div class="auth-field"><label>Jugador fetiche</label><select id="perfil-jugador"><option value="">Elegí un jugador…</option></select></div>
       <div class="auth-field"><label>Club de fútbol del que sos hincha</label><input type="text" id="perfil-club" placeholder="Ej: Independiente, Olimpo, Boca…"></div>
       <button class="auth-btn" id="perfil-submit">Entrar a Grillo Liga</button>
     </div>
@@ -1422,11 +1422,11 @@ footer{
         <div class="usuario-mini-menu" id="usuario-mini-menu">
           <div class="umm-fila"><b>Usuario:</b> <span id="umm-usuario">—</span></div>
           <div class="umm-fila" id="umm-club-fila"><b>Hincha de:</b> <span id="umm-club">—</span></div>
-          <div class="umm-fila" id="umm-jugador-fila"><b>Jugador favorito:</b> <span id="umm-jugador">—</span></div>
+          <div class="umm-fila" id="umm-jugador-fila"><b>Jugador fetiche:</b> <span id="umm-jugador">—</span></div>
           <div class="umm-fila"><b>Insignias:</b></div>
           <div class="pp-insignias" id="umm-insignias"></div>
           <div class="umm-editar" id="umm-editar-form" style="display:none;">
-            <div class="auth-field"><label>Jugador favorito</label><select id="umm-editar-jugador"></select></div>
+            <div class="auth-field"><label>Jugador fetiche</label><select id="umm-editar-jugador"></select></div>
             <div class="auth-field"><label>Club de fútbol favorito</label><input type="text" id="umm-editar-club"></div>
             <button class="auth-btn" id="umm-guardar-btn" style="margin-top:6px;">Guardar</button>
           </div>
@@ -1464,7 +1464,7 @@ footer{
   <div class="auth-card" style="max-width:300px;">
     <button class="drawer-cerrar" id="perfil-publico-cerrar-btn" style="float:right;">✕</button>
     <h1 id="pp-username" style="font-size:19px;"></h1>
-    <div class="pp-fila"><b>⚽ Jugador favorito:</b> <span id="pp-jugador">—</span></div>
+    <div class="pp-fila"><b>⚽ Jugador fetiche:</b> <span id="pp-jugador">—</span></div>
     <div class="pp-fila"><b>🛡️ Hincha de:</b> <span id="pp-club">—</span></div>
     <div class="pp-fila"><b>📅 En la GrilloLiga desde:</b> <span id="pp-fecha">—</span></div>
     <div class="pp-fila"><b>🏅 Insignias:</b></div>
@@ -1520,6 +1520,11 @@ footer{
       <h2>Líderes</h2>
     </div>
     <div class="leader-grid" id="leader-grid"></div>
+
+    <div class="section-head" style="margin-top:26px;">
+      <h2>🔥 Mejores y peores rachas</h2>
+    </div>
+    <div class="leader-grid" id="rachas-grid"></div>
 
     <div class="section-head" style="margin-top:26px;">
       <h2>🎉 La hinchada de la GrilloLiga</h2>
@@ -4080,6 +4085,27 @@ function botMejorGrupoDiferencia(n){
 
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
+
+  // Caso -0.5a: rachas de un jugador (goles, asistencias, victorias, derrotas)
+  if(/racha/.test(normTexto)){
+    const jug = extraerJugadoresDeTexto(texto);
+    if(jug.length >= 1){
+      const matches = playerMatches(jug[0]);
+      if(matches.length < 2) return `${jug[0]} todavía no jugó suficientes partidos para tener rachas.`;
+      const r = jpCalcularRachas(matches);
+      return `Rachas de ${jug[0]}: mejor racha ganando ${r.mejorRachaGan} partido${r.mejorRachaGan===1?'':'s'} seguido${r.mejorRachaGan===1?'':'s'}, peor racha perdiendo ${r.peorRachaPer} seguido${r.peorRachaPer===1?'':'s'}, racha marcando gol en ${r.mejorRachaGol} partido${r.mejorRachaGol===1?'':'s'} seguido${r.mejorRachaGol===1?'':'s'}, y dando asistencia en ${r.mejorRachaAst} seguido${r.mejorRachaAst===1?'':'s'}.`;
+    }
+  }
+
+  // Caso -0.5b: compañero o rival más frecuente de un jugador
+  if(/companero mas frecuente|rival mas frecuente|con quien mas jugo|contra quien mas jugo/.test(normTexto)){
+    const jug = extraerJugadoresDeTexto(texto);
+    if(jug.length >= 1){
+      const f = jpCompanieroYRivalMasFrecuente(jug[0]);
+      if(!f.companero && !f.rival) return `${jug[0]} todavía no tiene suficientes partidos para saber esto.`;
+      return `${jug[0]} jugó más veces de compañero con ${f.companero ? `${f.companero[0]} (${f.companero[1]} partidos juntos)` : 'nadie en particular'}, y más veces se enfrentó a ${f.rival ? `${f.rival[0]} (${f.rival[1]} partidos)` : 'nadie en particular'}.`;
+    }
+  }
 
   // Caso -1: historial a favor de X (todos los rivales a los que le ganó más)
   if(/historial a favor/.test(normTexto)){
@@ -10278,6 +10304,44 @@ function renderHighlightGrid(){
   `).join('');
 }
 
+function renderRachasGrid(){
+  const grid = document.getElementById('rachas-grid');
+  if(!grid) return;
+  let mejorGan = null, peorPer = null, mejorGol = null, mejorAst = null;
+  DATA.estadisticas.forEach(r=>{
+    const matches = playerMatches(r.Jugador);
+    if(matches.length < 2) return;
+    const rachas = jpCalcularRachas(matches);
+    if(!mejorGan || rachas.mejorRachaGan > mejorGan.valor) mejorGan = { nombre:r.Jugador, valor:rachas.mejorRachaGan };
+    if(!peorPer || rachas.peorRachaPer > peorPer.valor) peorPer = { nombre:r.Jugador, valor:rachas.peorRachaPer };
+    if(!mejorGol || rachas.mejorRachaGol > mejorGol.valor) mejorGol = { nombre:r.Jugador, valor:rachas.mejorRachaGol };
+    if(!mejorAst || rachas.mejorRachaAst > mejorAst.valor) mejorAst = { nombre:r.Jugador, valor:rachas.mejorRachaAst };
+  });
+  const items = [
+    { icono:'🏆', cat:'Mejor racha ganando', dato:mejorGan },
+    { icono:'💀', cat:'Peor racha perdiendo', dato:peorPer },
+    { icono:'⚽', cat:'Más partidos seguidos marcando', dato:mejorGol },
+    { icono:'🎯', cat:'Más partidos seguidos asistiendo', dato:mejorAst }
+  ];
+  grid.innerHTML = items.map(it => it.dato ? `
+    <div class="leader-card" data-jugador="${it.dato.nombre}">
+      <div class="lc-icon">${it.icono}</div>
+      <div class="lc-body">
+        <div class="lc-cat">${it.cat}</div>
+        <div class="lc-name">${it.dato.nombre}</div>
+      </div>
+      <div class="lc-val">${it.dato.valor}</div>
+    </div>` : '').join('');
+  grid.querySelectorAll('.leader-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      document.querySelector('.tab-btn[data-tab="jugadores"]').click();
+      activeJugador = card.dataset.jugador;
+      renderJugadorChips();
+      renderJugadorProfile();
+    });
+  });
+}
+
 function renderLeaderGrid(){
   const grid = document.getElementById('leader-grid');
   const catLabels = {
@@ -10359,6 +10423,7 @@ async function renderHinchadaGrilloliga(){
 renderStatGrid();
 renderHighlightGrid();
 renderLeaderGrid();
+renderRachasGrid();
 renderHinchadaGrilloliga();
 
 /* ---------- PARTIDOS HISTORICOS ---------- */
@@ -10414,6 +10479,41 @@ document.getElementById('jugadores-count').textContent = jugadoresSorted.length 
 let activeJugador = null;
 let jugadorSearch = '';
 
+function jpCalcularRachas(matches){
+  let rachaGolActual=0, mejorRachaGol=0, rachaAstActual=0, mejorRachaAst=0;
+  let rachaGanActual=0, mejorRachaGan=0, rachaPerActual=0, peorRachaPer=0;
+  matches.forEach(m=>{
+    rachaGolActual = (m.goles||0) > 0 ? rachaGolActual+1 : 0;
+    mejorRachaGol = Math.max(mejorRachaGol, rachaGolActual);
+    rachaAstActual = (m.asistencias||0) > 0 ? rachaAstActual+1 : 0;
+    mejorRachaAst = Math.max(mejorRachaAst, rachaAstActual);
+    rachaGanActual = m.resultado === 'win' ? rachaGanActual+1 : 0;
+    mejorRachaGan = Math.max(mejorRachaGan, rachaGanActual);
+    rachaPerActual = m.resultado === 'loss' ? rachaPerActual+1 : 0;
+    peorRachaPer = Math.max(peorRachaPer, rachaPerActual);
+  });
+  return { mejorRachaGol, mejorRachaAst, mejorRachaGan, peorRachaPer };
+}
+
+function jpCompanieroYRivalMasFrecuente(nombre){
+  const conteoCompaneros = {}, conteoRivales = {};
+  DATA.partidos.forEach(p=>{
+    const enOscuro = p.oscuro.jugadores.some(j => j.jugador === nombre);
+    const enClaro = p.claro.jugadores.some(j => j.jugador === nombre);
+    if(!enOscuro && !enClaro) return;
+    const miEquipo = enOscuro ? p.oscuro.jugadores : p.claro.jugadores;
+    const rival = enOscuro ? p.claro.jugadores : p.oscuro.jugadores;
+    miEquipo.forEach(j => { if(j.jugador !== nombre) conteoCompaneros[j.jugador] = (conteoCompaneros[j.jugador]||0)+1; });
+    rival.forEach(j => { conteoRivales[j.jugador] = (conteoRivales[j.jugador]||0)+1; });
+  });
+  const masFrecuente = (obj) => {
+    const entradas = Object.entries(obj);
+    if(!entradas.length) return null;
+    return entradas.sort((a,b)=>b[1]-a[1])[0];
+  };
+  return { companero: masFrecuente(conteoCompaneros), rival: masFrecuente(conteoRivales) };
+}
+
 function playerMatches(nombre){
   const results = [];
   DATA.partidos.forEach(p=>{
@@ -10459,26 +10559,47 @@ function renderJugadorChips(){
   });
 }
 
+function jpBloqueRachasYFrecuentes(nombre, matches){
+  if(matches.length < 2) return '';
+  const r = jpCalcularRachas(matches);
+  const f = jpCompanieroYRivalMasFrecuente(nombre);
+  return `
+    <div class="jp-matches-title" style="margin-top:14px;">🔥 Rachas y frecuentes</div>
+    <div class="jp-stat-grid">
+      <div class="jp-stat"><div class="jv">${r.mejorRachaGan}</div><div class="jl">Mejor Racha Ganando</div></div>
+      <div class="jp-stat"><div class="jv">${r.peorRachaPer}</div><div class="jl">Peor Racha Perdiendo</div></div>
+      <div class="jp-stat"><div class="jv">${r.mejorRachaGol}</div><div class="jl">Racha Marcando Goles</div></div>
+      <div class="jp-stat"><div class="jv">${r.mejorRachaAst}</div><div class="jl">Racha Dando Asistencias</div></div>
+    </div>
+    <div class="jp-stat-grid">
+      <div class="jp-stat"><div class="jv">${f.companero ? f.companero[0] : '—'}</div><div class="jl">Compañero más frecuente${f.companero ? ` (${f.companero[1]})` : ''}</div></div>
+      <div class="jp-stat"><div class="jv">${f.rival ? f.rival[0] : '—'}</div><div class="jl">Rival más frecuente${f.rival ? ` (${f.rival[1]})` : ''}</div></div>
+    </div>`;
+}
+
 function jpGraficoRendimiento(matches){
   if(matches.length < 2) return '';
-  const ancho = 500, alto = 110, pad = 10;
-  let acumGoles = 0, acumAst = 0;
-  const seriesGoles = [], seriesAst = [];
-  matches.forEach(m => { acumGoles += m.goles||0; acumAst += m.asistencias||0; seriesGoles.push(acumGoles); seriesAst.push(acumAst); });
+  const ancho = 500, alto = 120, pad = 10;
+  const seriesGoles = matches.map(m => m.goles||0);
+  const seriesAst = matches.map(m => m.asistencias||0);
+  const seriesVictoria = matches.map(m => m.resultado === 'win' ? 1 : 0);
+  const seriesDerrota = matches.map(m => m.resultado === 'loss' ? 1 : 0);
   const maxVal = Math.max(...seriesGoles, ...seriesAst, 1);
-  const puntos = (serie) => serie.map((v,i) => {
+  const puntos = (serie, escalaPropia) => serie.map((v,i) => {
     const x = pad + (i/(matches.length-1)) * (ancho-pad*2);
-    const y = alto - pad - (v/maxVal) * (alto-pad*2);
+    const y = alto - pad - (v/(escalaPropia||maxVal)) * (alto-pad*2);
     return `${x},${y}`;
   }).join(' ');
   return `
-    <div class="jp-matches-title">📈 Rendimiento acumulado a lo largo del torneo</div>
+    <div class="jp-matches-title">📈 Rendimiento partido a partido</div>
     <svg viewBox="0 0 ${ancho} ${alto}" style="width:100%; max-width:520px; background:var(--card2); border-radius:6px;">
       <polyline points="${puntos(seriesGoles)}" fill="none" stroke="#B33B22" stroke-width="2"/>
       <polyline points="${puntos(seriesAst)}" fill="none" stroke="#4A6B43" stroke-width="2"/>
+      <polyline points="${puntos(seriesVictoria, 1)}" fill="none" stroke="#2E7D32" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <polyline points="${puntos(seriesDerrota, 1)}" fill="none" stroke="#8B2500" stroke-width="1.5" stroke-dasharray="3,2"/>
     </svg>
     <div style="font-size:11px; color:var(--text-dimmer); margin-top:4px;">
-      <span style="color:#B33B22;">●</span> Goles acumulados &nbsp; <span style="color:#4A6B43;">●</span> Asistencias acumuladas
+      <span style="color:#B33B22;">●</span> Goles &nbsp; <span style="color:#4A6B43;">●</span> Asistencias &nbsp; <span style="color:#2E7D32;">┄</span> Victoria &nbsp; <span style="color:#8B2500;">┄</span> Derrota
     </div>`;
 }
 
@@ -10529,6 +10650,7 @@ function renderJugadorProfile(){
       ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${NOMBRES_COMPLETOS_STAT[k] || k}</div></div>`).join('')}
     </div>
     ${jpGraficoRendimiento(matches)}
+    ${jpBloqueRachasYFrecuentes(activeJugador, matches)}
     <div class="jp-matches-title">Partidos jugados (${matches.length})</div>
     <div class="jp-match-list">
       ${matches.length ? matches.map(m => `
