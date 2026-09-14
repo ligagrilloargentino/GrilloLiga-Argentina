@@ -23,6 +23,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <style>
+button, .auth-btn, .pen-zona, .nav-inferior-item, .tab-btn, .mini-juego-card, canvas{
+  touch-action:manipulation; /* evita el doble-tap-zoom de iOS en los controles de juego, sin sacar el zoom de accesibilidad del resto */
+}
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&display=swap');
 
 :root{
@@ -198,6 +201,9 @@ body.tema-oscuro{
 @media (max-width:700px){
   #nav-inferior{ display:flex; justify-content:space-around; align-items:center; }
   body:not(.cz-pantalla-completa){ padding-bottom:66px; }
+  /* iOS hace zoom automático de toda la pantalla al tocar un input con fuente menor a 16px */
+  input, select, textarea{ font-size:16px !important; }
+  .cg-celda input{ font-size:11px !important; }
 }
 body.cz-pantalla-completa #nav-inferior{ display:none !important; }
 .nav-inferior-item{
