@@ -1748,10 +1748,23 @@ footer{
 
     <div id="mini-penales" style="display:none;">
       <span class="rps-volver" id="penales-volver">← Volver a Minijuegos</span>
+
+      <div id="pen-elegir-modo" class="cz-elegir-fila" style="margin-bottom:16px;">
+        <button class="auth-btn" id="pen-modo-bot-btn">🤖 Contra el GrilloBOT</button>
+        <button class="auth-btn" id="pen-modo-online-btn" style="background:transparent; color:var(--red); border-color:var(--red);">🌐 Jugar Online 1vs1</button>
+      </div>
+
+      <div id="pen-online-lobby" style="display:none;">
+        <div class="gd-intro">Elegí a quién desafiar para jugar los penales 1vs1.</div>
+        <div id="pen-online-lista"></div>
+        <button class="auth-btn" id="pen-online-salir-btn" style="max-width:220px; margin:18px auto 0; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Salir de la sala</button>
+      </div>
+
+      <div id="pen-juego-wrap" style="display:none;">
       <div class="pen-marcador">
-        <div>VOS<br><b id="pen-score-jugador">0</b></div>
+        <div><span id="pen-nombre-jugador">VOS</span><br><b id="pen-score-jugador">0</b></div>
         <div class="pen-ronda">RONDA <b id="pen-ronda-num">1</b>/5</div>
-        <div>GRILLOBOT<br><b id="pen-score-bot">0</b></div>
+        <div><span id="pen-nombre-rival">GRILLOBOT</span><br><b id="pen-score-bot">0</b></div>
       </div>
       <div class="pen-fase" id="pen-fase">Pateás vos — elegí dónde tirarla</div>
       <div class="pen-cancha">
@@ -1770,6 +1783,7 @@ footer{
       <div id="pen-final" style="display:none;">
         <div class="pen-final-titulo" id="pen-final-titulo"></div>
         <button class="auth-btn" id="pen-jugar-de-nuevo" style="max-width:220px; margin:14px auto 0;">Jugar de nuevo</button>
+      </div>
       </div>
     </div>
 
@@ -4402,7 +4416,11 @@ const PEN_LINEAS_GOL_JUGADOR = ['¡GOOOL! Se la clavaste al GrilloBOT.', '¡Aden
 const PEN_LINEAS_ATAJADA_BOT = ['¡La atajó el GrilloBOT! Justo para ese lado.', 'Uy, se lo adivinó. Nada que hacer.', '¡Qué palomita! Atajadón del GrilloBOT.'];
 const PEN_LINEAS_GOL_BOT = ['El GrilloBOT la puso adentro. Se le escapó.', '¡Gol del GrilloBOT! No llegaste.', 'La clavó arriba, no había nada que hacer.'];
 const PEN_LINEAS_ATAJADA_JUGADOR = ['¡La atajaste! Reflejos de arquero de raza.', '¡Qué palomita te mandaste! Nada.', 'Le adivinaste el palo, ¡atajadón!'];
+const PEN_LINEAS_GOL_PROPIO_ON = ['¡GOOOL! Se la clavaste.', '¡Adentro! No llegó a moverse a tiempo.', '¡La metiste al ángulo! Golazo.'];
+const PEN_LINEAS_GOL_RIVAL_ON = ['¡GOL del rival! Se la clavó.', 'La metió al ángulo, no llegaste.', 'Adentro. No pudiste hacer nada.'];
+const PEN_LINEAS_ATAJADA_ONLINE = ['¡La atajó! Justo para ese lado.', 'Se lo adivinó. Nada que hacer.', '¡Qué palomita! Atajadón.'];
 
+let penModoOnline = false;
 let penRonda = 1;
 let penFase = 'pateando'; // 'pateando' o 'atajando'
 let penScoreJugador = 0;
@@ -4434,12 +4452,18 @@ function penResetPosiciones(){
 }
 
 function penResetear(){
+  penModoOnline = false;
+  document.getElementById('pen-nombre-jugador').textContent = 'VOS';
+  document.getElementById('pen-nombre-rival').textContent = 'GRILLOBOT';
   penRonda = 1; penFase = 'pateando'; penScoreJugador = 0; penScoreBot = 0; penEnSuddenDeath = false;
   document.getElementById('pen-score-jugador').textContent = '0';
   document.getElementById('pen-score-bot').textContent = '0';
   document.getElementById('pen-ronda-num').textContent = '1';
   document.getElementById('pen-resultado').innerHTML = '&nbsp;';
   document.getElementById('pen-final').style.display = 'none';
+  document.getElementById('pen-elegir-modo').style.display = 'none';
+  document.getElementById('pen-online-lobby').style.display = 'none';
+  document.getElementById('pen-juego-wrap').style.display = 'block';
   document.querySelector('.pen-cancha').style.display = 'block';
   document.getElementById('pen-fase').textContent = 'Pateás vos — elegí dónde tirarla';
   document.querySelectorAll('.pen-zona').forEach(z => z.classList.remove('deshabilitada'));
@@ -4447,6 +4471,7 @@ function penResetear(){
 }
 
 function penJugarZona(zonaJugador){
+  if(penModoOnline){ penClickZonaOnline(zonaJugador); return; }
   document.querySelectorAll('.pen-zona').forEach(z => z.classList.add('deshabilitada'));
   const zonaBot = Math.floor(Math.random()*6);
   const resultadoEl = document.getElementById('pen-resultado');
@@ -4516,23 +4541,261 @@ function penMostrarFinal(){
     ? `🏆 ¡Ganaste ${penScoreJugador} a ${penScoreBot}!`
     : `😢 Perdiste ${penScoreBot} a ${penScoreJugador}`;
   document.getElementById('pen-final-titulo').textContent = titulo;
-  guardarResultadoMinijuego('penales', penScoreJugador > penScoreBot ? 'victoria' : 'derrota');
+  if(!penModoOnline) guardarResultadoMinijuego('penales', penScoreJugador > penScoreBot ? 'victoria' : 'derrota');
 }
 
 document.querySelectorAll('.pen-zona').forEach(zona=>{
   zona.addEventListener('click', ()=> penJugarZona(parseInt(zona.dataset.zona)));
 });
-document.getElementById('pen-jugar-de-nuevo').addEventListener('click', penResetear);
+document.getElementById('pen-jugar-de-nuevo').addEventListener('click', ()=>{
+  if(penModoOnline){
+    document.getElementById('pen-final').style.display = 'none';
+    document.getElementById('pen-elegir-modo').style.display = 'flex';
+    document.getElementById('pen-juego-wrap').style.display = 'none';
+  } else {
+    penResetear();
+  }
+});
 
 document.getElementById('mini-card-penales').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'none';
   document.getElementById('mini-penales').style.display = 'block';
-  penResetear();
+  document.getElementById('pen-juego-wrap').style.display = 'none';
+  document.getElementById('pen-online-lobby').style.display = 'none';
+  document.getElementById('pen-elegir-modo').style.display = 'flex';
 });
+document.getElementById('pen-modo-bot-btn').addEventListener('click', penResetear);
 document.getElementById('penales-volver').addEventListener('click', ()=>{
+  penSalirOnlinePenales();
   document.getElementById('mini-penales').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'grid';
 });
+
+/* --- Modo Online (mismo patrón de sala de espera de Cabezones/Truco) --- */
+let penLobbyChannel = null, penMatchChannel = null;
+let penEsHost = false;
+let penMiUsernameOnline = null, penOponenteOnline = null;
+let penRondaOn = 1, penSubTurno = 'host', penScoreHostOn = 0, penScoreInvitadoOn = 0, penSuddenDeathOn = false;
+let penMiEleccionPendiente = null, penEleccionRivalRecibida = null;
+
+async function penEntrarSalaEspera(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user){ alert('Necesitás estar logueado para jugar online.'); return; }
+  penMiUsernameOnline = user.email.replace(DOMINIO_FALSO, '');
+  document.getElementById('pen-elegir-modo').style.display = 'none';
+  document.getElementById('pen-online-lobby').style.display = 'block';
+  document.getElementById('pen-online-lista').innerHTML = '<div class="cz-online-esperando">Conectando a la sala…</div>';
+
+  penLobbyChannel = sbClient.channel('penales-lobby-online', { config:{ presence:{ key: penMiUsernameOnline } } });
+  penLobbyChannel.on('presence', { event:'sync' }, ()=> penRenderizarSalaEspera());
+  penLobbyChannel.on('broadcast', { event:'desafio' }, (msg)=>{
+    if(msg.payload.para === penMiUsernameOnline) penMostrarDesafio(msg.payload);
+  });
+  penLobbyChannel.on('broadcast', { event:'desafio_aceptado' }, (msg)=>{
+    if(msg.payload.para === penMiUsernameOnline) penIniciarOnline(false, msg.payload.roomId, msg.payload.de);
+  });
+  penLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
+    if(msg.payload.para === penMiUsernameOnline){ alert(msg.payload.de + ' rechazó tu desafío.'); penRenderizarSalaEspera(); }
+  });
+  penLobbyChannel.subscribe(async (status)=>{
+    if(status === 'SUBSCRIBED') await penLobbyChannel.track({ username: penMiUsernameOnline });
+  });
+}
+
+function penRenderizarSalaEspera(){
+  if(!penLobbyChannel) return;
+  const estado = penLobbyChannel.presenceState();
+  const lista = document.getElementById('pen-online-lista');
+  const otros = [];
+  Object.values(estado).forEach(arr => arr.forEach(p=>{ if(p.username !== penMiUsernameOnline) otros.push(p); }));
+  if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
+  lista.innerHTML = otros.map(p => `
+    <div class="cz-online-fila"><b>${p.username}</b><button class="auth-btn" style="max-width:130px; margin:0;" data-desafiar="${p.username}">Desafiar</button></div>
+  `).join('');
+  lista.querySelectorAll('[data-desafiar]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      penLobbyChannel.send({ type:'broadcast', event:'desafio', payload:{ de:penMiUsernameOnline, para:btn.dataset.desafiar } });
+      lista.innerHTML = `<div class="cz-online-esperando">Esperando que ${btn.dataset.desafiar} responda…</div>`;
+    });
+  });
+}
+
+function penMostrarDesafio(payload){
+  document.getElementById('cz-desafio-texto').textContent = `${payload.de} te quiere desafiar a Penales online. ¿Aceptás?`;
+  document.getElementById('cz-desafio-overlay').style.display = 'block';
+  document.getElementById('cz-desafio-modal').style.display = 'flex';
+  const aceptarBtn = document.getElementById('cz-desafio-aceptar-btn');
+  const rechazarBtn = document.getElementById('cz-desafio-rechazar-btn');
+  const aceptarNuevo = aceptarBtn.cloneNode(true), rechazarNuevo = rechazarBtn.cloneNode(true);
+  aceptarBtn.replaceWith(aceptarNuevo); rechazarBtn.replaceWith(rechazarNuevo);
+  const limpiar = ()=>{ document.getElementById('cz-desafio-overlay').style.display='none'; document.getElementById('cz-desafio-modal').style.display='none'; };
+  aceptarNuevo.addEventListener('click', ()=>{
+    const roomId = 'penales-' + Math.random().toString(36).slice(2,10);
+    penLobbyChannel.send({ type:'broadcast', event:'desafio_aceptado', payload:{ de:penMiUsernameOnline, para:payload.de, roomId } });
+    limpiar();
+    penIniciarOnline(true, roomId, payload.de);
+  });
+  rechazarNuevo.addEventListener('click', ()=>{
+    penLobbyChannel.send({ type:'broadcast', event:'desafio_rechazado', payload:{ de:penMiUsernameOnline, para:payload.de } });
+    limpiar();
+  });
+}
+
+function penIniciarOnline(esHost, roomId, nombreRival){
+  penEsHost = esHost;
+  penOponenteOnline = nombreRival;
+  penModoOnline = true;
+  document.getElementById('pen-online-lobby').style.display = 'none';
+  if(penLobbyChannel){ penLobbyChannel.unsubscribe(); penLobbyChannel = null; }
+
+  penRondaOn = 1; penSubTurno = 'host'; penScoreHostOn = 0; penScoreInvitadoOn = 0; penSuddenDeathOn = false;
+  penMiEleccionPendiente = null; penEleccionRivalRecibida = null;
+
+  document.getElementById('pen-nombre-jugador').textContent = penMiUsernameOnline;
+  document.getElementById('pen-nombre-rival').textContent = penOponenteOnline;
+  document.getElementById('pen-score-jugador').textContent = '0';
+  document.getElementById('pen-score-bot').textContent = '0';
+  document.getElementById('pen-ronda-num').textContent = '1';
+  document.getElementById('pen-resultado').innerHTML = '&nbsp;';
+  document.getElementById('pen-final').style.display = 'none';
+  document.getElementById('pen-juego-wrap').style.display = 'block';
+  document.querySelector('.pen-cancha').style.display = 'block';
+  penResetPosiciones();
+
+  penMatchChannel = sbClient.channel('penales-match-' + roomId);
+  penMatchChannel.on('presence', { event:'leave' }, ({ leftPresences })=>{
+    if(leftPresences.some(p => p.username === penOponenteOnline)){
+      document.querySelector('.pen-cancha').style.display = 'none';
+      document.getElementById('pen-fase').textContent = '';
+      document.getElementById('pen-final').style.display = 'block';
+      document.getElementById('pen-final-titulo').textContent = '⚠️ Se desconectó el rival. La partida no cuenta.';
+    }
+  });
+  penMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{
+    if(!penEsHost) return;
+    penEleccionRivalRecibida = msg.payload.zona;
+    penIntentarResolverHost();
+  });
+  penMatchChannel.on('broadcast', { event:'estado' }, (msg)=> penAplicarEstadoRecibido(msg.payload));
+  penMatchChannel.subscribe(async (status)=>{
+    if(status !== 'SUBSCRIBED') return;
+    await penMatchChannel.track({ username: penMiUsernameOnline });
+    penActualizarFaseUiOnline();
+  });
+}
+
+function penSoyPateadorAhora(){
+  return (penSubTurno === 'host') === penEsHost;
+}
+
+function penActualizarFaseUiOnline(){
+  document.querySelectorAll('.pen-zona').forEach(z => z.classList.remove('deshabilitada'));
+  document.getElementById('pen-resultado').innerHTML = '&nbsp;';
+  document.getElementById('pen-fase').textContent = penSoyPateadorAhora()
+    ? 'Pateás vos — elegí dónde tirarla'
+    : `Patea ${penOponenteOnline} — elegí dónde atajar`;
+}
+
+function penClickZonaOnline(zona){
+  document.querySelectorAll('.pen-zona').forEach(z => z.classList.add('deshabilitada'));
+  penMiEleccionPendiente = zona;
+  if(penEsHost){
+    penIntentarResolverHost();
+  } else {
+    penMatchChannel.send({ type:'broadcast', event:'accion', payload:{ zona } });
+  }
+}
+
+function penIntentarResolverHost(){
+  if(penMiEleccionPendiente === null || penEleccionRivalRecibida === null) return;
+  const zonaHost = penMiEleccionPendiente;
+  const zonaInvitado = penEleccionRivalRecibida;
+  const zonaPateador = penSubTurno === 'host' ? zonaHost : zonaInvitado;
+  const zonaAtajador = penSubTurno === 'host' ? zonaInvitado : zonaHost;
+  const gol = zonaPateador !== zonaAtajador;
+  if(gol){ if(penSubTurno === 'host') penScoreHostOn++; else penScoreInvitadoOn++; }
+
+  penMiEleccionPendiente = null; penEleccionRivalRecibida = null;
+
+  let siguienteSubTurno = penSubTurno === 'host' ? 'invitado' : 'host';
+  let terminado = false, ganador = null;
+  if(siguienteSubTurno === 'host'){ // se completó la ronda (ya patearon los dos)
+    if(!penSuddenDeathOn && penRondaOn >= 5){
+      if(penScoreHostOn !== penScoreInvitadoOn) terminado = true;
+      else { penSuddenDeathOn = true; penRondaOn++; }
+    } else if(penSuddenDeathOn && penScoreHostOn !== penScoreInvitadoOn){
+      terminado = true;
+    } else {
+      penRondaOn++;
+    }
+  }
+  if(terminado) ganador = penScoreHostOn > penScoreInvitadoOn ? 'host' : 'invitado';
+  penSubTurno = siguienteSubTurno;
+
+  const estado = {
+    ronda: penRondaOn, subTurno: penSubTurno, scoreHost: penScoreHostOn, scoreInvitado: penScoreInvitadoOn,
+    zonaPateador, zonaAtajador, gol, terminado, ganador, suddenDeath: penSuddenDeathOn
+  };
+  penMatchChannel.send({ type:'broadcast', event:'estado', payload: estado });
+  penAplicarEstadoRecibido(estado);
+}
+
+function penAplicarEstadoRecibido(estado){
+  penRondaOn = estado.ronda; penSubTurno = estado.subTurno;
+  penScoreHostOn = estado.scoreHost; penScoreInvitadoOn = estado.scoreInvitado;
+  penSuddenDeathOn = estado.suddenDeath;
+
+  const miScore = penEsHost ? estado.scoreHost : estado.scoreInvitado;
+  const rivalScore = penEsHost ? estado.scoreInvitado : estado.scoreHost;
+  document.getElementById('pen-score-jugador').textContent = miScore;
+  document.getElementById('pen-score-bot').textContent = rivalScore;
+  document.getElementById('pen-ronda-num').textContent = penSuddenDeathOn ? (penRondaOn + '(muerte súbita)') : penRondaOn;
+
+  // el que pateó esta jugada, ¿fui yo? (si el próximo en patear es invitado, el que pateó recién fue host)
+  const pateadorFueHost = (estado.subTurno === 'invitado');
+  const fuiYoElPateador = pateadorFueHost === penEsHost;
+
+  penUbicarPelota(estado.zonaPateador);
+  penUbicarArquero(estado.zonaAtajador);
+  const resultadoEl = document.getElementById('pen-resultado');
+  if(estado.gol){
+    resultadoEl.textContent = fuiYoElPateador ? penElegirLinea(PEN_LINEAS_GOL_PROPIO_ON) : penElegirLinea(PEN_LINEAS_GOL_RIVAL_ON);
+  } else {
+    resultadoEl.textContent = fuiYoElPateador ? penElegirLinea(PEN_LINEAS_ATAJADA_ONLINE) : penElegirLinea(PEN_LINEAS_ATAJADA_ONLINE);
+  }
+
+  if(estado.terminado){
+    setTimeout(()=>{
+      document.querySelector('.pen-cancha').style.display = 'none';
+      document.getElementById('pen-fase').textContent = '';
+      document.getElementById('pen-final').style.display = 'block';
+      const gane = (estado.ganador === 'host') === penEsHost;
+      document.getElementById('pen-final-titulo').textContent = gane
+        ? `🏆 ¡Ganaste ${miScore} a ${rivalScore}!`
+        : `😢 Perdiste ${rivalScore} a ${miScore}`;
+      guardarResultadoMinijuego('penales', gane ? 'victoria' : 'derrota');
+    }, 1500);
+    return;
+  }
+
+  setTimeout(()=>{
+    penResetPosiciones();
+    penActualizarFaseUiOnline();
+  }, 1500);
+}
+
+function penSalirOnlinePenales(){
+  if(penLobbyChannel){ penLobbyChannel.unsubscribe(); penLobbyChannel = null; }
+  if(penMatchChannel){ penMatchChannel.unsubscribe(); penMatchChannel = null; }
+  penModoOnline = false;
+}
+document.getElementById('pen-modo-online-btn').addEventListener('click', penEntrarSalaEspera);
+document.getElementById('pen-online-salir-btn').addEventListener('click', ()=>{
+  penSalirOnlinePenales();
+  document.getElementById('pen-online-lobby').style.display = 'none';
+  document.getElementById('pen-elegir-modo').style.display = 'flex';
+});
+
 
 /* ---------- MINIJUEGO: GRILLODLE ---------- */
 let gdJugadorMisterio = null;
