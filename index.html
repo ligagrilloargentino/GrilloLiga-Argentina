@@ -204,6 +204,8 @@ body.tema-oscuro{
   /* iOS hace zoom automático de toda la pantalla al tocar un input con fuente menor a 16px */
   input, select, textarea{ font-size:16px !important; }
   .cg-celda input{ font-size:11px !important; }
+  /* los checkboxes nativos son muy chicos para tocar con el dedo */
+  input[type="checkbox"]{ width:20px; height:20px; }
 }
 body.cz-pantalla-completa #nav-inferior{ display:none !important; }
 .nav-inferior-item{
