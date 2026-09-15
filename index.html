@@ -1679,8 +1679,8 @@ footer{
       <h2>GrilloBOT</h2>
     </div>
     <div class="bot-intro">
-      Preguntame por historiales, o por lo mejor y peor del torneo. Ejemplos:<br>
-      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "¿Quién tiene la mayor paternidad?"
+      Preguntame por historiales, rachas, o por lo mejor y peor del torneo. Ejemplos:<br>
+      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "racha de Chiappe" · "compañero más frecuente de Valen"
     </div>
     <div class="bot-chat" id="bot-chat"></div>
     <div class="bot-input-row">
@@ -3905,6 +3905,41 @@ function normalizarTexto(s){
 // Se va ampliando con el tiempo a medida que el usuario avisa nuevos casos.
 
 
+function levenshtein(a, b){
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1}, ()=> new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i;
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Si no se encontró ningún nombre exacto en el texto, prueba tolerando errores de tipeo chicos
+// (distancia de edición 1 para nombres cortos, 2 para nombres más largos).
+function extraerJugadoresConTolerancia(texto){
+  const norm = normalizarTexto(texto);
+  const palabras = norm.split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+  const nombres = DATA.estadisticas.map(r => r.Jugador);
+  const encontrados = [];
+  palabras.forEach(palabra=>{
+    let mejor = null, mejorDist = Infinity;
+    nombres.forEach(n=>{
+      normalizarTexto(n).split(/\s+/).forEach(parteNombre=>{
+        if(parteNombre.length < 3 || Math.abs(parteNombre.length - palabra.length) > 2) return;
+        const d = levenshtein(palabra, parteNombre);
+        const tolerancia = parteNombre.length <= 4 ? 1 : 2;
+        if(d > 0 && d <= tolerancia && d < mejorDist){ mejorDist = d; mejor = n; }
+      });
+    });
+    if(mejor && !encontrados.includes(mejor)) encontrados.push(mejor);
+  });
+  return encontrados;
+}
+
 function extraerJugadoresDeTexto(texto){
   const norm = normalizarTexto(texto);
   const nombres = DATA.estadisticas.map(r => r.Jugador);
@@ -3930,7 +3965,8 @@ function extraerJugadoresDeTexto(texto){
       rangosUsados.push({desde:c.idx, hasta:c.idx + c.len});
     }
   });
-  return elegidos;
+  if(elegidos.length) return elegidos;
+  return extraerJugadoresConTolerancia(texto); // respaldo: tolera nombres mal escritos si no hubo match exacto
 }
 
 function calcularHistorial(nombreA, nombreB){
@@ -4263,7 +4299,7 @@ function responderPreguntaBot(texto){
     if(!cantidad) cantidad = 3;
     cantidad = Math.min(Math.max(cantidad, 2), 10);
     const lista = (esPeor ? botListaPeores() : botListaMejores()).slice(0, cantidad);
-    if(!lista.length) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    if(!lista.length) return 'no entendí pa. Probá algo como: "¿quién es el mejor jugador?", "racha de Chiappe", "historial de Leon vs Ciro", o "compañero más frecuente de Valen"';
     const encabezado = esPeor ? `Los ${cantidad} que más necesitan rodaje son:` : `Los ${cantidad} mejores del torneo son:`;
     const items = lista.map((r,i) => `${i+1}) ${r.Jugador} (${r.PJ} PJ, ${r['%PG']}% efectividad, ${r['G+A/P']} G+A por partido)`).join(' — ');
     return `${encabezado} ${items}.`;
@@ -4272,21 +4308,21 @@ function responderPreguntaBot(texto){
   // Caso 0b: mejor jugador del torneo (singular)
   if(/mejor jugador|jugador mas completo|el mas capo/.test(normTexto)){
     const r = botMejorJugador();
-    if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    if(!r) return 'no entendí pa. Probá algo como: "¿quién es el mejor jugador?", "racha de Chiappe", "historial de Leon vs Ciro", o "compañero más frecuente de Valen"';
     return `¡Tremendo el que te voy a tirar! Analizando % de victorias, goles+asistencias por partido y presencia en cancha (mínimo 10 partidos jugados), el mejor del torneo es ${r.Jugador}: ${r.PJ} partidos jugados, ${r['%PG']}% de efectividad y ${r['G+A/P']} de gol+asistencia por partido en promedio. ¡Un caballo total!`;
   }
 
   // Caso 0c: peor jugador del torneo (singular)
   if(/peor jugador/.test(normTexto)){
     const r = botPeorJugador();
-    if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    if(!r) return 'no entendí pa. Probá algo como: "¿quién es el mejor jugador?", "racha de Chiappe", "historial de Leon vs Ciro", o "compañero más frecuente de Valen"';
     return `Uh loco, no todos podemos ser Messi... el que más necesita rodaje es ${r.Jugador}: ${r.PJ} partidos en el lomo, apenas ${r['%PG']}% de efectividad y ${r['G+A/P']} de gol+asistencia por partido. Pero eh, juega con toda la garra, ¡así que aguante igual!`;
   }
 
   // Caso 0d: mejor historial de la liga
   if(/mejor historial/.test(normTexto)){
     const r = botMejorHistorialLiga();
-    if(!r) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    if(!r) return 'no entendí pa. Probá algo como: "¿quién es el mejor jugador?", "racha de Chiappe", "historial de Leon vs Ciro", o "compañero más frecuente de Valen"';
     return `El que más rivales se llevó puestos en toda la GrilloLiga es ${r.nombre}: tiene historial positivo contra ${r.rivalesConDominio} de los ${r.totalRivales} que enfrentó. ¡Un fenómeno para bajarle el copete a cualquiera!`;
   }
 
@@ -4317,7 +4353,7 @@ function responderPreguntaBot(texto){
     }
 
     const g = botPaternidadGlobal();
-    if(!g) return 'no entendí pa, reformulá la pregunta y veo que respondo';
+    if(!g) return 'no entendí pa. Probá algo como: "¿quién es el mejor jugador?", "racha de Chiappe", "historial de Leon vs Ciro", o "compañero más frecuente de Valen"';
     return `La paternidad más grande de toda la GrilloLiga es la de ${g.ganador} sobre ${g.perdedor}: se enfrentaron ${g.enfrentados} veces y le sacó ${g.diferencia} partido${g.diferencia===1?'':'s'} de ventaja. ¡${g.perdedor} la tiene difícil con ${g.ganador}!`;
   }
 
@@ -4385,7 +4421,7 @@ async function enviarPreguntaBot(){
   chat.scrollTop = chat.scrollHeight;
 
   let respuesta = responderPreguntaBot(texto);
-  if(!respuesta) respuesta = 'no entendí pa, reformulá la pregunta y veo que respondo';
+  if(!respuesta) respuesta = 'no entendí pa. Probá algo como: "¿quién es el mejor jugador?", "racha de Chiappe", "historial de Leon vs Ciro", o "compañero más frecuente de Valen"';
 
   chat.insertAdjacentHTML('beforeend', `<div class="bot-msg bot">${respuesta.replace(/</g,'&lt;')}</div>`);
   chat.scrollTop = chat.scrollHeight;
