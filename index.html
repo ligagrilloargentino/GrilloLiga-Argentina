@@ -8709,7 +8709,7 @@ async function crGuardarProgresoTemporada(){
     jugadoresFichados: crJugadoresFichados,
     rivales: crRivales
   };
-  await sbClient.from('carrera_estado').update({ progreso_temporada: blob }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
+  await sbClient.from('carrera_estado').update({ progreso_temporada: blob, temporada: crTemporadaNum }).eq('usuario_id', user.id).then(()=>{}, ()=>{});
 }
 
 function crGolesAlAzar(){ return Math.floor(Math.random()*4); }
