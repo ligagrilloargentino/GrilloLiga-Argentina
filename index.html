@@ -1680,7 +1680,7 @@ footer{
     </div>
     <div class="bot-intro">
       Preguntame por historiales, rachas, o por lo mejor y peor del torneo. Ejemplos:<br>
-      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "racha de Chiappe" · "compañero más frecuente de Valen"
+      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "racha de Chiappe" · "tirame un dato curioso"
     </div>
     <div class="bot-chat" id="bot-chat"></div>
     <div class="bot-input-row">
@@ -4240,8 +4240,62 @@ function botMejorGrupoDiferencia(n){
   return mejor;
 }
 
+const BOT_FRASES_INTRO = ['🦗 Mirá lo que encontré en la planilla:', '🦗 Dato de grillo para vos:', '🦗 Este te va a gustar:', '🦗 Ojo con esto:'];
+
+function botDatoCurioso(){
+  const generadores = [
+    ()=>{
+      const mejor = botMejorJugador();
+      return mejor ? `El mejor jugador del torneo hoy es ${mejor.Jugador}.` : null;
+    },
+    ()=>{
+      const peor = botPeorJugador();
+      return peor ? `El que más le está costando en el torneo es ${peor.Jugador}. Va a repuntar.` : null;
+    },
+    ()=>{
+      const g = botPaternidadGlobal();
+      return g ? `La paternidad más marcada de la liga: ${g.ganador} le tiene tomado el número a ${g.perdedor} (${g.diferencia} de diferencia en ${g.enfrentados} partidos).` : null;
+    },
+    ()=>{
+      const mejorTrio = botMejorGrupoDiferencia(3);
+      return mejorTrio ? `El trío que más suma jugando junto es ${mejorTrio.grupo.join(', ')}: ${mejorTrio.victorias} ganados de ${mejorTrio.partidos} jugados juntos.` : null;
+    },
+    ()=>{
+      const candidatos = DATA.estadisticas.filter(r => (r.PJ||0) >= 5);
+      if(!candidatos.length) return null;
+      const elegido = candidatos[Math.floor(Math.random()*candidatos.length)];
+      const matches = playerMatches(elegido.Jugador);
+      if(matches.length < 2) return null;
+      const r = jpCalcularRachas(matches);
+      if(r.mejorRachaGan < 2) return null;
+      return `${elegido.Jugador} tiene una racha de ${r.mejorRachaGan} partidos ganados seguidos en su historial. Nada mal.`;
+    },
+    ()=>{
+      const nombres = DATA.estadisticas.map(r=>r.Jugador);
+      if(nombres.length < 2) return null;
+      const a = nombres[Math.floor(Math.random()*nombres.length)];
+      let b = nombres[Math.floor(Math.random()*nombres.length)];
+      let intentos = 0;
+      while(b === a && intentos++ < 10) b = nombres[Math.floor(Math.random()*nombres.length)];
+      const h = calcularHistorial(a,b);
+      if(h.enfrentados < 3) return null;
+      return `${a} y ${b} se cruzaron ${h.enfrentados} veces en la cancha. Historial: ${h.victoriasA}-${h.empatesEnf}-${h.victoriasB}.`;
+    }
+  ];
+  const orden = [...generadores].sort(()=>Math.random()-0.5);
+  for(const gen of orden){
+    const resultado = gen();
+    if(resultado) return `${BOT_FRASES_INTRO[Math.floor(Math.random()*BOT_FRASES_INTRO.length)]} ${resultado}`;
+  }
+  return 'No encontré un dato copado justo ahora, ¡preguntame otra cosa!';
+}
+
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
+
+  if(/dato curioso|dato random|algo random|sorprendeme|tirame un dato|contame algo/.test(normTexto)){
+    return botDatoCurioso();
+  }
 
   // Caso -0.5a: rachas de un jugador (goles, asistencias, victorias, derrotas)
   if(/racha/.test(normTexto)){
