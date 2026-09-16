@@ -4273,6 +4273,16 @@ function botDatoCurioso(){
       return `${elegido.Jugador} tiene una racha de ${r.mejorRachaGan} partidos ganados seguidos en su historial. Nada mal.`;
     },
     ()=>{
+      const candidatos = DATA.estadisticas.filter(r => (r.PJ||0) >= 5);
+      if(!candidatos.length) return null;
+      const elegido = candidatos[Math.floor(Math.random()*candidatos.length)];
+      const matches = playerMatches(elegido.Jugador);
+      if(matches.length < 2) return null;
+      const r = jpCalcularRachas(matches);
+      if(r.mejorRachaAst < 2) return null;
+      return `${elegido.Jugador} dio asistencias en ${r.mejorRachaAst} partidos seguidos en algún momento. Un socio de lujo.`;
+    },
+    ()=>{
       const nombres = DATA.estadisticas.map(r=>r.Jugador);
       if(nombres.length < 2) return null;
       const a = nombres[Math.floor(Math.random()*nombres.length)];
@@ -4280,8 +4290,29 @@ function botDatoCurioso(){
       let intentos = 0;
       while(b === a && intentos++ < 10) b = nombres[Math.floor(Math.random()*nombres.length)];
       const h = calcularHistorial(a,b);
-      if(h.enfrentados < 3) return null;
+      if(h.enfrentados < 2) return null;
       return `${a} y ${b} se cruzaron ${h.enfrentados} veces en la cancha. Historial: ${h.victoriasA}-${h.empatesEnf}-${h.victoriasB}.`;
+    },
+    ()=>{
+      const candidatos = DATA.estadisticas.filter(r => (r.PJ||0) >= 5);
+      if(!candidatos.length) return null;
+      const goleador = [...candidatos].sort((a,b)=> (b.Goles||0)-(a.Goles||0))[0];
+      if(!goleador || !goleador.Goles) return null;
+      return `El goleador histórico de la liga es ${goleador.Jugador}, con ${goleador.Goles} goles.`;
+    },
+    ()=>{
+      const candidatos = DATA.estadisticas.filter(r => (r.PJ||0) >= 5);
+      if(!candidatos.length) return null;
+      const asistidor = [...candidatos].sort((a,b)=> (b.Ast||0)-(a.Ast||0))[0];
+      if(!asistidor || !asistidor.Ast) return null;
+      return `El que más asistencias dio en toda la liga es ${asistidor.Jugador}, con ${asistidor.Ast}.`;
+    },
+    ()=>{
+      const candidatos = DATA.estadisticas.filter(r => (r.PJ||0) >= 5);
+      if(!candidatos.length) return null;
+      const masFiel = [...candidatos].sort((a,b)=> (b.PJ||0)-(a.PJ||0))[0];
+      if(!masFiel) return null;
+      return `${masFiel.Jugador} es el más fiel a la cancha: jugó ${masFiel.PJ} partidos.`;
     }
   ];
   const orden = [...generadores].sort(()=>Math.random()-0.5);
@@ -4292,10 +4323,16 @@ function botDatoCurioso(){
   return 'No encontré un dato copado justo ahora, ¡preguntame otra cosa!';
 }
 
+let botUltimoFueDatoCurioso = false;
+
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
+  const eraDatoCurioso = botUltimoFueDatoCurioso;
+  botUltimoFueDatoCurioso = false;
+  const pideOtro = /^(otro|otra|dale otro|dale otra|uno mas|de nuevo|otro dato|otra vez)\.?!?$/.test(normTexto.trim());
 
-  if(/dato curioso|dato random|algo random|sorprendeme|tirame un dato|contame algo/.test(normTexto)){
+  if(/dato curioso|dato random|algo random|sorprendeme|tirame un dato|contame algo/.test(normTexto) || (eraDatoCurioso && pideOtro)){
+    botUltimoFueDatoCurioso = true;
     return botDatoCurioso();
   }
 
@@ -4349,8 +4386,8 @@ function responderPreguntaBot(texto){
   }
 
   // Caso 0a: top N mejores/peores jugadores (plural)
-  if(/mejores jugadores|peores jugadores/.test(normTexto)){
-    const esPeor = /peores jugadores/.test(normTexto);
+  if(/mejores|peores/.test(normTexto)){
+    const esPeor = /peores/.test(normTexto);
     let cantidad = botExtraerCantidad(normTexto);
     if(!cantidad) cantidad = 3;
     cantidad = Math.min(Math.max(cantidad, 2), 10);
