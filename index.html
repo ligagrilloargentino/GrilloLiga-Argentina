@@ -507,7 +507,6 @@ body.cz-pantalla-completa #nav-inferior{ display:none !important; }
 .cg-actual-texto b{ color:var(--red); }
 .cg-celda.cg-activa{ background:#fdf6e8; }
 .cg-celda.cg-activa input{ background:#fdf6e8; }
-.cg-celda.cg-inactiva{ pointer-events:none; }
 .cg-celda.cg-inactiva input{ color:#999; }
 .cg-pistas-col li.cg-pista-activa{ color:var(--red); font-weight:700; }
 .cg-resultado{ margin-top:10px; font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:13.5px; text-align:center; min-height:20px; }
@@ -10848,6 +10847,8 @@ function cgNumerarYRecortar(resultado){
 
 let cgCola = [];
 let cgIndiceActual = 0;
+let cgPalabraActual = null;
+let cgMapaCeldasCache = {};
 let cgSegundos = 0;
 let cgIntervaloCronometro = null;
 let cgTerminado = false;
@@ -10975,26 +10976,33 @@ function cgPalabraCompleta(palabra){
   return palabra.celdas.every(({row,col}) => { const inp = cgInputDe(row,col); return inp && inp.value; });
 }
 
-function cgActivarPalabra(indice){
-  // si ya recorrimos toda la lista, busca la primera palabra incompleta para volver a ofrecerla
-  if(indice >= cgCola.length){
-    const pendiente = cgCola.findIndex(p => !cgPalabraCompleta(p));
-    if(pendiente !== -1){
-      indice = pendiente;
-    }
-  }
-  cgIndiceActual = indice;
-
-  document.querySelectorAll('.cg-celda').forEach(div=>{
-    div.classList.remove('cg-activa');
-    div.classList.add('cg-inactiva');
+// Mapa celda -> {H: palabra|null, V: palabra|null}, para saber qué palabras pasan por cada casillero
+function cgMapaCeldas(){
+  const mapa = {};
+  cgCola.forEach(pw=>{
+    pw.celdas.forEach(({row,col})=>{
+      const key = row+','+col;
+      if(!mapa[key]) mapa[key] = {};
+      mapa[key][pw.dir] = pw;
+    });
   });
+  return mapa;
+}
+
+// Activa una palabra específica (objeto, no índice) sin bloquear el resto de las celdas para tocar/escribir
+function cgActivarPalabraObj(palabra, celdaFoco){
+  cgPalabraActual = palabra;
+  cgIndiceActual = cgCola.indexOf(palabra);
+
+  document.querySelectorAll('.cg-celda').forEach(div=> div.classList.remove('cg-activa'));
   document.querySelectorAll('#cg-pistas-horizontales li, #cg-pistas-verticales li').forEach(li=>{
     li.classList.remove('cg-pista-activa');
   });
 
-  if(indice >= cgCola.length){
-    document.getElementById('cg-actual-progreso').textContent = `${cgCola.length}/${cgCola.length}`;
+  const completas = cgCola.filter(p => cgPalabraCompleta(p)).length;
+  document.getElementById('cg-actual-progreso').textContent = `${completas}/${cgCola.length}`;
+
+  if(!palabra){
     document.getElementById('cg-actual-numero').textContent = '✅';
     document.getElementById('cg-actual-dir').textContent = '';
     document.getElementById('cg-actual-pista').textContent = 'Completaste todas las palabras. ¡Tocá "Corregir"!';
@@ -11002,8 +11010,6 @@ function cgActivarPalabra(indice){
     return;
   }
 
-  const palabra = cgCola[indice];
-  document.getElementById('cg-actual-progreso').textContent = `${indice+1}/${cgCola.length}`;
   document.getElementById('cg-actual-numero').textContent = palabra.numero;
   document.getElementById('cg-actual-dir').textContent = palabra.dir === 'H' ? '➡ Horizontal' : '⬇ Vertical';
   document.getElementById('cg-actual-pista').textContent = palabra.c;
@@ -11011,14 +11017,49 @@ function cgActivarPalabra(indice){
 
   palabra.celdas.forEach(({row,col})=>{
     const inp = cgInputDe(row,col);
-    if(inp){ inp.parentElement.classList.remove('cg-inactiva'); inp.parentElement.classList.add('cg-activa'); }
+    if(inp){ inp.parentElement.classList.add('cg-activa'); }
   });
   document.querySelectorAll(`#cg-pistas-${palabra.dir === 'H' ? 'horizontales' : 'verticales'} li[data-row="${palabra.row}"][data-col="${palabra.col}"]`)
     .forEach(li => li.classList.add('cg-pista-activa'));
 
-  const primeraVacia = palabra.celdas.find(({row,col}) => { const inp = cgInputDe(row,col); return inp && !inp.value; }) || palabra.celdas[0];
-  const inputEnfocar = cgInputDe(primeraVacia.row, primeraVacia.col);
-  if(inputEnfocar) inputEnfocar.focus();
+  let inputEnfocar;
+  if(celdaFoco){
+    inputEnfocar = cgInputDe(celdaFoco.row, celdaFoco.col);
+  } else {
+    const primeraVacia = palabra.celdas.find(({row,col}) => { const inp = cgInputDe(row,col); return inp && !inp.value; }) || palabra.celdas[0];
+    inputEnfocar = cgInputDe(primeraVacia.row, primeraVacia.col);
+  }
+  if(inputEnfocar && document.activeElement !== inputEnfocar) inputEnfocar.focus();
+}
+
+// Compatibilidad con el flujo anterior por índice (saltar, avance automático al completar)
+function cgActivarPalabra(indice){
+  if(indice >= cgCola.length){
+    const pendiente = cgCola.findIndex(p => !cgPalabraCompleta(p));
+    indice = pendiente !== -1 ? pendiente : cgCola.length;
+  }
+  if(indice >= cgCola.length){ cgActivarPalabraObj(null); return; }
+  cgActivarPalabraObj(cgCola[indice]);
+}
+
+// Al tocar/enfocar una celda: decide qué palabra (H o V) queda activa.
+// Si la celda pertenece a las dos palabras y ya estaba activa una de ellas, alterna a la otra dirección.
+function cgSeleccionarCelda(row, col){
+  const key = row+','+col;
+  const opciones = cgMapaCeldasCache[key];
+  if(!opciones) return;
+  const enPalabraActual = cgPalabraActual && cgPalabraActual.celdas.some(c => c.row === row && c.col === col);
+  let elegida;
+  if(enPalabraActual){
+    // ya estás escribiendo esta palabra: mantenela (no cambies de dirección solo por re-tocar la celda)
+    elegida = cgPalabraActual;
+  } else if(opciones.H && opciones.V){
+    // intersección nueva: preferí seguir en la misma dirección que ya tenías activa
+    elegida = (cgPalabraActual && cgPalabraActual.dir === 'V') ? opciones.V : opciones.H;
+  } else {
+    elegida = opciones.H || opciones.V;
+  }
+  if(elegida) cgActivarPalabraObj(elegida, {row,col});
 }
 
 function cgRenderizar(resultado){
@@ -11057,28 +11098,43 @@ function cgRenderizar(resultado){
   document.getElementById('cg-pistas-verticales').innerHTML = vert.map(p => `<li data-row="${p.row}" data-col="${p.col}"><b>${p.numero}.</b> ${p.c}</li>`).join('') || '<li class="gd-vacio">—</li>';
 
   cgCola = cgConstruirCola(placed);
+  cgMapaCeldasCache = cgMapaCeldas();
+  cgPalabraActual = null;
 
   cont.querySelectorAll('input').forEach(inp=>{
+    const row = parseInt(inp.dataset.row), col = parseInt(inp.dataset.col);
+
+    // Cualquier celda con letra se puede tocar/enfocar en cualquier momento (no solo la "palabra activa")
+    inp.addEventListener('focus', ()=> cgSeleccionarCelda(row, col));
+    inp.addEventListener('click', ()=> cgSeleccionarCelda(row, col));
+
     inp.addEventListener('input', ()=>{
       inp.value = inp.value.toUpperCase().slice(0,1).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       if(!inp.value) return;
-      const palabra = cgCola[cgIndiceActual];
+      let palabra = cgPalabraActual;
+      if(!palabra || !palabra.celdas.some(c=>c.row===row && c.col===col)){
+        // por las dudas, si la celda no pertenece a la palabra activa, eleg\u00ed una que s\u00ed la tenga
+        const opciones = cgMapaCeldasCache[row+','+col];
+        palabra = (opciones && (opciones.H || opciones.V)) || null;
+        if(palabra) cgActivarPalabraObj(palabra, {row,col});
+      }
       if(!palabra) return;
-      const idx = palabra.celdas.findIndex(cel => cel.row === parseInt(inp.dataset.row) && cel.col === parseInt(inp.dataset.col));
+      const idx = palabra.celdas.findIndex(cel => cel.row === row && cel.col === col);
       if(idx === -1) return;
       if(idx < palabra.celdas.length - 1){
         const sig = palabra.celdas[idx+1];
         const siguiente = cgInputDe(sig.row, sig.col);
         if(siguiente) siguiente.focus();
       } else if(cgPalabraCompleta(palabra)){
-        cgActivarPalabra(cgIndiceActual + 1);
+        const pendiente = cgCola.find(p => p !== palabra && !cgPalabraCompleta(p));
+        cgActivarPalabraObj(pendiente || null);
       }
     });
     inp.addEventListener('keydown', (e)=>{
       if(e.key !== 'Backspace' || inp.value) return;
-      const palabra = cgCola[cgIndiceActual];
+      const palabra = cgPalabraActual;
       if(!palabra) return;
-      const idx = palabra.celdas.findIndex(cel => cel.row === parseInt(inp.dataset.row) && cel.col === parseInt(inp.dataset.col));
+      const idx = palabra.celdas.findIndex(cel => cel.row === row && cel.col === col);
       if(idx > 0){
         const ant = palabra.celdas[idx-1];
         const anterior = cgInputDe(ant.row, ant.col);
@@ -11088,7 +11144,7 @@ function cgRenderizar(resultado){
   });
 
   document.getElementById('cg-resultado').textContent = '';
-  cgActivarPalabra(0);
+  cgActivarPalabraObj(cgCola[0]);
 }
 
 function cgPista(){
