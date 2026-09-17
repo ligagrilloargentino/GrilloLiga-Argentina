@@ -26,6 +26,14 @@
 button, .auth-btn, .pen-zona, .nav-inferior-item, .tab-btn, .mini-juego-card, canvas{
   touch-action:manipulation; /* evita el doble-tap-zoom de iOS en los controles de juego, sin sacar el zoom de accesibilidad del resto */
 }
+/* skeleton mientras cargan datos: evita el flash de pantalla vacía */
+@keyframes skeleton-shimmer{ 0%{opacity:0.4;} 50%{opacity:0.8;} 100%{opacity:0.4;} }
+.skeleton-box{ background:var(--card2); border-radius:8px; animation:skeleton-shimmer 1.3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce){ .skeleton-box{ animation:none; opacity:0.6; } }
+
+button:active, .auth-btn:active, .mini-juego-card:active, .nav-inferior-item:active, .jugador-card:active{
+  opacity:0.7; transition:opacity .05s;
+}
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&display=swap');
 
 :root{
@@ -59,7 +67,7 @@ body.tema-oscuro{
   --line-strong:rgba(240,231,210,0.35);
   --text:#F0E7D2;
   --text-dim:#C9BFA8;
-  --text-dimmer:#8B8270;
+  --text-dimmer:#9C9280;
 }
 .auth-overlay{
   position:fixed; inset:0; z-index:10000;
@@ -206,6 +214,8 @@ body.tema-oscuro{
   .cg-celda input{ font-size:11px !important; }
   /* los checkboxes nativos son muy chicos para tocar con el dedo */
   input[type="checkbox"]{ width:20px; height:20px; }
+  /* zonas táctiles chicas: subir a un tamaño más cómodo para el dedo, sin cambiar el resto del diseño */
+  .drawer-cerrar, .scroll-arrow{ width:40px; height:40px; }
 }
 body.cz-pantalla-completa #nav-inferior{ display:none !important; }
 .nav-inferior-item{
@@ -1529,27 +1539,27 @@ footer{
         <button class="auth-btn" id="ios-instalar-cerrar-btn" style="margin-top:16px;">Entendido</button>
       </div>
     </div>
-    <div class="stat-grid" id="stat-grid"></div>
+    <div class="stat-grid" id="stat-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
       <h2>Partidos destacados</h2>
     </div>
-    <div class="stat-grid" id="highlight-grid"></div>
+    <div class="stat-grid" id="highlight-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
       <h2>Líderes</h2>
     </div>
-    <div class="leader-grid" id="leader-grid"></div>
+    <div class="leader-grid" id="leader-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
       <h2>🔥 Mejores y peores rachas</h2>
     </div>
-    <div class="leader-grid" id="rachas-grid"></div>
+    <div class="leader-grid" id="rachas-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
       <h2>🎉 La hinchada de la GrilloLiga</h2>
     </div>
-    <div class="leader-grid" id="hinchada-grid"></div>
+    <div class="leader-grid" id="hinchada-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
   </section>
 
   <!-- ESTADISTICAS -->
