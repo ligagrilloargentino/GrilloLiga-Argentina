@@ -11545,7 +11545,16 @@ function activarFallbackFotos(container){
   });
   // si el círculo tiene una foto real (no el siluetazo genérico), se puede tocar para verla más grande
   container.querySelectorAll('.jc-photo-wrap, .jp-avatar').forEach(wrap=>{
-    if(wrap.querySelector('img.jc-foto-img')) wrap.classList.add('jc-clickable');
+    const img = wrap.querySelector('img.jc-foto-img');
+    if(!img) return;
+    wrap.classList.add('jc-clickable');
+    // el listener va en el círculo mismo (no en document): así se frena ANTES de llegar
+    // a la card que lo contiene, y tocar la foto no selecciona/deselecciona al jugador
+    wrap.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      abrirFotoLightbox(img.dataset.nombre);
+    });
   });
 }
 
@@ -11561,19 +11570,10 @@ function cerrarFotoLightbox(){
   document.getElementById('foto-lightbox').classList.remove('abierto');
   document.getElementById('foto-lightbox-img').src = '';
 }
-// delegación: funciona para cualquier círculo de foto que se agregue dinámicamente (listado de jugadores, ficha del jugador, etc.)
-document.addEventListener('click', (e)=>{
-  const wrap = e.target.closest('.jc-photo-wrap, .jp-avatar');
-  if(wrap && wrap.querySelector('img.jc-foto-img')){
-    e.stopPropagation();
-    const nombre = wrap.querySelector('img.jc-foto-img').dataset.nombre;
-    abrirFotoLightbox(nombre);
-  }
-});
 document.getElementById('foto-lightbox').addEventListener('click', (e)=>{
   if(e.target.id === 'foto-lightbox' || e.target.id === 'foto-lightbox-img') cerrarFotoLightbox();
 });
-document.getElementById('foto-lightbox-cerrar').addEventListener('click', cerrarFotoLightbox);
+document.getElementById('foto-lightbox-cerrar').addEventListener('click', (e)=>{ e.stopPropagation(); cerrarFotoLightbox(); });
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') cerrarFotoLightbox(); });
 
 const jugadoresSorted = [...DATA.estadisticas].sort((a,b)=> b.PJ - a.PJ);
