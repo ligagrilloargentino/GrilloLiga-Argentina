@@ -1284,6 +1284,27 @@ footer{
 .jugador-card.active .jc-photo-wrap{ border-color:var(--red); }
 .jc-photo-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
 .jc-photo-wrap svg{ width:34px; height:34px; opacity:.55; }
+.jc-photo-wrap.jc-clickable, .jp-avatar.jc-clickable{ cursor:zoom-in; }
+#foto-lightbox{
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,.88); align-items:center; justify-content:center;
+  padding:24px; cursor:zoom-out; touch-action:manipulation;
+}
+#foto-lightbox.abierto{ display:flex; }
+#foto-lightbox img{
+  max-width:min(92vw, 480px); max-height:82vh; border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,.5); object-fit:contain;
+}
+#foto-lightbox .fl-nombre{
+  position:absolute; bottom:28px; left:0; right:0; text-align:center;
+  color:#fff; font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:15px;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);
+}
+#foto-lightbox .fl-cerrar{
+  position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.12); color:#fff; border:none; font-size:22px; line-height:40px;
+  text-align:center; cursor:pointer; touch-action:manipulation;
+}
 .jc-name{
   font-size:11.5px; font-weight:700; font-family:'Alegreya Sans',sans-serif; color:var(--text);
   line-height:1.15; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -1537,6 +1558,11 @@ footer{
         </div>
         <button class="auth-btn" id="ios-instalar-cerrar-btn" style="margin-top:16px;">Entendido</button>
       </div>
+    </div>
+    <div id="foto-lightbox">
+      <button class="fl-cerrar" id="foto-lightbox-cerrar" aria-label="Cerrar">✕</button>
+      <img id="foto-lightbox-img" src="" alt="">
+      <div class="fl-nombre" id="foto-lightbox-nombre"></div>
     </div>
     <div class="stat-grid" id="stat-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
@@ -11517,7 +11543,38 @@ function activarFallbackFotos(container){
   container.querySelectorAll('img.jc-foto-img').forEach(img=>{
     img.addEventListener('error', ()=>{ img.parentElement.innerHTML = SILUETA_GENERICA; }, { once:true });
   });
+  // si el círculo tiene una foto real (no el siluetazo genérico), se puede tocar para verla más grande
+  container.querySelectorAll('.jc-photo-wrap, .jp-avatar').forEach(wrap=>{
+    if(wrap.querySelector('img.jc-foto-img')) wrap.classList.add('jc-clickable');
+  });
 }
+
+function abrirFotoLightbox(nombre){
+  const foto = FOTOS_JUGADORES[nombre];
+  if(!foto) return;
+  document.getElementById('foto-lightbox-img').src = foto;
+  document.getElementById('foto-lightbox-img').alt = nombre;
+  document.getElementById('foto-lightbox-nombre').textContent = nombre;
+  document.getElementById('foto-lightbox').classList.add('abierto');
+}
+function cerrarFotoLightbox(){
+  document.getElementById('foto-lightbox').classList.remove('abierto');
+  document.getElementById('foto-lightbox-img').src = '';
+}
+// delegación: funciona para cualquier círculo de foto que se agregue dinámicamente (listado de jugadores, ficha del jugador, etc.)
+document.addEventListener('click', (e)=>{
+  const wrap = e.target.closest('.jc-photo-wrap, .jp-avatar');
+  if(wrap && wrap.querySelector('img.jc-foto-img')){
+    e.stopPropagation();
+    const nombre = wrap.querySelector('img.jc-foto-img').dataset.nombre;
+    abrirFotoLightbox(nombre);
+  }
+});
+document.getElementById('foto-lightbox').addEventListener('click', (e)=>{
+  if(e.target.id === 'foto-lightbox' || e.target.id === 'foto-lightbox-img') cerrarFotoLightbox();
+});
+document.getElementById('foto-lightbox-cerrar').addEventListener('click', cerrarFotoLightbox);
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') cerrarFotoLightbox(); });
 
 const jugadoresSorted = [...DATA.estadisticas].sort((a,b)=> b.PJ - a.PJ);
 document.getElementById('jugadores-count').textContent = jugadoresSorted.length + ' jugadores';
