@@ -2883,7 +2883,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function cargarDatosDesdeSupabase(){
-  const [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, partR] = await Promise.all([
+  const [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, ppR, partR] = await Promise.all([
     sbClient.from('estadisticas').select('*'),
     sbClient.from('ranking_tabla_anual').select('*'),
     sbClient.from('ranking_goleadores').select('*'),
@@ -2892,9 +2892,10 @@ async function cargarDatosDesdeSupabase(){
     sbClient.from('ranking_goles_por_partido').select('*'),
     sbClient.from('ranking_porcentaje_victorias').select('*'),
     sbClient.from('ranking_menos_goles_recibidos').select('*'),
+    sbClient.from('ranking_promedio_puntos').select('*'),
     sbClient.from('partidos_completo').select('*')
   ]);
-  for (const r of [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, partR]){
+  for (const r of [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, ppR, partR]){
     if (r.error) throw r.error;
   }
 
@@ -2917,7 +2918,8 @@ async function cargarDatosDesdeSupabase(){
     'GOLES + ASISTENCIAS': { headers:['JUGADOR','G+A'], rows: gaR.data.map(x=>({JUGADOR:x.jugador,'G+A':x.goles_mas_asistencias})) },
     'GOLES POR PARTIDO': { headers:['JUGADOR','PROMEDIO'], rows: gppR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.goles_por_partido})) },
     'PORCENTAJE DE VICTORIAS': { headers:['JUGADOR','PROMEDIO'], rows: pvR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.porcentaje_pg})) },
-    'MENOS GOLES RECIBIDOS POR PARTIDO': { headers:['JUGADOR','PROMEDIO'], rows: mgrR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.goles_recibidos_por_partido})) }
+    'MENOS GOLES RECIBIDOS POR PARTIDO': { headers:['JUGADOR','PROMEDIO'], rows: mgrR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.goles_recibidos_por_partido})) },
+    'PROMEDIO DE PUNTOS': { headers:['JUGADOR','PJ','PROMEDIO'], rows: ppR.data.map(x=>({JUGADOR:x.jugador,PJ:x.pj,PROMEDIO:x.promedio})) }
   };
 
   const partidos = partR.data.map(p => ({
@@ -3477,7 +3479,8 @@ const rankingIcons = {
   'GOLES + ASISTENCIAS':'🔥',
   'GOLES POR PARTIDO':'📈',
   'PORCENTAJE DE VICTORIAS':'✅',
-  'MENOS GOLES RECIBIDOS POR PARTIDO':'🧤'
+  'MENOS GOLES RECIBIDOS POR PARTIDO':'🧤',
+  'PROMEDIO DE PUNTOS':'📊'
 };
 
 function renderRankingChips(){
@@ -11417,7 +11420,8 @@ function renderLeaderGrid(){
     'GOLES + ASISTENCIAS':'G+A',
     'GOLES POR PARTIDO':'Prom. de goles',
     'PORCENTAJE DE VICTORIAS':'% de victorias',
-    'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida'
+    'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida',
+    'PROMEDIO DE PUNTOS':'Prom. de puntos'
   };
   grid.innerHTML = rankingKeys.map(k=>{
     const block = DATA.rankings[k];
@@ -11725,7 +11729,8 @@ function renderJugadorProfile(){
         'GOLES + ASISTENCIAS':'G+A',
         'GOLES POR PARTIDO':'Prom. de goles',
         'PORCENTAJE DE VICTORIAS':'% de victorias',
-        'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida'
+        'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida',
+        'PROMEDIO DE PUNTOS':'Prom. de puntos'
       };
       badges.push((rankingIcons[cat]||'🏅')+' '+(catLabels[cat]||cat));
     }
