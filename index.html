@@ -1373,6 +1373,18 @@ footer{
 .jp-match-row .jm-stats .g{ color:var(--grass); font-weight:700; }
 .jp-match-row .jm-stats .a{ color:var(--gold); font-weight:700; }
 .jp-empty{ color:var(--text-dimmer); text-align:center; padding:30px 10px; font-size:13px; font-style:italic; }
+.jp-match-list-older{ display:flex; flex-direction:column; gap:6px; overflow:hidden; max-height:0; transition:max-height .35s ease; }
+.jp-match-list-older.abierto{ max-height:4000px; }
+.jp-ver-todos-btn{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  width:100%; background:var(--card); border:1px dashed var(--line-strong); border-radius:var(--radius);
+  padding:9px 13px; margin-bottom:6px; cursor:pointer;
+  font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:12.5px; color:var(--text-dim);
+  text-transform:uppercase; letter-spacing:0.3px;
+}
+.jp-ver-todos-btn:hover{ border-color:var(--gold-dim); color:var(--gold-dim); }
+.jp-ver-todos-btn .jvt-arrow{ transition:transform .25s ease; font-size:10px; }
+.jp-ver-todos-btn.abierto .jvt-arrow{ transform:rotate(180deg); }
 
 @media (max-width:600px){
   .sb-team .team-score{font-size:40px;}
@@ -11764,20 +11776,48 @@ function renderJugadorProfile(){
     ${jpBloqueRachasYFrecuentes(activeJugador, matches)}
     <div class="jp-matches-title">Partidos jugados (${matches.length})</div>
     <div class="jp-match-list">
-      ${matches.length ? matches.map(m => `
-        <div class="jp-match-row" data-num="${m.numero}">
-          <div class="jm-num">#${m.numero}</div>
-          <div class="jm-result ${m.resultado}">${m.resultado==='win'?'G':m.resultado==='loss'?'P':'E'}</div>
-          <div class="jm-title">${m.titulo||''} (${m.marcador})</div>
-          <div class="jm-stats"><span class="g">⚽${m.goles}</span> <span class="a">🧠${m.asistencias}</span></div>
-        </div>
-      `).join('') : '<div class="jp-empty">No hay partidos registrados para este jugador.</div>'}
+      ${(() => {
+        if(!matches.length) return '<div class="jp-empty">No hay partidos registrados para este jugador.</div>';
+        const jpMatchRowHtml = m => `
+          <div class="jp-match-row" data-num="${m.numero}">
+            <div class="jm-num">#${m.numero}</div>
+            <div class="jm-result ${m.resultado}">${m.resultado==='win'?'G':m.resultado==='loss'?'P':'E'}</div>
+            <div class="jm-title">${m.titulo||''} (${m.marcador})</div>
+            <div class="jm-stats"><span class="g">⚽${m.goles}</span> <span class="a">🧠${m.asistencias}</span></div>
+          </div>
+        `;
+        const recientes = matches.slice(-5);
+        const anteriores = matches.slice(0, -5);
+        return `
+          ${anteriores.length ? `
+            <button class="jp-ver-todos-btn" id="jp-ver-todos-btn">
+              <span class="jvt-txt">Ver todos los partidos (${matches.length})</span>
+              <span class="jvt-arrow">▼</span>
+            </button>
+            <div class="jp-match-list-older" id="jp-match-list-older">
+              ${anteriores.map(jpMatchRowHtml).join('')}
+            </div>
+          ` : ''}
+          ${recientes.map(jpMatchRowHtml).join('')}
+        `;
+      })()}
     </div>
   `;
   activarFallbackFotos(container);
   container.querySelectorAll('.jp-match-row').forEach(row=>{
     row.addEventListener('click', ()=> goToMatch(parseInt(row.dataset.num)) );
   });
+  const verTodosBtn = container.querySelector('#jp-ver-todos-btn');
+  if(verTodosBtn){
+    verTodosBtn.addEventListener('click', ()=>{
+      const older = container.querySelector('#jp-match-list-older');
+      const abierto = older.classList.toggle('abierto');
+      verTodosBtn.classList.toggle('abierto', abierto);
+      verTodosBtn.querySelector('.jvt-txt').textContent = abierto
+        ? 'Ocultar partidos anteriores'
+        : `Ver todos los partidos (${matches.length})`;
+    });
+  }
 }
 
 document.getElementById('jugador-search').addEventListener('input', (e)=>{
