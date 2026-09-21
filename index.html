@@ -1097,6 +1097,8 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .rank-row.top1{background:rgba(169,122,42,0.08);}
 .rank-row.top2{background:rgba(58,42,24,0.04);}
 .rank-row.top3{background:rgba(156,90,52,0.07);}
+.rank-row.descenso{background:rgba(210,40,40,0.09);}
+.rank-row.descenso .rank-num, .rank-row.descenso .rank-name, .rank-row.descenso .rank-main-val, .rank-row.descenso .rank-extra span b{color:#C4291C;}
 .rank-name{flex:1; font-weight:600; font-size:14.5px;}
 .rank-extra{
   display:flex; gap:14px; font-size:12px; color:var(--text-dim);
@@ -2919,7 +2921,7 @@ async function cargarDatosDesdeSupabase(){
     'GOLES POR PARTIDO': { headers:['JUGADOR','PROMEDIO'], rows: gppR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.goles_por_partido})) },
     'PORCENTAJE DE VICTORIAS': { headers:['JUGADOR','PROMEDIO'], rows: pvR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.porcentaje_pg})) },
     'MENOS GOLES RECIBIDOS POR PARTIDO': { headers:['JUGADOR','PROMEDIO'], rows: mgrR.data.map(x=>({JUGADOR:x.jugador,PROMEDIO:x.goles_recibidos_por_partido})) },
-    'PROMEDIO DE PUNTOS': { headers:['JUGADOR','PJ','PROMEDIO'], rows: ppR.data.map(x=>({JUGADOR:x.jugador,PJ:x.pj,PROMEDIO:x.promedio})) }
+    'TABLA DE DESCENSOS': { headers:['JUGADOR','PJ','PROMEDIO'], rows: ppR.data.map(x=>({JUGADOR:x.jugador,PJ:x.pj,PROMEDIO:Number(x.promedio).toFixed(3)})) }
   };
 
   const partidos = partR.data.map(p => ({
@@ -3480,7 +3482,7 @@ const rankingIcons = {
   'GOLES POR PARTIDO':'📈',
   'PORCENTAJE DE VICTORIAS':'✅',
   'MENOS GOLES RECIBIDOS POR PARTIDO':'🧤',
-  'PROMEDIO DE PUNTOS':'📊'
+  'TABLA DE DESCENSOS':'📊'
 };
 
 function renderRankingChips(){
@@ -3511,6 +3513,7 @@ function renderRankingList(){
     const div = document.createElement('div');
     let cls = 'rank-row';
     if(i===0) cls += ' top1'; else if(i===1) cls += ' top2'; else if(i===2) cls += ' top3';
+    if(activeRanking === 'TABLA DE DESCENSOS' && i >= block.rows.length - 3) cls += ' descenso';
     div.className = cls;
 
     let medal = (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1));
@@ -11421,7 +11424,7 @@ function renderLeaderGrid(){
     'GOLES POR PARTIDO':'Prom. de goles',
     'PORCENTAJE DE VICTORIAS':'% de victorias',
     'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida',
-    'PROMEDIO DE PUNTOS':'Prom. de puntos'
+    'TABLA DE DESCENSOS':'Descenso'
   };
   grid.innerHTML = rankingKeys.map(k=>{
     const block = DATA.rankings[k];
@@ -11730,7 +11733,7 @@ function renderJugadorProfile(){
         'GOLES POR PARTIDO':'Prom. de goles',
         'PORCENTAJE DE VICTORIAS':'% de victorias',
         'MENOS GOLES RECIBIDOS POR PARTIDO':'Valla menos vencida',
-        'PROMEDIO DE PUNTOS':'Prom. de puntos'
+        'TABLA DE DESCENSOS':'Descenso'
       };
       badges.push((rankingIcons[cat]||'🏅')+' '+(catLabels[cat]||cat));
     }
