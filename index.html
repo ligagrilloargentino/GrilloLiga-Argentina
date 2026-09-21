@@ -1147,6 +1147,15 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
   display:grid; grid-template-columns:1fr auto 1fr;
   align-items:center; padding:18px 10px;
 }
+.sb-youtube-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin:0 16px 16px 16px; padding:11px 14px;
+  background:#B31217; color:#fff; border-radius:var(--radius);
+  font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:13px;
+  text-decoration:none; text-align:center; letter-spacing:0.2px;
+  box-shadow:0 2px 8px rgba(179,18,23,0.28);
+}
+.sb-youtube-btn:hover{ background:#961015; }
 .sb-team{ text-align:center; }
 .sb-team .team-label{
   font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
@@ -2937,7 +2946,7 @@ async function cargarDatosDesdeSupabase(){
   };
 
   const partidos = partR.data.map(p => ({
-    numero: p.numero, titulo: p.titulo, nota: p.nota,
+    numero: p.numero, titulo: p.titulo, nota: p.nota, youtube_url: p.youtube_url,
     oscuro: { nombre:'OSCURO', goles: p.oscuro.goles, jugadores: p.oscuro.jugadores },
     claro: { nombre:'CLARO', goles: p.claro.goles, jugadores: p.claro.jugadores }
   }));
@@ -3650,6 +3659,7 @@ function renderScoreboard(){
           <div class="team-score" style="opacity:${oscuroWin?0.55:1}">${match.claro.goles}</div>
         </div>
       </div>
+      ${match.youtube_url ? `<a class="sb-youtube-btn" href="${match.youtube_url}" target="_blank" rel="noopener noreferrer">▶️ Mirá el partido completo en YouTube acá</a>` : ''}
       <div class="sb-players">
         <div class="sb-col oscuro">
           ${match.oscuro.jugadores.length ? match.oscuro.jugadores.map(playerRow).join('') : '<div class="no-scorers">Sin datos</div>'}
