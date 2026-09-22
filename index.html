@@ -1168,6 +1168,27 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
   text-align:center; letter-spacing:0.2px;
 }
 .sb-youtube-card:hover .sb-yt-label{ background:#961015; }
+
+.canal-yt-card{
+  display:block; border-radius:var(--radius); overflow:hidden; text-decoration:none;
+  background:var(--card); border:1px solid var(--line); box-shadow:0 2px 8px rgba(0,0,0,0.12);
+}
+.canal-yt-portada{
+  width:100%; aspect-ratio:16/6; background:linear-gradient(135deg,#B31217,#7a0c10);
+  display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+}
+.canal-yt-portada img{ width:100%; height:100%; object-fit:cover; display:block; }
+.canal-yt-fallback{
+  color:#fff; font-family:'Alegreya Sans',sans-serif; font-weight:800; font-size:18px;
+  letter-spacing:0.5px; text-align:center; padding:0 14px;
+}
+.canal-yt-footer{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:12px 16px; background:#B31217; color:#fff;
+  font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:13px;
+}
+.canal-yt-arrow{ font-size:16px; }
+.canal-yt-card:hover .canal-yt-footer{ background:#961015; }
 .sb-team{ text-align:center; }
 .sb-team .team-label{
   font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
@@ -1615,6 +1636,19 @@ footer{
       <h2>🎉 La hinchada de la GrilloLiga</h2>
     </div>
     <div class="leader-grid" id="hinchada-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
+
+    <div class="section-head" style="margin-top:26px;">
+      <h2>📺 Nuestro canal</h2>
+    </div>
+    <a class="canal-yt-card" href="https://www.youtube.com/@LigaGrilloArgentino" target="_blank" rel="noopener noreferrer">
+      <div class="canal-yt-portada" id="canal-yt-portada">
+        <div class="canal-yt-fallback">▶ Liga Grillo Argentino</div>
+      </div>
+      <div class="canal-yt-footer">
+        <span>▶️ Suscribite al canal de YouTube</span>
+        <span class="canal-yt-arrow">→</span>
+      </div>
+    </a>
   </section>
 
   <!-- ESTADISTICAS -->
@@ -3655,12 +3689,14 @@ function youtubeVideoId(url){
 
 function renderYoutubeCard(url){
   const id = youtubeVideoId(url);
-  const thumb = id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+  const thumbHD = id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : '';
+  const thumbFallback = id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
   return `
     <a class="sb-youtube-card" href="${url}" target="_blank" rel="noopener noreferrer">
       ${id ? `
         <div class="sb-yt-thumb-wrap">
-          <img class="sb-yt-thumb" src="${thumb}" alt="Miniatura del video" loading="lazy">
+          <img class="sb-yt-thumb" src="${thumbHD}" alt="Miniatura del video" loading="lazy"
+               onerror="this.onerror=null; this.src='${thumbFallback}';">
           <div class="sb-yt-play">▶</div>
         </div>
       ` : ''}
