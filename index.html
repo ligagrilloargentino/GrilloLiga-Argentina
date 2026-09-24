@@ -1378,6 +1378,24 @@ footer{
   font-family:'Alegreya Sans',sans-serif;
   background:rgba(169,122,42,0.15); color:var(--gold-dim); padding:2px 8px; border-radius:10px;
 }
+.gl-share-btn{
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--card2); border:1px solid var(--line-strong); color:var(--text-dim);
+  font-family:'Alegreya Sans',sans-serif; font-size:11.5px; font-weight:700;
+  padding:6px 13px; border-radius:20px; cursor:pointer; transition:all .15s; white-space:nowrap;
+  flex-shrink:0;
+}
+.gl-share-btn:hover{ background:var(--red); color:var(--claro-bg); border-color:var(--red); }
+.gl-share-btn:active{ opacity:.7; }
+.jp-header{ justify-content:space-between; }
+.gl-toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(10px);
+  background:var(--text); color:var(--claro-bg); font-family:'Alegreya Sans',sans-serif;
+  font-size:13px; font-weight:600; padding:10px 18px; border-radius:20px;
+  box-shadow:0 4px 14px rgba(0,0,0,.25); z-index:9999; opacity:0; pointer-events:none;
+  transition:opacity .2s, transform .2s;
+}
+.gl-toast.visible{ opacity:1; transform:translateX(-50%) translateY(0); }
 .jp-stat-grid{
   display:grid; grid-template-columns:repeat(auto-fill, minmax(115px,1fr)); gap:8px;
   margin-bottom:20px;
@@ -1706,12 +1724,12 @@ footer{
       <div class="scroll-arrow left hidden" id="rank-arrow-left">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
       </div>
-      <div class="ranking-select-row" id="ranking-chips"></div>
+      <div class="ranking-select-row" id="ranking-chips"><div class="skeleton-box" style="height:32px; width:120px; display:inline-block; margin-right:8px;"></div><div class="skeleton-box" style="height:32px; width:120px; display:inline-block; margin-right:8px;"></div><div class="skeleton-box" style="height:32px; width:120px; display:inline-block;"></div></div>
       <div class="scroll-arrow right" id="rank-arrow-right">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </div>
-    <div class="rank-list" id="ranking-list"></div>
+    <div class="rank-list" id="ranking-list"><div class="skeleton-box" style="height:48px; margin-bottom:6px;"></div><div class="skeleton-box" style="height:48px; margin-bottom:6px;"></div><div class="skeleton-box" style="height:48px; margin-bottom:6px;"></div><div class="skeleton-box" style="height:48px; margin-bottom:6px;"></div><div class="skeleton-box" style="height:48px;"></div></div>
   </section>
 
   <!-- PARTIDOS -->
@@ -1747,7 +1765,7 @@ footer{
       <input type="text" id="jugador-search" placeholder="Buscar jugador…">
     </div>
     <div id="jugador-profile"></div>
-    <div class="jugador-chip-row" id="jugador-chips-bottom"></div>
+    <div class="jugador-chip-row" id="jugador-chips-bottom"><div class="skeleton-box" style="height:36px; width:90px; display:inline-block; margin:0 8px 8px 0;"></div><div class="skeleton-box" style="height:36px; width:90px; display:inline-block; margin:0 8px 8px 0;"></div><div class="skeleton-box" style="height:36px; width:90px; display:inline-block; margin:0 8px 8px 0;"></div><div class="skeleton-box" style="height:36px; width:90px; display:inline-block; margin:0 8px 8px 0;"></div><div class="skeleton-box" style="height:36px; width:90px; display:inline-block;"></div></div>
   </section>
 
   <!-- COMUNICADOS OFICIALES -->
@@ -3687,6 +3705,35 @@ function youtubeVideoId(url){
   return m ? m[1] : null;
 }
 
+function glToast(msg){
+  let el = document.getElementById('gl-toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'gl-toast';
+    el.className = 'gl-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('visible');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(()=> el.classList.remove('visible'), 2200);
+}
+
+async function glCompartir(titulo, texto){
+  const url = location.href;
+  if(navigator.share){
+    try{ await navigator.share({ title:titulo, text:texto, url }); }
+    catch(e){ /* el usuario canceló el share, no hacer nada */ }
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(texto + '\n' + url);
+    glToast('📋 Copiado al portapapeles');
+  }catch(e){
+    glToast('No se pudo copiar el link');
+  }
+}
+
 function renderYoutubeCard(url){
   const id = youtubeVideoId(url);
   const thumbHD = id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : '';
@@ -3729,6 +3776,9 @@ function renderScoreboard(){
           <div class="team-score" style="opacity:${oscuroWin?0.55:1}">${match.claro.goles}</div>
         </div>
       </div>
+      <div style="display:flex; justify-content:center; padding:0 16px 14px 16px;">
+        <button class="gl-share-btn" id="sb-share-btn">📤 Compartir partido</button>
+      </div>
       ${match.youtube_url ? renderYoutubeCard(match.youtube_url) : ''}
       <div class="sb-players">
         <div class="sb-col oscuro">
@@ -3748,6 +3798,12 @@ function renderScoreboard(){
       <div id="mvp-lista" style="margin-top:8px;">Cargando…</div>
     </div>
   `;
+  document.getElementById('sb-share-btn').addEventListener('click', ()=>{
+    glCompartir(
+      `Partido #${match.numero} — Grillo Liga Argentina`,
+      `⚽ ${match.titulo || 'Partido #'+match.numero}: Oscuro ${match.oscuro.goles} - ${match.claro.goles} Claro. Mirá el detalle en la Grillo Liga.`
+    );
+  });
   cargarYRenderizarComentarios('partido', match.numero, document.getElementById('foro-partido-container'));
   cargarYRenderizarMvp(match);
 }
@@ -11843,11 +11899,14 @@ function renderJugadorProfile(){
 
   container.innerHTML = `
     <div class="jp-header">
-      <div class="jp-avatar">${jcAvatarHtml(activeJugador)}</div>
-      <div>
-        <div class="jp-name">${activeJugador}</div>
-        <div class="jp-badges">${badges.map(b=>'<span class="jp-badge">'+b+'</span>').join('')}</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="jp-avatar">${jcAvatarHtml(activeJugador)}</div>
+        <div>
+          <div class="jp-name">${activeJugador}</div>
+          <div class="jp-badges">${badges.map(b=>'<span class="jp-badge">'+b+'</span>').join('')}</div>
+        </div>
       </div>
+      <button class="gl-share-btn" id="jp-share-btn">📤 Compartir</button>
     </div>
     <div class="jp-stat-grid">
       ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${NOMBRES_COMPLETOS_STAT[k] || k}</div></div>`).join('')}
@@ -11884,6 +11943,12 @@ function renderJugadorProfile(){
     </div>
   `;
   activarFallbackFotos(container);
+  container.querySelector('#jp-share-btn').addEventListener('click', ()=>{
+    glCompartir(
+      `${activeJugador} — Grillo Liga Argentina`,
+      `⚽ Mirá la ficha de ${activeJugador} en la Grillo Liga: ${r['Goles']||0} goles, ${r['Ast']||0} asistencias en ${r['PJ']||0} partidos.`
+    );
+  });
   container.querySelectorAll('.jp-match-row').forEach(row=>{
     row.addEventListener('click', ()=> goToMatch(parseInt(row.dataset.num)) );
   });
