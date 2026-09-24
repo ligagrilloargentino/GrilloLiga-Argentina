@@ -71,8 +71,9 @@ button, .auth-btn, .pen-zona, .nav-inferior-item, .tab-btn, .mini-juego-card, ca
 }
 
 button:active, .auth-btn:active, .mini-juego-card:active, .nav-inferior-item:active, .jugador-card:active{
-  opacity:0.7; transition:opacity .05s;
+  opacity:0.7; transform:scale(0.97); transition:opacity .05s, transform .05s;
 }
+button, .auth-btn{ transition:opacity .05s, transform .05s; }
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&display=swap');
 
 :root{
@@ -834,11 +835,20 @@ header.top{
 }
 #usuario-actual-nombre:hover{ color:var(--red); }
 .usuario-mini-menu{
-  display:none; position:absolute; top:26px; right:0; z-index:200;
+  display:block; position:absolute; top:26px; right:0; z-index:200;
   background:var(--card); border:1px solid var(--line-strong); border-radius:8px;
   padding:14px 16px; min-width:210px; box-shadow:0 6px 18px rgba(0,0,0,.16);
+  opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
 }
-.usuario-mini-menu.abierto{ display:block; }
+.usuario-mini-menu.abierto{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+@media (prefers-reduced-motion: reduce){ .usuario-mini-menu{ transition:opacity .18s ease; transform:none; } }
+.notif-dropdown{
+  opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+}
+.notif-dropdown.abierto{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+@media (prefers-reduced-motion: reduce){ .notif-dropdown{ transition:opacity .18s ease; transform:none; } }
 .umm-fila{ font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text); margin-bottom:8px; line-height:1.4; }
 .umm-fila:last-child{ margin-bottom:0; }
 .umm-fila b{ color:var(--text-dim); font-weight:700; margin-right:4px; }
@@ -1435,6 +1445,22 @@ footer{
   transition:opacity .2s, transform .2s;
 }
 .gl-toast.visible{ opacity:1; transform:translateX(-50%) translateY(0); }
+@keyframes gl-pulso-flash{
+  0%{ background:rgba(179,59,34,0.32); transform:scale(1.03); }
+  100%{ background:transparent; transform:scale(1); }
+}
+.gl-pulso{ animation:gl-pulso-flash .5s ease-out; border-radius:8px; }
+@media (prefers-reduced-motion: reduce){ .gl-pulso{ animation:none; } }
+@keyframes gl-entrada{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+.gl-entrada{ animation:gl-entrada .28s ease-out; }
+@media (prefers-reduced-motion: reduce){ .gl-entrada{ animation:none; } }
+.gl-btn-spinner{
+  display:inline-block; width:12px; height:12px;
+  border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
+  border-radius:50%; animation:gl-spin .6s linear infinite;
+  margin-right:6px; vertical-align:-2px;
+}
+button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
 .jp-stat-grid{
   display:grid; grid-template-columns:repeat(auto-fill, minmax(115px,1fr)); gap:8px;
   margin-bottom:20px;
@@ -1590,7 +1616,7 @@ footer{
         🔔<span id="notif-badge" style="display:none; position:absolute; top:-6px; right:-8px; background:var(--red); color:#fff; border-radius:50%; font-size:9px; width:15px; height:15px; align-items:center; justify-content:center; display:flex;">0</span>
       </span>
       <div id="notif-overlay" style="display:none; position:fixed; inset:0; z-index:9000;"></div>
-      <div id="notif-dropdown" style="display:none; position:absolute; z-index:9001; top:60px; right:16px; max-width:320px; width:90vw;">
+      <div id="notif-dropdown" class="notif-dropdown" style="position:absolute; z-index:9001; top:60px; right:16px; max-width:320px; width:90vw;">
         <div class="auth-card" style="max-height:60vh; overflow-y:auto;">
           <h1 style="font-size:16px;">🔔 Notificaciones</h1>
           <div id="notif-lista" style="margin-top:8px;"></div>
@@ -3356,7 +3382,7 @@ async function abrirNotificaciones(){
   const overlay = document.getElementById('notif-overlay');
   const dropdown = document.getElementById('notif-dropdown');
   overlay.style.display = 'block';
-  dropdown.style.display = 'block';
+  dropdown.classList.add('abierto');
   const cont = document.getElementById('notif-lista');
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
   const { data: { user } } = await sbClient.auth.getUser();
@@ -3374,7 +3400,7 @@ async function abrirNotificaciones(){
 document.getElementById('notif-campana-btn').addEventListener('click', abrirNotificaciones);
 document.getElementById('notif-overlay').addEventListener('click', ()=>{
   document.getElementById('notif-overlay').style.display = 'none';
-  document.getElementById('notif-dropdown').style.display = 'none';
+  document.getElementById('notif-dropdown').classList.remove('abierto');
 });
 setInterval(()=>{ if(document.getElementById('notif-campana-btn').style.display !== 'none') cargarNotificaciones(); }, 30000);
 
@@ -3708,6 +3734,7 @@ function renderRankingList(){
     `;
     list.appendChild(div);
   });
+  glAnimarEntrada(list);
 }
 
 renderRankingChips();
@@ -3811,6 +3838,27 @@ function glToast(msg){
   el._timer = setTimeout(()=> el.classList.remove('visible'), 2200);
 }
 
+function glBotonCargando(btn, activo){
+  if(activo){
+    if(btn.dataset.glTextoOriginal === undefined) btn.dataset.glTextoOriginal = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="gl-btn-spinner"></span>' + btn.dataset.glTextoOriginal;
+  } else {
+    btn.disabled = false;
+    if(btn.dataset.glTextoOriginal !== undefined) btn.textContent = btn.dataset.glTextoOriginal;
+  }
+}
+
+function glAnimarEntrada(el){
+  el.classList.remove('gl-entrada');
+  void el.offsetWidth; // fuerza reflow para poder reiniciar la animación
+  el.classList.add('gl-entrada');
+}
+
+function glVibrar(ms){
+  try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){ /* no soportado, ignorar */ }
+}
+
 async function glCompartir(titulo, texto){
   const url = location.href;
   if(navigator.share){
@@ -3890,6 +3938,7 @@ function renderScoreboard(){
       <div id="mvp-lista" style="margin-top:8px;">Cargando…</div>
     </div>
   `;
+  glAnimarEntrada(container);
   document.getElementById('sb-share-btn').addEventListener('click', ()=>{
     glCompartir(
       `Partido #${match.numero} — Grillo Liga Argentina`,
@@ -3925,7 +3974,10 @@ async function cargarYRenderizarMvp(match){
       </div>`;
   }).join('');
   document.querySelectorAll('[data-mvp-candidato]').forEach(el=>{
-    el.addEventListener('click', () => votarMvp(partidoId, el.dataset.mvpCandidato, match));
+    el.addEventListener('click', () => {
+      el.classList.add('gl-pulso');
+      votarMvp(partidoId, el.dataset.mvpCandidato, match);
+    });
   });
 }
 
@@ -4126,15 +4178,17 @@ async function cargarYRenderizarComentarios(tipo, partidoId, container){
   container.querySelectorAll('.fm-reaccion').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       if(!miUserId){ glToast('Necesitás estar logueado para reaccionar.'); return; }
+      btn.classList.add('gl-pulso');
       await czToggleReaccion(parseInt(btn.dataset.id), btn.dataset.emoji, miUserId);
       cargarYRenderizarComentarios(tipo, partidoId, container);
     });
   });
 
-  document.getElementById(`foro-nuevo-btn-${tipo}-${partidoId||'gen'}`).addEventListener('click', async ()=>{
+  document.getElementById(`foro-nuevo-btn-${tipo}-${partidoId||'gen'}`).addEventListener('click', async (e)=>{
     const ta = document.getElementById(`foro-nuevo-texto-${tipo}-${partidoId||'gen'}`);
     const texto = ta.value.trim();
     if(!texto) return;
+    glBotonCargando(e.currentTarget, true);
     await publicarComentarioForo(tipo, partidoId, texto, null);
     cargarYRenderizarComentarios(tipo, partidoId, container);
   });
@@ -4151,10 +4205,11 @@ async function cargarYRenderizarComentarios(tipo, partidoId, container){
   });
 
   container.querySelectorAll('.foro-reply-box button').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
+    btn.addEventListener('click', async (e)=>{
       const box = btn.closest('.foro-reply-box');
       const texto = box.querySelector('textarea').value.trim();
       if(!texto) return;
+      glBotonCargando(e.currentTarget, true);
       await publicarComentarioForo(tipo, partidoId, texto, parseInt(btn.dataset.padre));
       cargarYRenderizarComentarios(tipo, partidoId, container);
     });
@@ -7384,7 +7439,7 @@ function trTerminarMano(ganador){
 }
 
 function trSumarPuntos(quien, puntos){
-  if(quien === 'yo') trPuntosYo = Math.min(30, trPuntosYo + puntos);
+  if(quien === 'yo'){ trPuntosYo = Math.min(30, trPuntosYo + puntos); glVibrar(35); }
   else trPuntosRival = Math.min(30, trPuntosRival + puntos);
   trRenderizar();
 }
@@ -10409,6 +10464,7 @@ function czSalirModoOnline(){
 }
 
 function czGol(lado){
+  glVibrar(40);
   const golNombre = lado === 'izq' ? czNombreJ2 : czNombreJ1;
   if(lado === 'izq'){ czMarcadorJ2++; document.getElementById('cz-score-j2').textContent = czMarcadorJ2; }
   else { czMarcadorJ1++; document.getElementById('cz-score-j1').textContent = czMarcadorJ1; }
@@ -11511,15 +11567,17 @@ async function cargarComunicados(){
       </div>`).join('')
     : '<div class="cz-online-esperando">Todavía no hay comunicados publicados.</div>';
 }
-document.getElementById('com-publicar-btn').addEventListener('click', async ()=>{
+document.getElementById('com-publicar-btn').addEventListener('click', async (e)=>{
   const titulo = document.getElementById('com-titulo-input').value.trim();
   const contenido = document.getElementById('com-contenido-input').value.trim();
   if(!titulo || !contenido) return;
+  glBotonCargando(e.currentTarget, true);
   const { data: { user } } = await sbClient.auth.getUser();
   await sbClient.from('comunicados_oficiales').insert({ usuario_id:user.id, titulo, contenido }).then(()=>{}, ()=>{});
   document.getElementById('com-titulo-input').value = '';
   document.getElementById('com-contenido-input').value = '';
-  cargarComunicados();
+  await cargarComunicados();
+  glBotonCargando(e.currentTarget, false);
 });
 
 renderMatchChips();
@@ -12060,6 +12118,7 @@ function renderJugadorProfile(){
       })()}
     </div>
   `;
+  glAnimarEntrada(container);
   activarFallbackFotos(container);
   container.querySelector('#jp-share-btn').addEventListener('click', ()=>{
     glCompartir(
