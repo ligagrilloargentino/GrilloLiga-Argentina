@@ -6,14 +6,18 @@
 <title>Grillo Liga Argentina — Torneo amateur de fútbol 2026</title>
 <meta name="description" content="Grillo Liga Argentina: estadísticas, rankings y resultados del torneo amateur de fútbol Los Pibes 2026. Goleadores, asistencias, historial de jugadores y mucho más.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://ligagrilloargentino.github.io/Liga-GrilloArgentina/">
+<link rel="canonical" href="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
 <meta property="og:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026. Goleadores, asistencias e historial de todos los jugadores.">
-<meta property="og:url" content="https://ligagrilloargentino.github.io/Liga-GrilloArgentina/">
+<meta property="og:url" content="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/">
+<meta property="og:image" content="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
 <meta name="twitter:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026.">
+<meta name="twitter:image" content="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/icon-512.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#B33B22">
 <meta name="mobile-web-app-capable" content="yes">
@@ -30,6 +34,41 @@ button, .auth-btn, .pen-zona, .nav-inferior-item, .tab-btn, .mini-juego-card, ca
 @keyframes skeleton-shimmer{ 0%{opacity:0.4;} 50%{opacity:0.8;} 100%{opacity:0.4;} }
 .skeleton-box{ background:var(--card2); border-radius:8px; animation:skeleton-shimmer 1.3s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce){ .skeleton-box{ animation:none; opacity:0.6; } }
+
+/* pantalla de carga con fotos de jugadores orbitando */
+.gl-loader{
+  position:fixed; inset:0; z-index:9999;
+  background:#B33B22; color:#F7EFDD;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:26px;
+  font-family:'Alegreya Sans',sans-serif; font-size:15px; text-align:center; padding:20px; box-sizing:border-box;
+}
+.gl-loader-orbits{ position:relative; width:220px; height:220px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.gl-loader-logo{
+  width:80px; height:80px; border-radius:50%; overflow:hidden; z-index:2;
+  box-shadow:0 4px 20px rgba(0,0,0,.35); animation:gl-pulse 1.8s ease-in-out infinite;
+}
+.gl-loader-logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+@keyframes gl-pulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.07); } }
+@keyframes gl-spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+.gl-orbit{ position:absolute; border-radius:50%; animation:gl-spin linear infinite; }
+.gl-orbit-1{ width:140px; height:140px; top:40px; left:40px; animation-duration:5s; animation-direction:normal; }
+.gl-orbit-2{ width:190px; height:190px; top:15px; left:15px; animation-duration:8s; animation-direction:reverse; }
+.gl-orbit-3{ width:220px; height:220px; top:0; left:0; animation-duration:11s; animation-direction:normal; }
+.gl-orbit-photo{
+  position:absolute; top:-2px; left:50%; transform:translateX(-50%);
+  width:36px; height:36px; border-radius:50%; overflow:hidden;
+  border:2px solid #F7EFDD; box-shadow:0 2px 10px rgba(0,0,0,.3);
+  background:#F7EFDD; animation:gl-spin linear infinite;
+}
+.gl-orbit-1 .gl-orbit-photo{ animation-duration:5s; animation-direction:reverse; }
+.gl-orbit-2 .gl-orbit-photo{ animation-duration:8s; animation-direction:normal; }
+.gl-orbit-3 .gl-orbit-photo{ animation-duration:11s; animation-direction:reverse; }
+.gl-orbit-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.gl-loader-text{ font-weight:600; letter-spacing:0.3px; opacity:0.92; }
+@media (prefers-reduced-motion: reduce){
+  .gl-loader-logo, .gl-orbit, .gl-orbit-photo{ animation:none; }
+  .gl-orbit-1 .gl-orbit-photo, .gl-orbit-2 .gl-orbit-photo, .gl-orbit-3 .gl-orbit-photo{ top:auto; bottom:-6px; left:50%; }
+}
 
 button:active, .auth-btn:active, .mini-juego-card:active, .nav-inferior-item:active, .jugador-card:active{
   opacity:0.7; transition:opacity .05s;
@@ -3018,9 +3057,59 @@ async function cargarDatosDesdeSupabase(){
   return { estadisticas, rankings, partidos, fotos };
 }
 
+const GL_FOTOS_LOADING = [
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Barba.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Chiappe.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Ciro.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/diego_bustos.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Fabri.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Gasti.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Gutman.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Kava.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/LautiAguirre.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Lauti.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Leon.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Mateo.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Mecha.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Miriam.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/NahueCuervo.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Nico.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pablo.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pedro.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pelu.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pepe.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Pipe.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Rafa.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Tadeo.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Tiago.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Tobi.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/TomiSarya.jpg',
+  'https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/Valen.jpg'
+];
+function glElegirFotosAzar(n){
+  const copia = GL_FOTOS_LOADING.slice();
+  const elegidas = [];
+  while(elegidas.length < n && copia.length){
+    const i = Math.floor(Math.random()*copia.length);
+    elegidas.push(copia.splice(i,1)[0]);
+  }
+  return elegidas;
+}
+
 const _cargaInicial = document.createElement('div');
-_cargaInicial.textContent = 'Cargando datos de Grillo Liga…';
-_cargaInicial.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg,#111);color:var(--text,#eee);font-family:sans-serif;font-size:15px;z-index:9999;';
+_cargaInicial.className = 'gl-loader';
+(function(){
+  const fotos = glElegirFotosAzar(3);
+  _cargaInicial.innerHTML = `
+    <div class="gl-loader-orbits">
+      <div class="gl-orbit gl-orbit-1"><div class="gl-orbit-photo"><img src="${fotos[0]||''}" alt="" loading="eager"></div></div>
+      <div class="gl-orbit gl-orbit-2"><div class="gl-orbit-photo"><img src="${fotos[1]||''}" alt="" loading="eager"></div></div>
+      <div class="gl-orbit gl-orbit-3"><div class="gl-orbit-photo"><img src="${fotos[2]||''}" alt="" loading="eager"></div></div>
+      <div class="gl-loader-logo"><img src="icon-512.png" alt=""></div>
+    </div>
+    <div class="gl-loader-text">Cargando la Grillo Liga…</div>
+  `;
+})();
 
 let DATA, FOTOS_JUGADORES_REMOTAS;
 
@@ -3237,7 +3326,7 @@ document.getElementById('instalar-app-btn').addEventListener('click', async ()=>
     return;
   }
   if(!eventoInstalacionPWA){
-    alert('Para instalarla, abrí este sitio con Chrome y tocá el menú ⋮ → "Instalar app".');
+    glToast('Para instalarla, abrí este sitio con Chrome y tocá el menú ⋮ → "Instalar app".');
     return;
   }
   eventoInstalacionPWA.prompt();
@@ -3313,6 +3402,9 @@ if(LOGIN_REQUERIDO && !modoInvitado){
             document.getElementById('umm-jugador').textContent = perfil.jugador_favorito || '—';
             document.getElementById('umm-editar-club').value = perfil.club_favorito || '';
             document.getElementById('umm-editar-jugador').value = perfil.jugador_favorito || '';
+            // precarga la foto del jugador favorito del usuario para que no "salte" al mostrarse (perfil, mini-menú, etc.)
+            const fotoFavorito = perfil.jugador_favorito && FOTOS_JUGADORES_REMOTAS ? FOTOS_JUGADORES_REMOTAS[perfil.jugador_favorito] : null;
+            if(fotoFavorito){ new Image().src = fotoFavorito; }
           }
         });
       calcularInsigniasUsuario(data.user.id).then(insignias => {
@@ -3839,7 +3931,7 @@ async function cargarYRenderizarMvp(match){
 
 async function votarMvp(partidoId, jugador, match){
   const { data: { user } } = await sbClient.auth.getUser();
-  if(!user){ alert('Necesitás estar logueado para votar.'); return; }
+  if(!user){ glToast('Necesitás estar logueado para votar.'); return; }
   await sbClient.from('mvp_votos').upsert({ partido_id:partidoId, usuario_id:user.id, jugador_votado:jugador }, { onConflict:'partido_id,usuario_id' }).then(()=>{}, ()=>{});
   cargarYRenderizarMvp(match);
 }
@@ -4033,7 +4125,7 @@ async function cargarYRenderizarComentarios(tipo, partidoId, container){
 
   container.querySelectorAll('.fm-reaccion').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
-      if(!miUserId){ alert('Necesitás estar logueado para reaccionar.'); return; }
+      if(!miUserId){ glToast('Necesitás estar logueado para reaccionar.'); return; }
       await czToggleReaccion(parseInt(btn.dataset.id), btn.dataset.emoji, miUserId);
       cargarYRenderizarComentarios(tipo, partidoId, container);
     });
@@ -5005,7 +5097,7 @@ let penMiEleccionPendiente = null, penEleccionRivalRecibida = null;
 
 async function penEntrarSalaEspera(){
   const { data: { user } } = await sbClient.auth.getUser();
-  if(!user){ alert('Necesitás estar logueado para jugar online.'); return; }
+  if(!user){ glToast('Necesitás estar logueado para jugar online.'); return; }
   penMiUsernameOnline = user.email.replace(DOMINIO_FALSO, '');
   document.getElementById('pen-elegir-modo').style.display = 'none';
   document.getElementById('pen-online-lobby').style.display = 'block';
@@ -5020,7 +5112,7 @@ async function penEntrarSalaEspera(){
     if(msg.payload.para === penMiUsernameOnline) penIniciarOnline(false, msg.payload.roomId, msg.payload.de);
   });
   penLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
-    if(msg.payload.para === penMiUsernameOnline){ alert(msg.payload.de + ' rechazó tu desafío.'); penRenderizarSalaEspera(); }
+    if(msg.payload.para === penMiUsernameOnline){ glToast(msg.payload.de + ' rechazó tu desafío.'); penRenderizarSalaEspera(); }
   });
   penLobbyChannel.subscribe(async (status)=>{
     if(status === 'SUBSCRIBED') await penLobbyChannel.track({ username: penMiUsernameOnline });
@@ -5333,7 +5425,7 @@ function gdAdivinar(){
   if(!nombreIntento) return;
   const intento = DATA.estadisticas.find(r => r.Jugador.toLowerCase() === nombreIntento.toLowerCase());
   if(!intento){
-    alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.');
+    glToast('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.');
     return;
   }
   input.value = '';
@@ -5465,7 +5557,7 @@ function simActualizarCapitanesDisponibles(){
 function simArmarEquiposAuto(){
   const seleccionados = Array.from(document.querySelectorAll('#sim-auto-lista input:checked')).map(el => el.value);
   if(seleccionados.length < 10){
-    alert('Tildá al menos 10 jugadores (mínimo 5 por equipo).');
+    glToast('Tildá al menos 10 jugadores (mínimo 5 por equipo).');
     return;
   }
   const capitanClaro = document.getElementById('sim-capitan-claro').value;
@@ -5508,10 +5600,10 @@ function simAgregarJugador(equipo){
   const input = document.getElementById('sim-buscador-input');
   const nombre = normalizarTexto(input.value.trim());
   const encontrado = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
-  if(!encontrado){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
+  if(!encontrado){ glToast('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
   const nombreReal = encontrado.Jugador;
   if(simEquipoClaro.includes(nombreReal) || simEquipoOscuro.includes(nombreReal)){
-    alert('Ese jugador ya está en un equipo.');
+    glToast('Ese jugador ya está en un equipo.');
     return;
   }
   if(equipo === 'claro') simEquipoClaro.push(nombreReal); else simEquipoOscuro.push(nombreReal);
@@ -5706,12 +5798,12 @@ function mgAgregarJugador(equipo){
   const input = document.getElementById('mg-buscador-input');
   const nombre = normalizarTexto(input.value.trim());
   const jugador = DATA.estadisticas.find(r => normalizarTexto(r.Jugador) === nombre);
-  if(!jugador){ alert('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
+  if(!jugador){ glToast('Ese nombre no está en la Grillo Liga. Elegí uno de la lista.'); return; }
   if(mgEquipoClaro.includes(jugador.Jugador) || mgEquipoOscuro.includes(jugador.Jugador)){
-    alert('Ese jugador ya está en un equipo.'); return;
+    glToast('Ese jugador ya está en un equipo.'); return;
   }
   const lista = equipo === 'claro' ? mgEquipoClaro : mgEquipoOscuro;
-  if(lista.length >= 6){ alert('Ese equipo ya tiene 6 jugadores.'); return; }
+  if(lista.length >= 6){ glToast('Ese equipo ya tiene 6 jugadores.'); return; }
   lista.push(jugador.Jugador);
   input.value = '';
   mgRenderEquipos();
@@ -7348,7 +7440,7 @@ async function trGuardarMazoConfig(){
     return { numero: parseInt(inp.dataset.num), jugador: encontrado ? encontrado.Jugador : null };
   });
   if(filas.some(f => !f.jugador)){
-    alert('Elegí un jugador válido para cada número antes de guardar.');
+    glToast('Elegí un jugador válido para cada número antes de guardar.');
     return;
   }
   await sbClient.from('truco_mazo_config').upsert(filas).then(()=>{}, ()=>{});
@@ -7494,7 +7586,7 @@ let trMiUsernameOnlineTr = null, trOponenteOnlineTr = null;
 
 async function trEntrarSalaEsperaTruco(){
   const { data: { user } } = await sbClient.auth.getUser();
-  if(!user){ alert('Necesitás estar logueado para jugar online.'); return; }
+  if(!user){ glToast('Necesitás estar logueado para jugar online.'); return; }
   trMiUsernameOnlineTr = user.email.replace(DOMINIO_FALSO, '');
   document.getElementById('tr-armado').style.display = 'none';
   document.getElementById('tr-online-lobby').style.display = 'block';
@@ -7514,7 +7606,7 @@ async function trEntrarSalaEsperaTruco(){
     if(msg.payload.para === trMiUsernameOnlineTr) trIniciarOnline(false, msg.payload.roomId, msg.payload.de, msg.payload.cabezaDe);
   });
   trLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
-    if(msg.payload.para === trMiUsernameOnlineTr){ alert(msg.payload.de + ' rechazó tu desafío.'); trRenderizarSalaEsperaTruco(); }
+    if(msg.payload.para === trMiUsernameOnlineTr){ glToast(msg.payload.de + ' rechazó tu desafío.'); trRenderizarSalaEsperaTruco(); }
   });
   trLobbyChannel.on('broadcast', { event:'invitacion_equipo' }, (msg)=>{
     if(msg.payload.para === trMiUsernameOnlineTr) trMostrarInvitacionEquipo(msg.payload);
@@ -7526,7 +7618,7 @@ async function trEntrarSalaEsperaTruco(){
   });
   trLobbyChannel.on('broadcast', { event:'invitacion_equipo_rechazada' }, (msg)=>{
     if(!trInvitacionEquipoPendiente || msg.payload.roomId !== trInvitacionEquipoPendiente.roomId) return;
-    alert(msg.payload.de + ' rechazó la invitación. Se cancela la sala.');
+    glToast(msg.payload.de + ' rechazó la invitación. Se cancela la sala.');
     trInvitacionEquipoPendiente = null;
     trRenderizarSalaEsperaTruco();
   });
@@ -10144,7 +10236,7 @@ function czCapturarInputLocalGuest(){
 
 async function czEntrarSalaEspera(){
   const { data: { user } } = await sbClient.auth.getUser();
-  if(!user){ alert('Necesitás estar logueado para jugar online.'); return; }
+  if(!user){ glToast('Necesitás estar logueado para jugar online.'); return; }
   czMiUsernameOnline = user.email.replace(DOMINIO_FALSO, '');
 
   document.getElementById('cz-armado').style.display = 'none';
@@ -10165,7 +10257,7 @@ async function czEntrarSalaEspera(){
   });
   czLobbyChannel.on('broadcast', { event:'desafio_rechazado' }, (msg)=>{
     if(msg.payload.para === czMiUsernameOnline){
-      alert(msg.payload.de + ' rechazó tu desafío.');
+      glToast(msg.payload.de + ' rechazó tu desafío.');
       czRenderizarSalaEspera();
     }
   });
@@ -11472,6 +11564,28 @@ function computeTournamentStats(){
   };
 }
 
+function glAnimarContador(el, valorFinal, duracion){
+  duracion = duracion || 900;
+  const esDecimal = typeof valorFinal === 'string' && valorFinal.includes('.');
+  const decimales = esDecimal ? valorFinal.split('.')[1].length : 0;
+  const final = parseFloat(valorFinal);
+  if(isNaN(final)){ el.textContent = valorFinal; return; }
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    el.textContent = decimales ? final.toFixed(decimales) : String(final);
+    return;
+  }
+  const inicio = performance.now();
+  function paso(ahora){
+    const t = Math.min((ahora - inicio) / duracion, 1);
+    const suavizado = 1 - Math.pow(1 - t, 3);
+    const actual = final * suavizado;
+    el.textContent = decimales ? actual.toFixed(decimales) : String(Math.round(actual));
+    if(t < 1) requestAnimationFrame(paso);
+    else el.textContent = decimales ? final.toFixed(decimales) : String(final);
+  }
+  requestAnimationFrame(paso);
+}
+
 function renderStatGrid(){
   const s = computeTournamentStats();
   const grid = document.getElementById('stat-grid');
@@ -11482,13 +11596,17 @@ function renderStatGrid(){
     {icon:'🧠', value:s.totalAsist, label:'Asistencias totales'},
     {icon:'📊', value:s.promedioGoles, label:'Goles por partido (prom.)'},
   ];
-  grid.innerHTML = cards.map(c => `
+  grid.innerHTML = cards.map((c,i) => `
     <div class="stat-card${c.tab ? ' stat-card-clickable' : ''}" ${c.tab ? `data-goto-tab="${c.tab}"` : ''}>
       <span class="icon">${c.icon}</span>
-      <div class="value">${c.value}</div>
+      <div class="value" id="stat-val-${i}">0</div>
       <div class="label">${c.label}</div>
     </div>
   `).join('');
+  cards.forEach((c,i)=>{
+    const el = document.getElementById('stat-val-'+i);
+    if(el) glAnimarContador(el, c.value);
+  });
   grid.querySelectorAll('[data-goto-tab]').forEach(card=>{
     card.addEventListener('click', ()=>{
       document.querySelector(`.tab-btn[data-tab="${card.dataset.gotoTab}"]`).click();
