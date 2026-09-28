@@ -3883,7 +3883,8 @@ function renderYoutubeCard(url){
       ${id ? `
         <div class="sb-yt-thumb-wrap">
           <img class="sb-yt-thumb" src="${thumbHD}" alt="Miniatura del video" loading="lazy"
-               onerror="this.onerror=null; this.src='${thumbFallback}';">
+               onerror="this.onerror=null; this.src='${thumbFallback}';"
+               onload="if(this.naturalWidth<=120){this.onerror=null; this.onload=null; this.src='${thumbFallback}';}">
           <div class="sb-yt-play">▶</div>
         </div>
       ` : ''}
