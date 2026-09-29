@@ -3140,7 +3140,8 @@ async function cargarDatosDesdeSupabase(){
     claro: { nombre:'CLARO', goles: p.claro.goles, jugadores: p.claro.jugadores }
   }));
 
-  rankings['MEJORES DUPLAS'] = calcularRankingDuplas(partidos);
+  rankings['MEJORES DUPLAS'] = calcularRankingDuplas(partidos, 'mejores');
+  rankings['PEORES DUPLAS'] = calcularRankingDuplas(partidos, 'peores');
 
   return { estadisticas, rankings, partidos, fotos };
 }
@@ -3148,7 +3149,9 @@ async function cargarDatosDesdeSupabase(){
 // Mejores duplas: pares de jugadores que jugaron JUNTOS en el mismo equipo al menos 5 partidos.
 // Orden: % de victorias juntos, desempate por más partidos ganados y después por más partidos jugados.
 const DUPLAS_MIN_PJ = 5;
-function calcularRankingDuplas(partidos){
+// Peores duplas: mismo mínimo de partidos, ordenadas por MENOR % de victorias,
+// desempate por más partidos perdidos y después por más partidos jugados.
+function calcularRankingDuplas(partidos, tipo){
   const conteo = {};
   partidos.forEach(p => {
     [['oscuro','claro'], ['claro','oscuro']].forEach(([mio, otro]) => {
@@ -3167,7 +3170,9 @@ function calcularRankingDuplas(partidos){
   const rows = Object.entries(conteo)
     .filter(([, c]) => c.pj >= DUPLAS_MIN_PJ)
     .map(([dupla, c]) => ({ dupla, ...c, pct: c.pg / c.pj }))
-    .sort((a,b) => b.pct - a.pct || b.pg - a.pg || b.pj - a.pj || a.dupla.localeCompare(b.dupla))
+    .sort(tipo === 'peores'
+      ? (a,b) => a.pct - b.pct || b.pp - a.pp || b.pj - a.pj || a.dupla.localeCompare(b.dupla)
+      : (a,b) => b.pct - a.pct || b.pg - a.pg || b.pj - a.pj || a.dupla.localeCompare(b.dupla))
     .slice(0, 20)
     .map(x => ({ DUPLA:x.dupla, PJ:x.pj, PG:x.pg, PE:x.pe, PP:x.pp, '%PG': Math.round(x.pct * 100) + '%' }));
   return { headers:['DUPLA','PJ','PG','PE','PP','%PG'], rows };
@@ -3780,7 +3785,8 @@ const rankingIcons = {
   'PORCENTAJE DE VICTORIAS':'✅',
   'MENOS GOLES RECIBIDOS POR PARTIDO':'🛡️',
   'TABLA DE DESCENSOS':'📊',
-  'MEJORES DUPLAS':'🤝'
+  'MEJORES DUPLAS':'🤝',
+  'PEORES DUPLAS':'💔'
 };
 
 function renderRankingChips(){
@@ -3808,13 +3814,14 @@ function renderRankingList(){
   const nameKey = headers[0];
 
   if(!block.rows.length){
-    list.innerHTML = `<div class="jp-empty">Todavía no hay datos para este ranking${activeRanking === 'MEJORES DUPLAS' ? ` (se necesitan ${DUPLAS_MIN_PJ} partidos jugados juntos)` : ''}.</div>`;
+    list.innerHTML = `<div class="jp-empty">Todavía no hay datos para este ranking${activeRanking.endsWith('DUPLAS') ? ` (se necesitan ${DUPLAS_MIN_PJ} partidos jugados juntos)` : ''}.</div>`;
     return;
   }
-  if(activeRanking === 'MEJORES DUPLAS'){
+  if(activeRanking.endsWith('DUPLAS')){
+    const peores = activeRanking === 'PEORES DUPLAS';
     const nota = document.createElement('div');
     nota.className = 'rank-nota';
-    nota.textContent = `🤝 Parejas que jugaron juntas en el mismo equipo al menos ${DUPLAS_MIN_PJ} partidos, ordenadas por % de victorias.`;
+    nota.textContent = `${peores ? '💔' : '🤝'} Parejas que jugaron juntas en el mismo equipo al menos ${DUPLAS_MIN_PJ} partidos, ordenadas por ${peores ? 'MENOR' : 'mayor'} % de victorias.`;
     list.appendChild(nota);
   }
   block.rows.forEach((row,i)=>{
@@ -11969,7 +11976,8 @@ function renderLeaderGrid(){
     'PORCENTAJE DE VICTORIAS':'% de victorias',
     'MENOS GOLES RECIBIDOS POR PARTIDO':'Mejor Líder Defensivo',
     'TABLA DE DESCENSOS':'Descenso',
-    'MEJORES DUPLAS':'Mejor dupla'
+    'MEJORES DUPLAS':'Mejor dupla',
+    'PEORES DUPLAS':'Peor dupla'
   };
   grid.innerHTML = rankingKeys.map(k=>{
     const block = DATA.rankings[k];
