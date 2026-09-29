@@ -11,13 +11,14 @@
 <meta property="og:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
 <meta property="og:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026. Goleadores, asistencias e historial de todos los jugadores.">
 <meta property="og:url" content="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/">
-<meta property="og:image" content="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/icon-512.png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/canal_portada.jpg">
+<meta property="og:image:alt" content="Grillo Liga Argentina">
+<meta property="og:locale" content="es_AR">
+<meta property="og:site_name" content="Grillo Liga Argentina">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Grillo Liga Argentina — Torneo amateur de fútbol 2026">
 <meta name="twitter:description" content="Estadísticas, rankings y resultados del torneo amateur Los Pibes 2026.">
-<meta name="twitter:image" content="https://ligagrilloargentino.github.io/GrilloLiga-Argentina/icon-512.png">
+<meta name="twitter:image" content="https://dpygypfcdriaojgleutr.supabase.co/storage/v1/object/public/perfiles/canal_portada.jpg">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#B33B22">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1198,6 +1199,30 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .rank-row.top2{background:rgba(58,42,24,0.04);}
 .rank-row.top3{background:rgba(156,90,52,0.07);}
 .rank-row.descenso{background:rgba(210,40,40,0.09);}
+.pr-wrap{ margin-top:4px; }
+.pr-metricas{ flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+.pr-cabecera{ text-align:center; margin:4px 0 10px; }
+.pr-partido-num{ font-family:'Special Elite',monospace; font-size:18px; color:var(--red); }
+.pr-partido-titulo{ font-size:13px; color:var(--text-dim); font-style:italic; min-height:17px; }
+.pr-barras{ position:relative; overflow:hidden; }
+.pr-barra{ position:absolute; left:0; right:0; top:0; height:34px; display:flex; align-items:center; gap:6px;
+  transition:transform .55s cubic-bezier(.4,.1,.2,1), opacity .4s; }
+.pr-barra.pr-sin-anim, .pr-barra.pr-sin-anim .pr-barra-relleno{ transition:none; }
+.pr-barra-pos{ width:26px; text-align:center; font-weight:800; font-size:13px; color:var(--text-dim); flex:0 0 auto; }
+.pr-barra-pista{ flex:1 1 auto; min-width:0; }
+.pr-barra-relleno{ height:28px; border-radius:6px; background:linear-gradient(90deg, #4A6B43, #6E8F5E); display:flex; align-items:center;
+  padding:0 8px; box-sizing:border-box; transition:width .55s cubic-bezier(.4,.1,.2,1); overflow:hidden; white-space:nowrap; }
+.pr-barra.pr-lider .pr-barra-relleno{ background:linear-gradient(90deg, #B33B22, #D4AF37); }
+.pr-barra-nombre{ color:#fff; font-weight:700; font-size:12.5px; text-shadow:0 1px 2px rgba(0,0,0,.35); overflow:hidden; text-overflow:ellipsis; }
+.pr-barra-foto{ width:28px; height:28px; border-radius:50%; overflow:hidden; flex:0 0 auto; background:var(--card2); display:flex; align-items:center; justify-content:center; font-size:14px; }
+.pr-barra-foto img{ width:100%; height:100%; object-fit:cover; }
+.pr-barra-valor{ width:62px; font-weight:800; font-size:13px; flex:0 0 auto; }
+.pr-controles{ display:flex; align-items:center; gap:10px; margin-top:14px; flex-wrap:wrap; justify-content:center; }
+.pr-play{ max-width:170px; margin:0; }
+.pr-controles input[type=range]{ flex:1 1 160px; accent-color:var(--red); }
+.pr-vel{ flex:0 0 auto; }
+@media (prefers-reduced-motion: reduce){ .pr-barra, .pr-barra-relleno{ transition:none; } }
+.sb-placa-btns{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding:0 16px 14px; }
 .rank-nota{ font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text-dim); margin:0 0 10px; }
 .rank-row.descenso .rank-num, .rank-row.descenso .rank-name, .rank-row.descenso .rank-main-val, .rank-row.descenso .rank-extra span b{color:#C4291C;}
 .rank-name{flex:1; font-weight:600; font-size:14.5px;}
@@ -1435,6 +1460,9 @@ footer{
 }
 .jugador-card:hover::after{ left:150%; }
 .jugador-card:hover{ transform:translateY(-2px); border-color:var(--grass-dim); }
+.jp-avatar.jp-avatar-lider{ box-shadow:0 0 0 3px #D4AF37, 0 0 18px rgba(212,175,55,.55); animation:jpLiderBrillo 2.4s ease-in-out infinite; }
+@keyframes jpLiderBrillo{ 0%,100%{ box-shadow:0 0 0 3px #D4AF37, 0 0 10px rgba(212,175,55,.35); } 50%{ box-shadow:0 0 0 3px #D4AF37, 0 0 22px rgba(212,175,55,.75); } }
+@media (prefers-reduced-motion: reduce){ .jp-avatar.jp-avatar-lider{ animation:none; } }
 .forma-reciente{ display:flex; gap:4px; align-items:center; }
 .forma-dot{ width:11px; height:11px; border-radius:50%; display:inline-block; flex:0 0 auto; }
 .forma-win{ background:#2E9E4F; }
@@ -3813,13 +3841,14 @@ const rankingIcons = {
   'PEORES DUPLAS':'💔'
 };
 
+const RANKING_PROGRESO = 'PROGRESO';
 function renderRankingChips(){
   const row = document.getElementById('ranking-chips');
   row.innerHTML = '';
-  rankingKeys.forEach(k=>{
+  [...rankingKeys, RANKING_PROGRESO].forEach(k=>{
     const chip = document.createElement('div');
     chip.className = 'chip' + (k===activeRanking ? ' active':'');
-    chip.textContent = (rankingIcons[k]||'') + ' ' + k;
+    chip.textContent = (k === RANKING_PROGRESO ? '🏁' : (rankingIcons[k]||'')) + ' ' + k;
     chip.addEventListener('click', ()=>{
       activeRanking = k;
       renderRankingChips();
@@ -3832,6 +3861,8 @@ function renderRankingChips(){
 function renderRankingList(){
   const list = document.getElementById('ranking-list');
   list.innerHTML = '';
+  prDetener();
+  if(activeRanking === RANKING_PROGRESO){ prRenderizar(list); return; }
   const block = DATA.rankings[activeRanking];
   const headers = block.headers;
   const mainKey = headers[headers.length-1];
@@ -3871,6 +3902,146 @@ function renderRankingList(){
     list.appendChild(div);
   });
   glAnimarEntrada(list);
+}
+
+
+/* ---------- PROGRESO: carrera animada partido a partido (bar chart race) ---------- */
+const PR_METRICAS = {
+  goles:{ label:'⚽ Goles', corto:'goles' },
+  ast:{ label:'🧠 Asistencias', corto:'asist.' },
+  pts:{ label:'🏆 Puntos', corto:'pts' },
+  pj:{ label:'👟 Partidos jugados', corto:'PJ' }
+};
+const PR_TOP = 10, PR_ALTO_FILA = 40;
+let prMetrica = 'goles', prIdx = 0, prTimer = null, prFrames = null, prVelocidadMs = 1100;
+
+function prCalcularFrames(){
+  const acumulado = {};
+  const partidos = DATA.partidos.slice().sort((a,b)=> a.numero - b.numero);
+  return partidos.map(p=>{
+    [['oscuro','claro'],['claro','oscuro']].forEach(([mio, otro])=>{
+      const gf = p[mio].goles, gc = p[otro].goles;
+      const pts = gf > gc ? 3 : gf === gc ? 1 : 0;
+      const vistos = new Set();
+      (p[mio].jugadores || []).forEach(j=>{
+        if(!j.jugador) return;
+        const a = acumulado[j.jugador] || (acumulado[j.jugador] = { goles:0, ast:0, pts:0, pj:0 });
+        a.goles += j.goles || 0;
+        a.ast += j.asistencias || 0;
+        if(!vistos.has(j.jugador)){ vistos.add(j.jugador); a.pj += 1; a.pts += pts; }
+      });
+    });
+    const foto = {};
+    Object.entries(acumulado).forEach(([k,v])=> foto[k] = { ...v });
+    return { numero:p.numero, titulo:p.titulo, datos:foto };
+  });
+}
+
+function prDetener(){ if(prTimer){ clearInterval(prTimer); prTimer = null; } }
+
+function prRenderizar(list){
+  if(!prFrames) prFrames = prCalcularFrames();
+  if(!prFrames.length){ list.innerHTML = '<div class="jp-empty">Todavía no hay partidos cargados.</div>'; return; }
+  if(prIdx >= prFrames.length) prIdx = prFrames.length - 1;
+  list.innerHTML = `
+    <div class="pr-wrap">
+      <div class="rank-nota">🏁 Mirá cómo se fue armando cada tabla, partido a partido.</div>
+      <div class="mg-toggle-row pr-metricas">
+        ${Object.entries(PR_METRICAS).map(([k,m])=>`<button class="mg-toggle ${k===prMetrica?'activo':''}" data-pr-metrica="${k}">${m.label}</button>`).join('')}
+      </div>
+      <div class="pr-cabecera">
+        <div class="pr-partido-num" id="pr-partido-num"></div>
+        <div class="pr-partido-titulo" id="pr-partido-titulo"></div>
+      </div>
+      <div class="pr-barras" id="pr-barras" style="height:${PR_TOP * PR_ALTO_FILA}px;"></div>
+      <div class="pr-controles">
+        <button class="auth-btn pr-play" id="pr-play">▶️ Reproducir</button>
+        <input type="range" id="pr-slider" min="0" max="${prFrames.length-1}" value="${prIdx}" aria-label="Partido">
+        <button class="mg-toggle pr-vel" id="pr-vel">${prVelocidadMs < 1000 ? '⏩ Rápido' : '▶ Normal'}</button>
+      </div>
+    </div>`;
+  list.querySelectorAll('[data-pr-metrica]').forEach(b=> b.addEventListener('click', ()=>{
+    prMetrica = b.dataset.prMetrica;
+    list.querySelectorAll('[data-pr-metrica]').forEach(x=> x.classList.toggle('activo', x === b));
+    prDibujarFrame(true);
+  }));
+  const slider = list.querySelector('#pr-slider');
+  slider.addEventListener('input', ()=>{ prPausar(); prIdx = parseInt(slider.value); prDibujarFrame(); });
+  list.querySelector('#pr-play').addEventListener('click', ()=>{ prTimer ? prPausar() : prReproducir(); });
+  list.querySelector('#pr-vel').addEventListener('click', (ev)=>{
+    prVelocidadMs = prVelocidadMs < 1000 ? 1100 : 550;
+    ev.target.textContent = prVelocidadMs < 1000 ? '⏩ Rápido' : '▶ Normal';
+    if(prTimer){ prPausar(); prReproducir(); }
+  });
+  prDibujarFrame(true);
+}
+
+function prReproducir(){
+  if(activeRanking !== RANKING_PROGRESO) return;
+  if(prIdx >= prFrames.length - 1) prIdx = 0;
+  const btn = document.getElementById('pr-play');
+  if(btn) btn.textContent = '⏸ Pausar';
+  prDibujarFrame();
+  prTimer = setInterval(()=>{
+    if(activeRanking !== RANKING_PROGRESO || !document.getElementById('pr-barras')){ prPausar(); return; }
+    if(prIdx >= prFrames.length - 1){ prPausar(); glConfetti(['#D4AF37','#B33B22','#4A6B43']); return; }
+    prIdx++;
+    prDibujarFrame();
+  }, prVelocidadMs);
+}
+function prPausar(){
+  prDetener();
+  const btn = document.getElementById('pr-play');
+  if(btn) btn.textContent = prIdx >= (prFrames ? prFrames.length - 1 : 0) ? '🔁 Ver de nuevo' : '▶️ Reproducir';
+}
+
+function prDibujarFrame(sinAnimar){
+  const cont = document.getElementById('pr-barras');
+  if(!cont) return;
+  const frame = prFrames[prIdx];
+  document.getElementById('pr-partido-num').textContent = `Partido #${frame.numero}  ·  ${prIdx+1} de ${prFrames.length}`;
+  document.getElementById('pr-partido-titulo').textContent = frame.titulo || '';
+  const slider = document.getElementById('pr-slider');
+  if(slider) slider.value = prIdx;
+  const orden = Object.entries(frame.datos)
+    .map(([nombre, v]) => ({ nombre, valor: v[prMetrica] }))
+    .filter(x => x.valor > 0)
+    .sort((a,b)=> b.valor - a.valor || a.nombre.localeCompare(b.nombre))
+    .slice(0, PR_TOP);
+  const max = orden.length ? orden[0].valor : 1;
+  const enTop = new Set(orden.map(x => x.nombre));
+  // las barras que salen del top se desvanecen
+  cont.querySelectorAll('.pr-barra').forEach(el=>{
+    if(!enTop.has(el.dataset.nombre)){ el.style.opacity = '0'; setTimeout(()=>{ if(el.style.opacity === '0') el.remove(); }, 500); }
+  });
+  orden.forEach((x, pos)=>{
+    let el = Array.from(cont.children).find(c => c.dataset.nombre === x.nombre);
+    const nuevo = !el;
+    if(nuevo){
+      el = document.createElement('div');
+      el.className = 'pr-barra';
+      el.dataset.nombre = x.nombre;
+      const foto = (typeof FOTOS_JUGADORES_REMOTAS !== 'undefined' && FOTOS_JUGADORES_REMOTAS) ? FOTOS_JUGADORES_REMOTAS[x.nombre] : null;
+      el.innerHTML = `
+        <div class="pr-barra-pos"></div>
+        <div class="pr-barra-pista"><div class="pr-barra-relleno"><span class="pr-barra-nombre"></span></div></div>
+        <div class="pr-barra-foto">${foto ? `<img src="${foto}" alt="" loading="lazy" onerror="this.remove()">` : '🦗'}</div>
+        <div class="pr-barra-valor"></div>`;
+      el.style.transform = `translateY(${PR_TOP * PR_ALTO_FILA}px)`;
+      el.style.opacity = '0';
+      cont.appendChild(el);
+      el.getBoundingClientRect(); // fuerza el layout para que la entrada se anime
+    }
+    if(sinAnimar) el.classList.add('pr-sin-anim'); else el.classList.remove('pr-sin-anim');
+    el.style.opacity = '1';
+    el.style.transform = `translateY(${pos * PR_ALTO_FILA}px)`;
+    el.classList.toggle('pr-lider', pos === 0);
+    el.querySelector('.pr-barra-pos').textContent = pos === 0 ? '🥇' : pos === 1 ? '🥈' : pos === 2 ? '🥉' : (pos + 1);
+    el.querySelector('.pr-barra-relleno').style.width = Math.max(6, (x.valor / max) * 100) + '%';
+    el.querySelector('.pr-barra-nombre').textContent = x.nombre;
+    el.querySelector('.pr-barra-valor').textContent = `${x.valor} ${PR_METRICAS[prMetrica].corto}`;
+  });
+  if(sinAnimar) requestAnimationFrame(()=> cont.querySelectorAll('.pr-barra').forEach(el => el.classList.remove('pr-sin-anim')));
 }
 
 renderRankingChips();
@@ -4098,6 +4269,10 @@ function renderScoreboard(){
       <div style="display:flex; justify-content:center; padding:0 16px 14px 16px;">
         <button class="gl-share-btn" id="sb-share-btn">📤 Compartir partido</button>
       </div>
+      <div class="sb-placa-btns">
+        <button class="gl-share-btn" id="sb-placa-grupo">🖼️ Placa para el grupo</button>
+        <button class="gl-share-btn" id="sb-placa-historia">📱 Placa para historia</button>
+      </div>
       ${match.youtube_url ? renderYoutubeCard(match.youtube_url) : ''}
       <div class="sb-players">
         <div class="sb-col oscuro">
@@ -4126,8 +4301,210 @@ function renderScoreboard(){
       `⚽ ${match.titulo || 'Partido #'+match.numero}: Oscuro ${match.oscuro.goles} - ${match.claro.goles} Claro. Mirá el detalle en la Grillo Liga.`
     );
   });
+  document.getElementById('sb-placa-grupo').addEventListener('click', (e)=> placaGenerarYCompartir(match, 'cuadrada', e.currentTarget));
+  document.getElementById('sb-placa-historia').addEventListener('click', (e)=> placaGenerarYCompartir(match, 'historia', e.currentTarget));
   cargarYRenderizarComentarios('partido', match.numero, document.getElementById('foro-partido-container'));
   cargarYRenderizarMvp(match);
+}
+
+/* ---------- PLACA DEL PARTIDO: imagen para compartir (canvas) ---------- */
+const PLACA_LINK = 'ligagrilloargentino.github.io/GrilloLiga-Argentina';
+function placaCargarImagen(url){
+  return new Promise(resolve=>{
+    if(!url){ resolve(null); return; }
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // sin esto el canvas queda "manchado" y no se puede exportar
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> resolve(null);
+    img.src = url;
+    setTimeout(()=> resolve(null), 6000);
+  });
+}
+async function placaMvpDelPartido(match){
+  try{
+    const { data } = await sbClient.from('mvp_votos').select('jugador_votado').eq('partido_id', String(match.numero));
+    if(!data || !data.length) return null;
+    const conteo = {};
+    data.forEach(v => conteo[v.jugador_votado] = (conteo[v.jugador_votado]||0) + 1);
+    const [nombre, votos] = Object.entries(conteo).sort((a,b)=> b[1]-a[1])[0];
+    return { nombre, votos };
+  }catch(e){ return null; }
+}
+function placaRecortarTexto(ctx, texto, anchoMax){
+  if(ctx.measureText(texto).width <= anchoMax) return texto;
+  let t = texto;
+  while(t.length > 1 && ctx.measureText(t + '…').width > anchoMax) t = t.slice(0, -1);
+  return t + '…';
+}
+function placaCirculoFoto(ctx, img, nombre, x, y, r, borde){
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.closePath();
+  ctx.fillStyle = '#2B4A36'; ctx.fill();
+  ctx.clip();
+  if(img){
+    const lado = Math.min(img.width, img.height);
+    ctx.drawImage(img, (img.width-lado)/2, (img.height-lado)/2, lado, lado, x-r, y-r, r*2, r*2);
+  } else {
+    ctx.fillStyle = '#F0E7D2';
+    ctx.font = `700 ${Math.round(r*0.9)}px 'Alegreya Sans', sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText((nombre||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(), x, y+2);
+  }
+  ctx.restore();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.lineWidth = Math.max(3, r*0.09); ctx.strokeStyle = borde; ctx.stroke();
+}
+
+async function placaDibujar(match, formato){
+  const W = 1080, H = formato === 'historia' ? 1920 : 1080;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  try{ await Promise.all([document.fonts.load("400 60px 'Special Elite'"), document.fonts.load("700 40px 'Alegreya Sans'"), document.fonts.load("italic 400 40px 'Alegreya Sans'")]); }catch(e){}
+
+  const C = { fondo1:'#1C3526', fondo2:'#0F2018', linea:'rgba(240,231,210,0.08)', crema:'#F0E7D2', crema2:'rgba(240,231,210,0.72)', rojo:'#B33B22', oro:'#D4AF37' };
+  // fondo: cancha
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, C.fondo1); grad.addColorStop(1, C.fondo2);
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+  for(let i = 0; i < 8; i++){ if(i % 2){ ctx.fillStyle = 'rgba(255,255,255,0.025)'; ctx.fillRect(0, i*H/8, W, H/8); } }
+  ctx.strokeStyle = C.linea; ctx.lineWidth = 4;
+  ctx.strokeRect(40, 40, W-80, H-80);
+  ctx.beginPath(); ctx.moveTo(40, H/2); ctx.lineTo(W-40, H/2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(W/2, H/2, 150, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = C.rojo; ctx.fillRect(40, 40, W-80, 12);
+
+  const esH = formato === 'historia';
+  let y = esH ? 230 : 120;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = C.crema;
+  ctx.font = `400 ${esH ? 64 : 52}px 'Special Elite', monospace`;
+  ctx.fillText('GRILLOLIGA ARGENTINA', W/2, y);
+  y += esH ? 70 : 56;
+  ctx.fillStyle = C.oro;
+  ctx.font = `700 ${esH ? 40 : 32}px 'Alegreya Sans', sans-serif`;
+  ctx.fillText(`PARTIDO #${match.numero}`, W/2, y);
+  if(match.titulo){
+    y += esH ? 62 : 48;
+    ctx.fillStyle = C.crema2;
+    ctx.font = `italic 400 ${esH ? 44 : 36}px 'Alegreya Sans', sans-serif`;
+    ctx.fillText(placaRecortarTexto(ctx, `“${match.titulo}”`, W-160), W/2, y);
+  }
+
+  // marcador
+  y += esH ? 250 : 160;
+  const og = match.oscuro.goles, cg = match.claro.goles;
+  const ganaO = og > cg, ganaC = cg > og;
+  ctx.font = `700 ${esH ? 220 : 150}px 'Alegreya Sans', sans-serif`;
+  ctx.fillStyle = ganaO ? C.oro : C.crema; ctx.textAlign = 'right'; ctx.fillText(String(og), W/2 - 70, y);
+  ctx.fillStyle = ganaC ? C.oro : C.crema; ctx.textAlign = 'left'; ctx.fillText(String(cg), W/2 + 70, y);
+  ctx.fillStyle = C.crema2; ctx.textAlign = 'center';
+  ctx.font = `700 ${esH ? 90 : 72}px 'Alegreya Sans', sans-serif`; ctx.fillText('-', W/2, y - (esH ? 50 : 34));
+  y += esH ? 72 : 50;
+  ctx.font = `700 ${esH ? 40 : 34}px 'Alegreya Sans', sans-serif`;
+  ctx.fillStyle = ganaO ? C.oro : C.crema; ctx.textAlign = 'right'; ctx.fillText('OSCURO', W/2 - 70, y);
+  ctx.fillStyle = ganaC ? C.oro : C.crema; ctx.textAlign = 'left'; ctx.fillText('CLARO', W/2 + 70, y);
+  if(ganaO || ganaC){
+    ctx.textAlign = 'center'; ctx.fillStyle = C.oro; ctx.font = `700 ${esH ? 34 : 28}px 'Alegreya Sans', sans-serif`;
+    ctx.fillText('🏆', ganaO ? W/2 - 140 - ctx.measureText('OSCURO').width : W/2 + 140 + ctx.measureText('CLARO').width, y);
+  }
+
+  // goleadores y asistidores por equipo, con foto
+  const fotos = (typeof FOTOS_JUGADORES_REMOTAS !== 'undefined' && FOTOS_JUGADORES_REMOTAS) || {};
+  const destacados = (eq) => (eq.jugadores || [])
+    .filter(j => (j.goles||0) + (j.asistencias||0) > 0)
+    .sort((a,b)=> (b.goles||0) - (a.goles||0) || (b.asistencias||0) - (a.asistencias||0))
+    .slice(0, 6);
+  let listaO = destacados(match.oscuro), listaC = destacados(match.claro);
+  const mvp = await placaMvpDelPartido(match);
+  const nombresFoto = [...new Set([...listaO, ...listaC].map(j => j.jugador).concat(mvp ? [mvp.nombre] : []))];
+  const imgs = {};
+  await Promise.all(nombresFoto.map(async n => { imgs[n] = await placaCargarImagen(fotos[n]); }));
+
+  y += esH ? 110 : 56;
+  // el MVP va anclado arriba del pie; los jugadores usan el espacio que queda (se recorta la lista si no entra)
+  const rm = esH ? 62 : 36;
+  const bloqueH = rm*2 + (esH ? 36 : 22);
+  const pieTop = H - 165;
+  const mvpTop = mvp ? pieTop - bloqueH - (esH ? 60 : 14) : pieTop;
+  const filaH = esH ? 122 : 74, r = esH ? 44 : 27;
+  const filasQueEntran = Math.max(1, Math.floor((mvpTop - 16 - y) / filaH));
+  listaO = listaO.slice(0, filasQueEntran); listaC = listaC.slice(0, filasQueEntran);
+  const dibujarColumna = (lista, x0, ancho, borde) => {
+    if(!lista.length){
+      ctx.fillStyle = C.crema2; ctx.font = `italic 400 ${esH?32:26}px 'Alegreya Sans', sans-serif`; ctx.textAlign = 'left';
+      ctx.fillText('Sin goles', x0 + 10, y + r);
+      return;
+    }
+    lista.forEach((j, i)=>{
+      const cy = y + i*filaH + r;
+      placaCirculoFoto(ctx, imgs[j.jugador], j.jugador, x0 + r, cy, r, borde);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = C.crema; ctx.font = `700 ${esH?36:29}px 'Alegreya Sans', sans-serif`;
+      ctx.fillText(placaRecortarTexto(ctx, j.jugador, ancho - r*2 - 24), x0 + r*2 + 18, cy - (esH?16:13));
+      const partes = [];
+      if(j.goles) partes.push('⚽'.repeat(Math.min(j.goles, 5)) + (j.goles > 5 ? ` x${j.goles}` : ''));
+      if(j.asistencias) partes.push(`🧠 ${j.asistencias}`);
+      ctx.fillStyle = C.crema2; ctx.font = `400 ${esH?28:23}px 'Alegreya Sans', sans-serif`;
+      ctx.fillText(partes.join('   '), x0 + r*2 + 18, cy + (esH?20:16));
+      ctx.textBaseline = 'alphabetic';
+    });
+  };
+  const margen = 90, ancho = (W - margen*2 - 40) / 2;
+  dibujarColumna(listaO, margen, ancho, C.rojo);
+  dibujarColumna(listaC, margen + ancho + 40, ancho, C.crema);
+  y = mvpTop;
+
+  // MVP votado
+  if(mvp){
+    const bx = 120, bw = W - 240;
+    ctx.fillStyle = 'rgba(212,175,55,0.14)';
+    ctx.strokeStyle = C.oro; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, y, bw, bloqueH, 24) : ctx.rect(bx, y, bw, bloqueH); ctx.fill(); ctx.stroke();
+    placaCirculoFoto(ctx, imgs[mvp.nombre], mvp.nombre, bx + 30 + rm, y + bloqueH/2, rm, C.oro);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.oro; ctx.font = `700 ${esH?30:24}px 'Alegreya Sans', sans-serif`;
+    ctx.fillText('🌟 MVP VOTADO POR LA GENTE', bx + 60 + rm*2, y + bloqueH/2 - (esH?26:20));
+    ctx.fillStyle = C.crema; ctx.font = `700 ${esH?48:38}px 'Alegreya Sans', sans-serif`;
+    ctx.fillText(placaRecortarTexto(ctx, mvp.nombre, bw - rm*2 - 100), bx + 60 + rm*2, y + bloqueH/2 + (esH?24:18));
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // pie con el link
+  ctx.textAlign = 'center';
+  ctx.fillStyle = C.rojo; ctx.fillRect(40, H - 150, W - 80, 4);
+  ctx.fillStyle = C.crema; ctx.font = `700 ${esH?34:28}px 'Alegreya Sans', sans-serif`;
+  ctx.fillText('Mirá todo en la app oficial 🦗', W/2, H - 100);
+  ctx.fillStyle = C.oro; ctx.font = `400 ${esH?30:25}px 'Special Elite', monospace`;
+  ctx.fillText(PLACA_LINK, W/2, H - 62);
+  return canvas;
+}
+
+async function placaGenerarYCompartir(match, formato, boton){
+  const textoOriginal = boton.textContent;
+  boton.disabled = true; boton.textContent = '⏳ Armando la placa…';
+  try{
+    const canvas = await placaDibujar(match, formato);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    if(!blob) throw new Error('sin imagen');
+    const nombre = `grilloliga-partido-${match.numero}-${formato}.png`;
+    const archivo = new File([blob], nombre, { type:'image/png' });
+    if(navigator.canShare && navigator.canShare({ files:[archivo] })){
+      try{
+        await navigator.share({ files:[archivo], title:`Partido #${match.numero} — Grillo Liga`, text:`⚽ Oscuro ${match.oscuro.goles} - ${match.claro.goles} Claro · https://${PLACA_LINK}/` });
+      }catch(e){ /* canceló */ }
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 4000);
+      glToast('🖼️ Placa descargada');
+    }
+  }catch(e){
+    glToast('No se pudo armar la placa. Probá de nuevo.');
+  }finally{
+    boton.disabled = false; boton.textContent = textoOriginal;
+  }
 }
 
 /* ---------- MVP DE LA FECHA (votado por los usuarios) ---------- */
@@ -4230,6 +4607,7 @@ function renderizarInsignias(contenedor, estado, marcarNuevas){
     try{ vistas = new Set(JSON.parse(localStorage.getItem('grilloliga-insignias-vistas') || '[]')); }catch(e){}
   }
   const claves = [];
+  const nuevasParaFestejar = [];
   contenedor.innerHTML = INSIGNIAS_DEF.map(ins => {
     const { nivel, valor } = estado.get(ins.id) || { nivel:0, valor:0 };
     const desbloqueada = nivel > 0;
@@ -4239,6 +4617,7 @@ function renderizarInsignias(contenedor, estado, marcarNuevas){
       claves.push(k);
       if(marcarNuevas && !vistas.has(k)) esNueva = true;
     }
+    if(esNueva) nuevasParaFestejar.push(ins.nombre + (ins.niveles ? ' ' + INSIGNIA_NIVELES_NOMBRE[nivel] : ''));
     let titulo, claseNivel = '', etiqueta = '';
     if(ins.niveles){
       const sig = ins.niveles[nivel];
@@ -4256,6 +4635,11 @@ function renderizarInsignias(contenedor, estado, marcarNuevas){
   }).join('');
   if(marcarNuevas){
     try{ localStorage.setItem('grilloliga-insignias-vistas', JSON.stringify([...new Set([...vistas, ...claves])])); }catch(e){}
+    if(nuevasParaFestejar.length){
+      glConfetti(['#E0B000','#A8B0B8','#B87333','#B33B22']);
+      glVibrar(60);
+      glToast(`🏅 ¡Nueva insignia${nuevasParaFestejar.length > 1 ? 's' : ''}: ${nuevasParaFestejar.join(', ')}!`);
+    }
   }
 }
 
@@ -5120,6 +5504,7 @@ function rpsActualizarMarcador(){
 rpsActualizarMarcador();
 
 async function guardarResultadoMinijuego(juego, resultado){
+  if(resultado === 'victoria'){ glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']); glVibrar(40); }
   const { data: { user } } = await sbClient.auth.getUser();
   if(!user) return;
   await sbClient.from('minijuegos_resultados').insert({ usuario_id: user.id, juego, resultado }).then(()=>{}, ()=>{});
@@ -12661,6 +13046,7 @@ function jpGraficoRendimiento(matches){
     </div>`;
 }
 
+let jpUltimoFestejado = null;
 function renderJugadorProfile(){
   const container = document.getElementById('jugador-profile');
   if(!activeJugador){
@@ -12689,6 +13075,7 @@ function renderJugadorProfile(){
   });
 
   const matches = playerMatches(activeJugador);
+  const esLiderDeAlgo = badges.some(b => !b.includes('Descenso'));
   const statKeys = ['PJ','PG','PE','PP','%PG','Goles','Ast','G+A','G/P','A/P','Hat-tricks','Máx Goles','Máx Ast'].filter(k => r[k] !== undefined);
   const NOMBRES_COMPLETOS_STAT = {
     'PJ':'Partidos Jugados', 'PG':'Partidos Ganados', 'PE':'Partidos Empatados', 'PP':'Partidos Perdidos',
@@ -12747,6 +13134,16 @@ function renderJugadorProfile(){
   glAnimarEntrada(container);
   activarFallbackFotos(container);
   glAnimarValoresGrid(container, '.jp-stat .jv', 750);
+  // festejo al abrir el perfil de alguien que lidera un ranking (una vez por jugador elegido)
+  if(esLiderDeAlgo && jpUltimoFestejado !== activeJugador){
+    jpUltimoFestejado = activeJugador;
+    const av = container.querySelector('.jp-avatar');
+    if(av) av.classList.add('jp-avatar-lider');
+    setTimeout(()=> glConfetti(['#D4AF37','#E0B000','#B33B22','#F0E7D2']), 250);
+  } else if(esLiderDeAlgo){
+    const av = container.querySelector('.jp-avatar');
+    if(av) av.classList.add('jp-avatar-lider');
+  }
   container.querySelector('#jp-share-btn').addEventListener('click', ()=>{
     glCompartir(
       `${activeJugador} — Grillo Liga Argentina`,
