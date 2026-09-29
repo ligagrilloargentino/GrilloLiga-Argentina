@@ -698,6 +698,24 @@ body.cz-pantalla-completa #nav-inferior{ display:none !important; }
 .tr-config-fila b{ width:26px; text-align:center; font-family:'Alegreya Sans',sans-serif; color:var(--red); }
 .tr-config-fila input{ flex:1; }
 .tr-acciones{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:14px; }
+.treq-companeros{ text-align:center; font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text-dim); margin-top:4px; }
+.treq-info{ text-align:center; font-weight:700; }
+.treq-rondas{ text-align:center; font-size:12px; color:var(--text-dim); min-height:14px; }
+.treq-mesa{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px; margin:10px 0; }
+.treq-asiento{ border:1px solid var(--line); border-left:4px solid var(--treq-color); border-radius:8px; padding:6px 8px; background:var(--card); }
+.treq-eq-A{ --treq-color:#B33B22; }
+.treq-eq-B{ --treq-color:#4A6B43; }
+.treq-asiento.treq-turno{ box-shadow:0 0 0 2px var(--treq-color); }
+.treq-asiento.treq-yo{ background:var(--card2); }
+.treq-asiento-nombre{ font-weight:700; font-size:13px; }
+.treq-asiento-nombre span{ color:var(--treq-color); }
+.treq-asiento-tags{ font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.03em; min-height:13px; }
+.treq-asiento-cartas{ display:flex; gap:4px; margin-top:4px; flex-wrap:wrap; }
+.treq-asiento-cartas .tr-carta{ transform:scale(.72); transform-origin:top left; margin-right:-18px; margin-bottom:-26px; }
+.treq-asiento-cartas .tr-carta:hover{ transform:scale(.72); }
+.treq-sin-cartas{ color:var(--text-dimmer); font-size:12px; }
+.treq-mi-mano-titulo{ text-align:center; font-size:12px; color:var(--text-dim); margin-top:6px; }
+.treq-mi-envido{ text-align:center; font-size:12px; color:var(--text-dim); }
 #tr-log{ max-width:520px; margin:14px auto 0; }
 .tr-historial-lista{ max-height:150px; overflow-y:auto; margin-top:6px; }
 .tr-historial-lista div{ font-size:11.5px; padding:3px 0; border-bottom:1px solid var(--line); color:var(--text-dim); }
@@ -2580,10 +2598,16 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
           <div class="pen-ronda" id="treq-titulo">Truco en equipos</div>
           <div>Equipo B<br><b id="treq-puntos-b">0</b></div>
         </div>
-        <div class="gd-intro" id="treq-info">Esperando…</div>
-        <div id="treq-mesa-jugadas" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:10px 0;"></div>
-        <div id="treq-mi-mano" class="tr-mano" style="margin:10px 0;"></div>
-        <div id="treq-log" class="cz-controles-info"></div>
+        <div class="treq-companeros" id="treq-companeros"></div>
+        <div class="gd-intro treq-info" id="treq-info">Esperando…</div>
+        <div class="tr-canto-actual" id="treq-canto"></div>
+        <div class="treq-rondas" id="treq-rondas"></div>
+        <div id="treq-mesa-jugadas" class="treq-mesa"></div>
+        <div class="treq-mi-mano-titulo">Tus cartas</div>
+        <div id="treq-mi-mano" class="tr-mano" style="margin:6px 0 4px; justify-content:center;"></div>
+        <div class="treq-mi-envido" id="treq-mi-envido"></div>
+        <div id="treq-acciones" class="tr-acciones"></div>
+        <div id="treq-log" class="cz-controles-info" style="margin-top:14px;"></div>
       </div>
 
       <div id="tr-final" style="display:none;">
@@ -8105,143 +8129,368 @@ document.getElementById('tr-online-salir-btn').addEventListener('click', ()=>{
   document.getElementById('tr-armado').style.display = 'block';
 });
 
-/* --- Truco en Equipos (2vs2 / 3vs3): base de sala, reparto y turnos ---
-   Fase 1 (esta implementación): armado de sala, reparto de cartas, jugar por turnos, gana la ronda
-   el equipo con la carta más fuerte, gana la mano el equipo que gana 2 de 3 rondas (con las mismas
-   reglas de "parda" ya corregidas). Envido/Truco cantados en equipo quedan para la fase 2. */
+/* --- Truco en Equipos (2vs2 / 3vs3) — completo (fase 1 + fase 2) ---
+   Reglas acordadas:
+   - Asientos alternados por equipo (A-B-A-B...). El orden de invitación arma los equipos.
+   - Envido: solo lo canta (y lo responde/sube) el PIE de cada equipo = el último de su equipo en jugar en la 1ra ronda,
+     y solo en la 1ra ronda antes de tirar su carta. Si el rival canta Truco antes, el pie puede contestar
+     "¡El envido está primero!" y se juega el envido antes de responder el Truco.
+   - Truco/Retruco/Vale Cuatro: lo canta cualquiera en su turno; lo responde cualquier integrante del equipo rival
+     (vale la primera respuesta que llega). Solo el equipo que aceptó puede subir.
+   - Envido: gana la mejor mano de TODO el equipo; empate lo gana el más cercano al mano.
+   - Ronda: la gana el equipo de la carta más alta (si empatan dos del MISMO equipo, gana ese equipo; si empatan
+     equipos distintos es parda). La ronda siguiente la empieza quien ganó la anterior (parda: el mano).
+   - Flor (si el host la habilitó): +3; si el otro equipo también tiene, se comparan y el mejor se lleva 6.
+   - Irse al mazo: abandona la mano TODO el equipo. */
 let trEqActivo = false;
 let trEqRoomId = null, trEqFormato = null;
 let trEqParticipantes = []; // usernames en orden de asiento (alternado por equipo)
 let trEqEquipoDe = {}; // username -> 'A' | 'B'
 let trEqEsHost = false;
-let trEqManos = {}; // username -> [cartas]
-let trEqTurnoIdx = 0;
-let trEqJugadasRonda = []; // [{username, carta}]
-let trEqRondaActual = 0;
-let trEqResultadosRondas = []; // 'A' | 'B' | 'parda'
-let trEqPuntosA = 0, trEqPuntosB = 0;
-let trEqManoIdx = 0;
 let trEqMatchChannel = null;
+let trEqEstado = null; // estado completo de la partida (el host es la autoridad y lo reparte a todos)
+let trEqResultadoGuardado = false;
+
+const TR_EQ_ETIQUETAS = { truco:'Truco', retruco:'Retruco', vale_cuatro:'Vale Cuatro',
+  envido:'Envido', envido_envido:'Envido Envido', real_envido:'Real Envido', falta_envido:'Falta Envido', flor:'Flor' };
 
 function trIniciarOnlineEquipos(payload){
   trEqActivo = true;
+  trEqResultadoGuardado = false;
   trEqRoomId = payload.roomId;
   trEqFormato = payload.formato;
   trEqParticipantes = payload.participantes;
   trEqEquipoDe = {};
   trEqParticipantes.forEach((u,i)=>{ trEqEquipoDe[u] = i%2===0 ? 'A' : 'B'; });
   trEqEsHost = trEqParticipantes[0] === trMiUsernameOnlineTr;
-  trEqPuntosA = 0; trEqPuntosB = 0; trEqManoIdx = 0;
+  trEqEstado = null;
 
   if(trLobbyChannel){ trLobbyChannel.unsubscribe(); trLobbyChannel = null; }
   document.getElementById('tr-online-lobby').style.display = 'none';
   document.getElementById('tr-armado').style.display = 'none';
+  document.getElementById('tr-final').style.display = 'none';
   document.getElementById('tr-mesa-equipos-wrap').style.display = 'block';
-  document.getElementById('treq-titulo').textContent = `Truco ${trEqFormato.replace('v',' vs ')} — Equipo ${trEqEquipoDe[trMiUsernameOnlineTr]}`;
+  const miEq = trEqEquipoDe[trMiUsernameOnlineTr];
+  const compas = trEqParticipantes.filter(u => u !== trMiUsernameOnlineTr && trEqEquipoDe[u] === miEq);
+  document.getElementById('treq-titulo').textContent = `Truco ${trEqFormato.replace('v',' vs ')} — Equipo ${miEq}`;
+  document.getElementById('treq-info').textContent = 'Conectando a la mesa…';
+  document.getElementById('treq-companeros').textContent = compas.length ? `Tu equipo: vos + ${compas.join(' + ')}` : '';
 
-  trEqMatchChannel = sbClient.channel('truco-equipo-match-' + trEqRoomId);
-  trEqMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{ if(trEqEsHost) trEqProcesarAccionRemota(msg.payload); });
-  trEqMatchChannel.on('broadcast', { event:'estado' }, (msg)=> trEqAplicarEstadoRemoto(msg.payload));
+  trEqMatchChannel = sbClient.channel('truco-equipo-match-' + trEqRoomId, { config:{ presence:{ key: trMiUsernameOnlineTr } } });
+  trEqMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{ if(trEqEsHost) trEqProcesarAccion(msg.payload); });
+  trEqMatchChannel.on('broadcast', { event:'estado' }, (msg)=> trEqAplicarEstado(msg.payload));
+  trEqMatchChannel.on('presence', { event:'leave' }, ({ leftPresences })=>{
+    if(!trEqActivo || !trEqEstado || trEqEstado.terminado) return;
+    const se = leftPresences.find(p => trEqParticipantes.includes(p.username));
+    if(se) trEqCortarPorDesconexion(se.username);
+  });
+  // el host reparte recién cuando están TODOS sentados en la mesa (o a los 6 segundos, por las dudas),
+  // y si alguien se conecta tarde le reenvía el estado actual para que no se quede en "Conectando…"
+  const canal = trEqMatchChannel;
+  const arrancarSiEstanTodos = (forzar)=>{
+    if(!trEqEsHost || trEqEstado || canal !== trEqMatchChannel) return;
+    const presentes = new Set();
+    Object.values(canal.presenceState()).forEach(arr => arr.forEach(x => presentes.add(x.username)));
+    if(forzar || trEqParticipantes.every(u => presentes.has(u))) trEqIniciarPartida();
+  };
+  trEqMatchChannel.on('presence', { event:'sync' }, ()=> arrancarSiEstanTodos(false));
+  trEqMatchChannel.on('presence', { event:'join' }, ()=>{
+    if(trEqEsHost && trEqEstado && trEqEstado.manos && canal === trEqMatchChannel){
+      canal.send({ type:'broadcast', event:'estado', payload: trEqEstado });
+    }
+  });
   trEqMatchChannel.subscribe(async (status)=>{
     if(status !== 'SUBSCRIBED') return;
     await trEqMatchChannel.track({ username: trMiUsernameOnlineTr });
-    if(trEqEsHost) trEqIniciarMano();
+    if(trEqEsHost) setTimeout(()=> arrancarSiEstanTodos(true), 6000);
   });
 }
 
-function trEqCrearMazoYRepartir(){
-  const mazo = trCrearMazo();
-  const manos = {};
-  trEqParticipantes.forEach(u => { manos[u] = mazo.splice(0,3); });
-  return manos;
+/* ---------- helpers de reglas ---------- */
+function trEqOrdenDesde(idx){
+  const n = trEqParticipantes.length;
+  return Array.from({ length:n }, (_,k) => trEqParticipantes[(idx + k) % n]);
+}
+function trEqEsPie(username){
+  // el pie de cada equipo es el último de ese equipo en el orden de la 1ra ronda (arrancando desde el mano)
+  const orden = trEqOrdenDesde(trEqEstado.manoIdx);
+  const eq = trEqEquipoDe[username];
+  const delEquipo = orden.filter(u => trEqEquipoDe[u] === eq);
+  return delEquipo[delEquipo.length-1] === username;
+}
+function trEqPieDe(equipo){
+  const orden = trEqOrdenDesde(trEqEstado.manoIdx).filter(u => trEqEquipoDe[u] === equipo);
+  return orden[orden.length-1];
+}
+function trEqYaJugoEstaRonda(username){ return trEqEstado.jugadasRonda.some(j => j.username === username); }
+function trEqOtro(eq){ return eq === 'A' ? 'B' : 'A'; }
+function trEqLog(msg){ trEqEstado.log.push(msg); if(trEqEstado.log.length > 60) trEqEstado.log.shift(); }
+function trEqPuntosDe(eq){ return eq === 'A' ? trEqEstado.puntosA : trEqEstado.puntosB; }
+function trEqSumar(eq, pts){
+  if(eq === 'A') trEqEstado.puntosA = Math.min(30, trEqEstado.puntosA + pts);
+  else trEqEstado.puntosB = Math.min(30, trEqEstado.puntosB + pts);
+}
+function trEqNom(u){ return `${u} (${trEqEquipoDe[u]})`; }
+// mejor valor de un equipo (envido o flor); empate: gana el más cercano al mano
+function trEqMejorDelEquipo(eq, fnValor, filtro){
+  let mejor = null;
+  trEqOrdenDesde(trEqEstado.manoIdx).forEach((u, pos)=>{
+    if(trEqEquipoDe[u] !== eq) return;
+    const cartas = trEqEstado.manosIniciales[u];
+    if(filtro && !filtro(cartas)) return;
+    const v = fnValor(cartas);
+    if(!mejor || v > mejor.valor) mejor = { username:u, valor:v, pos };
+  });
+  return mejor;
+}
+
+/* ---------- ciclo de partida (solo host) ---------- */
+function trEqIniciarPartida(){
+  trEqEstado = {
+    puntosA:0, puntosB:0, manoIdx:0, florHabilitada: !!trFlorHabilitada,
+    log:[], terminado:false, ganador:null, cortado:null
+  };
+  trEqIniciarMano();
 }
 
 function trEqIniciarMano(){
-  trEqManos = trEqCrearMazoYRepartir();
-  trEqJugadasRonda = [];
-  trEqRondaActual = 0;
-  trEqResultadosRondas = [];
-  trEqTurnoIdx = trEqManoIdx;
-  trEqBroadcastEstado();
+  const e = trEqEstado;
+  const mazo = trCrearMazo();
+  e.manos = {}; e.manosIniciales = {}; e.mesa = {};
+  trEqParticipantes.forEach(u => { e.manos[u] = mazo.splice(0,3); e.manosIniciales[u] = e.manos[u].slice(); e.mesa[u] = []; });
+  e.turnoIdx = e.manoIdx;
+  e.jugadasRonda = [];
+  e.rondaActual = 0;
+  e.resultadosRondas = [];
+  e.trucoNivel = 0;
+  e.trucoEquipo = null;
+  e.envidoJugado = false;
+  e.envidoCadena = [];
+  e.florCantada = false;
+  e.pendiente = null;
+  e.manoTerminada = false;
+  trEqLog(`— Nueva mano. Es mano ${trEqNom(trEqParticipantes[e.manoIdx])}.`);
+  trEqBroadcast();
 }
 
-function trEqBroadcastEstado(){
-  const estado = {
-    manos: trEqManos, turnoIdx: trEqTurnoIdx, jugadasRonda: trEqJugadasRonda,
-    rondaActual: trEqRondaActual, resultadosRondas: trEqResultadosRondas,
-    puntosA: trEqPuntosA, puntosB: trEqPuntosB, manoIdx: trEqManoIdx, terminado:false
+function trEqBroadcast(){
+  trEqMatchChannel.send({ type:'broadcast', event:'estado', payload: trEqEstado });
+  trEqAplicarEstado(trEqEstado);
+}
+
+/* ---------- acciones disponibles para cada jugador ---------- */
+function trEqCantosDisponibles(u){
+  const e = trEqEstado;
+  if(!e || e.terminado || e.manoTerminada || e.pendiente) return [];
+  if(trEqParticipantes[e.turnoIdx] !== u) return [];
+  const eq = trEqEquipoDe[u];
+  const disp = [];
+  if(e.trucoNivel === 0) disp.push('truco');
+  else if(e.trucoNivel === 1 && e.trucoEquipo !== eq) disp.push('retruco');
+  else if(e.trucoNivel === 2 && e.trucoEquipo !== eq) disp.push('vale_cuatro');
+  const primeraRondaSinJugar = e.rondaActual === 0 && !trEqYaJugoEstaRonda(u);
+  if(primeraRondaSinJugar && !e.envidoJugado && e.trucoNivel === 0 && trEqEsPie(u)){
+    disp.push('envido', 'real_envido', 'falta_envido');
+  }
+  if(primeraRondaSinJugar && e.florHabilitada && !e.florCantada && trTieneFlor(e.manosIniciales[u])) disp.push('flor');
+  return disp;
+}
+
+function trEqRespuestasDisponibles(u){
+  const e = trEqEstado;
+  if(!e || e.terminado || e.manoTerminada || !e.pendiente) return [];
+  const p = e.pendiente;
+  const eq = trEqEquipoDe[u];
+  if(eq === p.equipoCanto) return [];
+  if(p.tipo === 'envido'){
+    if(u !== trEqPieDe(eq)) return []; // el envido lo maneja el pie
+    const r = ['quiero','no_quiero'];
+    if(p.ultimoTipo === 'envido') r.push('envido_envido');
+    if(['envido','envido_envido'].includes(p.ultimoTipo)) r.push('real_envido');
+    if(p.ultimoTipo !== 'falta_envido') r.push('falta_envido');
+    return r;
+  }
+  // truco: responde cualquiera del equipo
+  const r = ['quiero','no_quiero'];
+  if(p.nivel === 1) r.push('retruco');
+  if(p.nivel === 2) r.push('vale_cuatro');
+  // "el envido está primero": solo contra el primer Truco, en la 1ra ronda, lo puede cantar el pie que no jugó todavía
+  if(p.nivel === 1 && e.rondaActual === 0 && !e.envidoJugado && !p.envidoPrimeroUsado && u === trEqPieDe(eq) && !trEqYaJugoEstaRonda(u)){
+    r.push('envido','real_envido','falta_envido');
+  }
+  return r;
+}
+
+/* ---------- procesar acciones (host) ---------- */
+function trEqEnviarAccion(accion){
+  accion.de = trMiUsernameOnlineTr;
+  if(trEqEsHost) trEqProcesarAccion(accion);
+  else trEqMatchChannel.send({ type:'broadcast', event:'accion', payload: accion });
+}
+
+function trEqProcesarAccion(a){
+  const e = trEqEstado;
+  if(!e || e.terminado || e.manoTerminada) return;
+  const u = a.de;
+  if(!trEqParticipantes.includes(u)) return;
+  if(a.tipo === 'jugar') return trEqHostJugar(u, a.idx);
+  if(a.tipo === 'cantar'){ if(trEqCantosDisponibles(u).includes(a.valor)) trEqHostCantar(u, a.valor); return; }
+  if(a.tipo === 'responder'){ if(trEqRespuestasDisponibles(u).includes(a.valor)) trEqHostResponder(u, a.valor); return; }
+  if(a.tipo === 'mazo') return trEqHostMazo(u);
+}
+
+function trEqHostCantar(u, tipo){
+  const e = trEqEstado;
+  const eq = trEqEquipoDe[u];
+  if(tipo === 'flor'){
+    e.florCantada = true;
+    e.envidoJugado = true; // la flor anula el envido
+    const miFlor = trEqMejorDelEquipo(eq, trValorFlor, trTieneFlor);
+    const suFlor = trEqMejorDelEquipo(trEqOtro(eq), trValorFlor, trTieneFlor);
+    trEqLog(`🌸 ${trEqNom(u)} cantó ¡Flor!`);
+    if(suFlor){
+      const gana = (miFlor.valor > suFlor.valor || (miFlor.valor === suFlor.valor && miFlor.pos < suFlor.pos)) ? miFlor : suFlor;
+      const eqGana = trEqEquipoDe[gana.username];
+      trEqSumar(eqGana, 6);
+      trEqLog(`Los dos equipos tenían Flor (${miFlor.valor} vs ${suFlor.valor}). Se lleva 6 el Equipo ${eqGana}.`);
+    } else {
+      trEqSumar(eq, 3);
+      trEqLog(`Se lleva 3 puntos el Equipo ${eq}.`);
+    }
+    if(trEqChequearFin()) return;
+    trEqBroadcast();
+    return;
+  }
+  if(['truco','retruco','vale_cuatro'].includes(tipo)){
+    e.trucoNivel = { truco:1, retruco:2, vale_cuatro:3 }[tipo];
+    e.trucoEquipo = eq;
+    e.pendiente = { tipo:'truco', nivel:e.trucoNivel, equipoCanto:eq, cantor:u };
+    trEqLog(`🗣️ ${trEqNom(u)} cantó ${TR_EQ_ETIQUETAS[tipo]}.`);
+    trEqBroadcast();
+    return;
+  }
+  // envido en su turno
+  e.envidoCadena.push({ tipo, etiqueta:TR_EQ_ETIQUETAS[tipo], equipo:eq, valor:{ envido:2, envido_envido:2, real_envido:3 }[tipo] || 0 });
+  e.pendiente = { tipo:'envido', ultimoTipo:tipo, equipoCanto:eq, cantor:u, trucoSuspendido:null };
+  trEqLog(`🗣️ ${trEqNom(u)} cantó ${TR_EQ_ETIQUETAS[tipo]}.`);
+  trEqBroadcast();
+}
+
+function trEqHostResponder(u, resp){
+  const e = trEqEstado;
+  const p = e.pendiente;
+  const eq = trEqEquipoDe[u];
+
+  if(p.tipo === 'truco'){
+    if(resp === 'no_quiero'){
+      trEqSumar(p.equipoCanto, p.nivel);
+      trEqLog(`${trEqNom(u)}: No quiero. Se lleva ${p.nivel} el Equipo ${p.equipoCanto}.`);
+      e.pendiente = null;
+      trEqTerminarManoYSeguir();
+      return;
+    }
+    if(resp === 'quiero'){
+      trEqLog(`${trEqNom(u)}: ¡Quiero!`);
+      e.pendiente = null;
+      trEqBroadcast();
+      return;
+    }
+    if(resp === 'retruco' || resp === 'vale_cuatro'){
+      e.trucoNivel = resp === 'retruco' ? 2 : 3;
+      e.trucoEquipo = eq;
+      e.pendiente = { tipo:'truco', nivel:e.trucoNivel, equipoCanto:eq, cantor:u };
+      trEqLog(`🗣️ ${trEqNom(u)} cantó ${TR_EQ_ETIQUETAS[resp]}.`);
+      trEqBroadcast();
+      return;
+    }
+    // "¡El envido está primero!"
+    p.envidoPrimeroUsado = true;
+    e.envidoCadena.push({ tipo:resp, etiqueta:TR_EQ_ETIQUETAS[resp], equipo:eq, valor:{ envido:2, real_envido:3 }[resp] || 0 });
+    e.pendiente = { tipo:'envido', ultimoTipo:resp, equipoCanto:eq, cantor:u, trucoSuspendido:p };
+    trEqLog(`🗣️ ${trEqNom(u)}: ¡El envido está primero! ${TR_EQ_ETIQUETAS[resp]}.`);
+    trEqBroadcast();
+    return;
+  }
+
+  // envido
+  const volverAlTruco = () => {
+    e.envidoJugado = true;
+    e.pendiente = p.trucoSuspendido || null;
+    if(trEqChequearFin()) return;
+    trEqBroadcast();
   };
-  trEqMatchChannel.send({ type:'broadcast', event:'estado', payload: estado });
-  trEqAplicarEstadoRemoto(estado);
-}
-
-function trEqBroadcastEstadoFinal(ganador){
-  const estado = { manos:trEqManos, turnoIdx:trEqTurnoIdx, jugadasRonda:[], rondaActual:trEqRondaActual,
-    resultadosRondas:trEqResultadosRondas, puntosA:trEqPuntosA, puntosB:trEqPuntosB, manoIdx:trEqManoIdx,
-    terminado:true, ganador };
-  trEqMatchChannel.send({ type:'broadcast', event:'estado', payload: estado });
-  trEqAplicarEstadoRemoto(estado);
-}
-
-function trEqAplicarEstadoRemoto(estado){
-  trEqManos = estado.manos; trEqTurnoIdx = estado.turnoIdx; trEqJugadasRonda = estado.jugadasRonda;
-  trEqRondaActual = estado.rondaActual; trEqResultadosRondas = estado.resultadosRondas;
-  trEqPuntosA = estado.puntosA; trEqPuntosB = estado.puntosB; trEqManoIdx = estado.manoIdx;
-  trEqRenderizar();
-  if(estado.terminado){
-    document.getElementById('treq-info').textContent = `🏆 ¡Ganó el Equipo ${estado.ganador}!`;
+  if(resp === 'no_quiero'){
+    const previos = e.envidoCadena.slice(0, -1).reduce((s,x)=> s + x.valor, 0);
+    const pts = Math.max(previos, 1);
+    trEqSumar(p.equipoCanto, pts);
+    trEqLog(`${trEqNom(u)}: No quiero el envido. Se lleva ${pts} el Equipo ${p.equipoCanto}.`);
+    return volverAlTruco();
   }
-}
-
-function trEqRenderizar(){
-  document.getElementById('treq-puntos-a').textContent = trEqPuntosA;
-  document.getElementById('treq-puntos-b').textContent = trEqPuntosB;
-  const jugadorTurno = trEqParticipantes[trEqTurnoIdx];
-  const miTurno = jugadorTurno === trMiUsernameOnlineTr;
-  document.getElementById('treq-info').textContent = miTurno
-    ? 'Te toca jugar una carta.'
-    : `Turno de ${jugadorTurno} (Equipo ${trEqEquipoDe[jugadorTurno]})`;
-
-  document.getElementById('treq-mesa-jugadas').innerHTML = trEqJugadasRonda.map(j => `
-    <div style="text-align:center;">
-      ${trHtmlCarta(j.carta)}
-      <div style="font-size:10px; margin-top:2px;">${j.username} (${trEqEquipoDe[j.username]})</div>
-    </div>
-  `).join('') || '<div class="cz-online-esperando">Nadie tiró carta todavía en esta ronda.</div>';
-
-  const miMano = trEqManos[trMiUsernameOnlineTr] || [];
-  const cont = document.getElementById('treq-mi-mano');
-  cont.innerHTML = miMano.map(() => '').join(''); // se llena abajo con nodos reales para poder ponerle onclick
-  cont.innerHTML = '';
-  miMano.forEach((c,i)=>{
-    const div = document.createElement('div');
-    div.innerHTML = trHtmlCarta(c);
-    const el = div.firstElementChild;
-    el.style.cursor = miTurno ? 'pointer' : 'default';
-    if(miTurno) el.addEventListener('click', ()=> trEqJugarCarta(i));
-    cont.appendChild(el);
-  });
-}
-
-function trEqJugarCarta(idx){
-  if(trEqParticipantes[trEqTurnoIdx] !== trMiUsernameOnlineTr) return;
-  const carta = trEqManos[trMiUsernameOnlineTr][idx];
-  if(trEqEsHost){
-    trEqAplicarJugada(trMiUsernameOnlineTr, carta, idx);
-  } else {
-    trEqMatchChannel.send({ type:'broadcast', event:'accion', payload:{ tipo:'jugar', de:trMiUsernameOnlineTr, idx } });
+  if(resp === 'quiero'){
+    const mA = trEqMejorDelEquipo('A', trValorEnvido), mB = trEqMejorDelEquipo('B', trValorEnvido);
+    const gana = (mA.valor > mB.valor || (mA.valor === mB.valor && mA.pos < mB.pos)) ? mA : mB;
+    const eqGana = trEqEquipoDe[gana.username];
+    const tieneFalta = e.envidoCadena.some(x => x.tipo === 'falta_envido');
+    const pts = tieneFalta ? (30 - trEqPuntosDe(eqGana)) : e.envidoCadena.reduce((s,x)=> s + x.valor, 0);
+    trEqSumar(eqGana, pts);
+    trEqLog(`${trEqNom(u)}: ¡Quiero! Envido — A: ${mA.valor} (${mA.username}) · B: ${mB.valor} (${mB.username}). Se lleva ${pts} el Equipo ${eqGana}.`);
+    return volverAlTruco();
   }
+  // subir el envido
+  e.envidoCadena.push({ tipo:resp, etiqueta:TR_EQ_ETIQUETAS[resp], equipo:eq, valor:{ envido_envido:2, real_envido:3 }[resp] || 0 });
+  e.pendiente = { tipo:'envido', ultimoTipo:resp, equipoCanto:eq, cantor:u, trucoSuspendido:p.trucoSuspendido };
+  trEqLog(`🗣️ ${trEqNom(u)} cantó ${TR_EQ_ETIQUETAS[resp]}.`);
+  trEqBroadcast();
 }
 
-function trEqProcesarAccionRemota(accion){
-  if(accion.tipo === 'jugar'){
-    const carta = trEqManos[accion.de][accion.idx];
-    trEqAplicarJugada(accion.de, carta, accion.idx);
+function trEqHostMazo(u){
+  const e = trEqEstado;
+  if(e.pendiente || trEqParticipantes[e.turnoIdx] !== u) return;
+  const eq = trEqEquipoDe[u];
+  const pts = e.trucoNivel === 0 ? 1 : e.trucoNivel + 1;
+  trEqSumar(trEqOtro(eq), pts);
+  trEqLog(`🏳️ ${trEqNom(u)} se fue al mazo con su equipo. Se lleva ${pts} el Equipo ${trEqOtro(eq)}.`);
+  trEqTerminarManoYSeguir();
+}
+
+function trEqHostJugar(u, idx){
+  const e = trEqEstado;
+  if(e.pendiente || trEqParticipantes[e.turnoIdx] !== u || trEqYaJugoEstaRonda(u)) return;
+  const carta = e.manos[u][idx];
+  if(!carta) return;
+  e.manos[u] = e.manos[u].filter((_,i)=> i !== idx);
+  e.mesa[u].push(carta);
+  e.jugadasRonda.push({ username:u, carta });
+  trEqLog(`${trEqNom(u)} jugó ${trNombreCarta(carta)}.`);
+  if(e.jugadasRonda.length < trEqParticipantes.length){
+    e.turnoIdx = (e.turnoIdx + 1) % trEqParticipantes.length;
+    trEqBroadcast();
+    return;
   }
+  // se completó la ronda
+  const maxVal = Math.max(...e.jugadasRonda.map(j => trValorTruco(j.carta)));
+  const topes = e.jugadasRonda.filter(j => trValorTruco(j.carta) === maxVal);
+  const equiposTope = new Set(topes.map(j => trEqEquipoDe[j.username]));
+  const ganadorRonda = equiposTope.size > 1 ? 'parda' : trEqEquipoDe[topes[0].username];
+  e.resultadosRondas.push(ganadorRonda);
+  trEqLog(ganadorRonda === 'parda' ? `Ronda ${e.rondaActual+1}: parda.` : `Ronda ${e.rondaActual+1}: la gana el Equipo ${ganadorRonda} (${trNombreCarta(topes[0].carta)} de ${topes[0].username}).`);
+  e.rondaActual++;
+  e.jugadasRonda = [];
+  const ganadorMano = trEqEvaluarGanadorMano();
+  if(ganadorMano){
+    const pts = e.trucoNivel === 0 ? 1 : e.trucoNivel + 1;
+    trEqSumar(ganadorMano, pts);
+    trEqLog(`✅ Mano para el Equipo ${ganadorMano} (${pts} punto${pts===1?'':'s'}).`);
+    trEqTerminarManoYSeguir();
+    return;
+  }
+  // la ronda siguiente la empieza quien ganó (el primero que tiró la carta ganadora); si fue parda, el mano
+  e.turnoIdx = ganadorRonda === 'parda' ? e.manoIdx : trEqParticipantes.indexOf(topes[0].username);
+  trEqBroadcast();
 }
 
 function trEqEvaluarGanadorMano(){
-  const r = trEqResultadosRondas;
+  const r = trEqEstado.resultadosRondas;
   const cuenta = { A:0, B:0 };
   r.forEach(x=>{ if(x!=='parda') cuenta[x]++; });
   if(cuenta.A >= 2) return 'A';
@@ -8254,45 +8503,177 @@ function trEqEvaluarGanadorMano(){
   if(r.length === 3){
     if(r[2]!=='parda') return r[2];
     if(r[0]!=='parda') return r[0];
-    return trEqEquipoDe[trEqParticipantes[trEqManoIdx]];
+    return trEqEquipoDe[trEqParticipantes[trEqEstado.manoIdx]];
   }
   return null;
 }
 
-function trEqAplicarJugada(username, carta, idx){
-  trEqManos[username] = trEqManos[username].filter((_,i)=> i!==idx);
-  trEqJugadasRonda.push({ username, carta });
-  if(trEqJugadasRonda.length < trEqParticipantes.length){
-    trEqTurnoIdx = (trEqTurnoIdx+1) % trEqParticipantes.length;
-    trEqBroadcastEstado();
-    return;
+function trEqChequearFin(){
+  const e = trEqEstado;
+  if(e.puntosA >= 30 || e.puntosB >= 30){
+    e.terminado = true;
+    e.ganador = e.puntosA >= 30 ? 'A' : 'B';
+    e.pendiente = null;
+    trEqLog(`🏆 ¡Ganó el Equipo ${e.ganador}!`);
+    trEqBroadcast();
+    return true;
   }
-  let mejor = trEqJugadasRonda[0];
-  let hayEmpateTope = false;
-  trEqJugadasRonda.forEach(j=>{
-    const v = trValorTruco(j.carta), vMejor = trValorTruco(mejor.carta);
-    if(v > vMejor){ mejor = j; hayEmpateTope = false; }
-    else if(v === vMejor && j !== mejor) hayEmpateTope = true;
-  });
-  const ganadorRonda = hayEmpateTope ? 'parda' : trEqEquipoDe[mejor.username];
-  trEqResultadosRondas.push(ganadorRonda);
-  trEqRondaActual++;
-  trEqJugadasRonda = [];
+  return false;
+}
 
-  const ganadorMano = trEqEvaluarGanadorMano();
-  if(ganadorMano){
-    if(ganadorMano === 'A') trEqPuntosA = Math.min(30, trEqPuntosA+1); else trEqPuntosB = Math.min(30, trEqPuntosB+1);
-    if(trEqPuntosA >= 30 || trEqPuntosB >= 30){
-      trEqBroadcastEstadoFinal(trEqPuntosA >= 30 ? 'A' : 'B');
-      return;
-    }
-    trEqManoIdx = (trEqManoIdx+1) % trEqParticipantes.length;
-    trEqBroadcastEstado();
-    setTimeout(()=> trEqIniciarMano(), 1400);
-    return;
+function trEqTerminarManoYSeguir(){
+  const e = trEqEstado;
+  e.manoTerminada = true;
+  e.pendiente = null;
+  if(trEqChequearFin()) return;
+  trEqBroadcast();
+  setTimeout(()=>{
+    if(!trEqActivo || !trEqEstado || trEqEstado.terminado) return;
+    trEqEstado.manoIdx = (trEqEstado.manoIdx + 1) % trEqParticipantes.length;
+    trEqIniciarMano();
+  }, 2200);
+}
+
+/* ---------- lado de cada jugador: recibir estado y dibujar ---------- */
+function trEqAplicarEstado(estado){
+  if(!trEqActivo) return;
+  trEqEstado = estado;
+  trEqRenderizar();
+  if(estado.terminado) trEqMostrarFinal();
+}
+
+function trEqCortarPorDesconexion(username){
+  trEqActivo = false;
+  if(trEqMatchChannel){ trEqMatchChannel.unsubscribe(); trEqMatchChannel = null; }
+  document.getElementById('tr-mesa-equipos-wrap').style.display = 'none';
+  document.getElementById('tr-final-titulo').textContent = `⚠️ Se desconectó ${username}. La partida no cuenta.`;
+  document.getElementById('tr-final-detalle').textContent = '';
+  document.getElementById('tr-ranking-wrap').style.display = 'none';
+  document.getElementById('tr-final').style.display = 'block';
+}
+
+async function trEqMostrarFinal(){
+  const e = trEqEstado;
+  const miEq = trEqEquipoDe[trMiUsernameOnlineTr];
+  const gane = e.ganador === miEq;
+  const ptsMio = trEqPuntosDe(miEq), ptsSuyo = trEqPuntosDe(trEqOtro(miEq));
+  document.getElementById('tr-mesa-equipos-wrap').style.display = 'none';
+  document.getElementById('tr-final').style.display = 'block';
+  document.getElementById('tr-final-titulo').textContent = gane ? `🏆 ¡Ganó tu equipo ${ptsMio} a ${ptsSuyo}!` : `😢 Perdió tu equipo ${ptsSuyo} a ${ptsMio}`;
+  const eqA = trEqParticipantes.filter(u => trEqEquipoDe[u]==='A').join(' + ');
+  const eqB = trEqParticipantes.filter(u => trEqEquipoDe[u]==='B').join(' + ');
+  document.getElementById('tr-final-detalle').textContent = `Equipo A: ${eqA} · Equipo B: ${eqB}`;
+  document.getElementById('tr-ranking-wrap').style.display = 'block';
+  trEqActivo = false;
+  const canalTerminado = trEqMatchChannel;
+  setTimeout(()=>{ if(canalTerminado) canalTerminado.unsubscribe(); if(trEqMatchChannel === canalTerminado) trEqMatchChannel = null; }, 1500);
+  if(trEqResultadoGuardado) return;
+  trEqResultadoGuardado = true;
+  guardarResultadoMinijuego('truco', gane ? 'victoria' : 'derrota');
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(user){
+    await sbClient.from('truco_partidas').insert({ usuario_id:user.id, resultado: gane?'victoria':'derrota', modo:'online', con_flor:!!e.florHabilitada }).then(()=>{}, ()=>{});
   }
-  trEqTurnoIdx = trEqManoIdx;
-  trEqBroadcastEstado();
+  trCargarRanking();
+}
+
+function trEqRenderizar(){
+  const e = trEqEstado;
+  if(!e || !e.manos) return;
+  const yo = trMiUsernameOnlineTr;
+  const miEq = trEqEquipoDe[yo];
+  document.getElementById('treq-puntos-a').textContent = e.puntosA;
+  document.getElementById('treq-puntos-b').textContent = e.puntosB;
+
+  const jugadorTurno = trEqParticipantes[e.turnoIdx];
+  const miTurno = jugadorTurno === yo;
+  let info;
+  if(e.terminado) info = `🏆 ¡Ganó el Equipo ${e.ganador}!`;
+  else if(e.manoTerminada) info = 'Mano terminada — repartiendo…';
+  else if(e.pendiente){
+    const et = e.pendiente.tipo === 'truco' ? TR_EQ_ETIQUETAS[['','truco','retruco','vale_cuatro'][e.pendiente.nivel]] : TR_EQ_ETIQUETAS[e.pendiente.ultimoTipo];
+    const responde = trEqOtro(e.pendiente.equipoCanto);
+    const quien = e.pendiente.tipo === 'envido' ? `responde ${trEqPieDe(responde)} (pie del Equipo ${responde})` : `responde el Equipo ${responde}`;
+    info = `${e.pendiente.cantor} cantó ${et} — ${quien}.`;
+  }
+  else info = miTurno ? '👉 Te toca jugar.' : `Turno de ${trEqNom(jugadorTurno)}`;
+  document.getElementById('treq-info').textContent = info;
+
+  const canto = [];
+  if(e.trucoNivel > 0) canto.push(['Truco','Retruco','Vale Cuatro'][e.trucoNivel-1] + (e.pendiente && e.pendiente.tipo==='truco' ? ' (esperando respuesta)' : ' querido'));
+  if(e.envidoCadena.length) canto.push(e.envidoCadena.map(x=>x.etiqueta).join(' → '));
+  document.getElementById('treq-canto').textContent = canto.join(' · ');
+
+  const rondas = e.resultadosRondas.map((r,i)=> `R${i+1}: ${r==='parda'?'parda':'Eq. '+r}`).join(' · ');
+  document.getElementById('treq-rondas').textContent = rondas;
+
+  // mesa: cada jugador con las cartas que ya tiró en esta mano
+  const mesa = document.getElementById('treq-mesa-jugadas');
+  mesa.innerHTML = trEqOrdenDesde(e.manoIdx).map(u => {
+    const clases = ['treq-asiento', 'treq-eq-' + trEqEquipoDe[u]];
+    if(u === jugadorTurno && !e.manoTerminada && !e.terminado) clases.push('treq-turno');
+    if(u === yo) clases.push('treq-yo');
+    const etiquetas = [];
+    if(u === trEqParticipantes[e.manoIdx]) etiquetas.push('mano');
+    if(trEqEsPie(u)) etiquetas.push('pie');
+    const cartas = (e.mesa[u] || []).map(c => trHtmlCarta(c)).join('');
+    const quedan = (e.manos[u] || []).length;
+    return `<div class="${clases.join(' ')}">
+      <div class="treq-asiento-nombre">${u === yo ? 'Vos' : u} <span>(${trEqEquipoDe[u]})</span></div>
+      <div class="treq-asiento-tags">${etiquetas.join(' · ')}${u !== yo ? ` · ${quedan} en mano` : ''}</div>
+      <div class="treq-asiento-cartas">${cartas || '<span class="treq-sin-cartas">—</span>'}</div>
+    </div>`;
+  }).join('');
+
+  // mi mano
+  const miMano = e.manos[yo] || [];
+  const puedoJugar = miTurno && !e.pendiente && !e.manoTerminada && !e.terminado && !trEqYaJugoEstaRonda(yo);
+  const cont = document.getElementById('treq-mi-mano');
+  cont.innerHTML = '';
+  miMano.forEach((c,i)=>{
+    const div = document.createElement('div');
+    div.innerHTML = trHtmlCarta(c);
+    const el = div.firstElementChild;
+    el.style.cursor = puedoJugar ? 'pointer' : 'default';
+    if(!puedoJugar) el.style.opacity = '0.75';
+    if(puedoJugar) el.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'jugar', idx:i }));
+    cont.appendChild(el);
+  });
+  const misIniciales = e.manosIniciales[yo] || [];
+  let pista = misIniciales.length ? `Tu envido: ${trValorEnvido(misIniciales)}` : '';
+  if(e.florHabilitada && misIniciales.length && trTieneFlor(misIniciales)) pista += ` · ¡Tenés Flor! (${trValorFlor(misIniciales)})`;
+  if(misIniciales.length && trEqEsPie(yo)) pista += ' · Sos el pie de tu equipo: vos manejás el envido';
+  document.getElementById('treq-mi-envido').textContent = pista;
+
+  // botones
+  const acc = document.getElementById('treq-acciones');
+  let html = '';
+  const resp = trEqRespuestasDisponibles(yo);
+  if(resp.length){
+    const esEnvidoPrimero = e.pendiente.tipo === 'truco';
+    html = resp.map(r => {
+      let label = r === 'quiero' ? 'Quiero' : r === 'no_quiero' ? 'No quiero' : TR_EQ_ETIQUETAS[r];
+      if(esEnvidoPrimero && ['envido','real_envido','falta_envido'].includes(r)) label = '¡Envido primero! ' + label;
+      const estilo = r === 'no_quiero' ? ' style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);"' : '';
+      return `<button class="auth-btn tr-btn-chico" data-treq-resp="${r}"${estilo}>${label}</button>`;
+    }).join('');
+  } else {
+    const cantos = trEqCantosDisponibles(yo);
+    html = cantos.map(c => `<button class="auth-btn tr-btn-chico" data-treq-canto="${c}">${TR_EQ_ETIQUETAS[c]}</button>`).join('');
+    if(miTurno && !e.pendiente && !e.manoTerminada && !e.terminado){
+      html += `<button class="auth-btn tr-btn-chico" data-treq-mazo="1" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Irse al mazo</button>`;
+    }
+  }
+  acc.innerHTML = html;
+  acc.querySelectorAll('[data-treq-resp]').forEach(b => b.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'responder', valor:b.dataset.treqResp })));
+  acc.querySelectorAll('[data-treq-canto]').forEach(b => b.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'cantar', valor:b.dataset.treqCanto })));
+  acc.querySelectorAll('[data-treq-mazo]').forEach(b => b.addEventListener('click', ()=>{
+    if(confirm('¿Irse al mazo? Abandona la mano todo tu equipo.')) trEqEnviarAccion({ tipo:'mazo' });
+  }));
+
+  document.getElementById('treq-log').innerHTML = `<b>Historial de la partida</b><div class="tr-historial-lista">` +
+    e.log.slice().reverse().map(m => `<div>${m}</div>`).join('') + `</div>`;
+  if(miTurno && !e.pendiente && !e.manoTerminada && !e.terminado) glVibrar(20);
 }
 
 
