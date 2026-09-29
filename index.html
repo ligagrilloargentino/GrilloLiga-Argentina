@@ -1158,6 +1158,25 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .ranking-scroller{
   position:relative; margin-bottom:16px;
 }
+.rk-grupos{ display:grid; grid-template-columns:repeat(auto-fit, minmax(0, 1fr)); gap:6px; margin-bottom:12px;
+  background:var(--card); border:1px solid var(--line-strong); border-radius:14px; padding:5px; }
+.rk-grupo{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:8px 4px;
+  border:none; border-radius:10px; background:transparent; color:var(--text-dim); cursor:pointer;
+  font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:12.5px; transition:background .15s, color .15s, transform .15s; min-width:0; }
+.rk-grupo:hover{ background:var(--card2); color:var(--text); }
+.rk-grupo.activo{ background:var(--red); color:var(--claro-bg); box-shadow:0 2px 8px rgba(179,59,34,.3); }
+.rk-grupo-ico{ font-size:20px; line-height:1; }
+.rk-grupo-nombre{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+@media (max-width:700px){
+  .rk-grupos{ gap:3px; padding:4px; }
+  .rk-grupo{ font-size:11px; padding:7px 1px; letter-spacing:-.1px; }
+}
+@media (min-width:701px){
+  .rk-grupo{ flex-direction:row; gap:7px; font-size:14px; padding:10px 6px; }
+  .rk-grupo-ico{ font-size:18px; }
+}
+#ranking-scroller .ranking-select-row{ flex-wrap:wrap; overflow-x:visible; cursor:default; }
+#ranking-scroller::before, #ranking-scroller::after, #ranking-scroller .scroll-arrow{ display:none; }
 .ranking-select-row{
   display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;
   scroll-behavior:smooth;
@@ -1931,7 +1950,8 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
     <div class="section-head">
       <h2>Rankings</h2>
     </div>
-    <div class="ranking-scroller">
+    <div class="rk-grupos" id="ranking-grupos" role="tablist" aria-label="Categorías de rankings"></div>
+    <div class="ranking-scroller" id="ranking-scroller">
       <div class="scroll-arrow left hidden" id="rank-arrow-left">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg>
       </div>
@@ -3889,10 +3909,48 @@ const rankingIcons = {
 };
 
 const RANKING_PROGRESO = 'PROGRESO';
+// Rankings agrupados por categoría: arriba las categorías, abajo solo los rankings de la categoría elegida
+const RANKING_GRUPOS = [
+  { id:'tabla', icono:'🏆', nombre:'Tabla', claves:['TABLA ANUAL GRILLOLIGA','PORCENTAJE DE VICTORIAS','TABLA DE DESCENSOS'] },
+  { id:'ataque', icono:'⚽', nombre:'Ataque', claves:['GOLEADORES','ASISTIDORES','GOLES + ASISTENCIAS','GOLES POR PARTIDO'] },
+  { id:'defensa', icono:'🛡️', nombre:'Defensa', claves:['MENOS GOLES RECIBIDOS POR PARTIDO'] },
+  { id:'duplas', icono:'🤝', nombre:'Duplas', claves:['MEJORES DUPLAS','PEORES DUPLAS'] },
+  { id:'progreso', icono:'🏁', nombre:'Progreso', claves:[RANKING_PROGRESO] }
+];
+function rankingGruposVisibles(){
+  const todas = [...rankingKeys, RANKING_PROGRESO];
+  const grupos = RANKING_GRUPOS.map(g => ({ ...g, claves: g.claves.filter(k => todas.includes(k)) })).filter(g => g.claves.length);
+  const agrupadas = new Set(grupos.flatMap(g => g.claves));
+  const sueltas = todas.filter(k => !agrupadas.has(k)); // por si en el futuro se suma un ranking nuevo sin grupo
+  if(sueltas.length) grupos.push({ id:'otros', icono:'📋', nombre:'Otros', claves:sueltas });
+  return grupos;
+}
+function rankingGrupoDe(clave){
+  const grupos = rankingGruposVisibles();
+  return grupos.find(g => g.claves.includes(clave)) || grupos[0];
+}
 function renderRankingChips(){
+  const grupos = rankingGruposVisibles();
+  const grupoActivo = rankingGrupoDe(activeRanking);
+  const filaGrupos = document.getElementById('ranking-grupos');
+  filaGrupos.innerHTML = grupos.map(g => `
+    <button class="rk-grupo${g.id === grupoActivo.id ? ' activo' : ''}" role="tab" aria-selected="${g.id === grupoActivo.id}" data-grupo="${g.id}">
+      <span class="rk-grupo-ico">${g.icono}</span><span class="rk-grupo-nombre">${g.nombre}</span>
+    </button>`).join('');
+  filaGrupos.querySelectorAll('[data-grupo]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const g = grupos.find(x => x.id === btn.dataset.grupo);
+      if(g.id === grupoActivo.id) return;
+      activeRanking = g.claves[0];
+      renderRankingChips();
+      renderRankingList();
+    });
+  });
+  // si la categoría tiene un solo ranking, no hace falta la fila de sub-opciones
+  document.getElementById('ranking-scroller').style.display = grupoActivo.claves.length > 1 ? '' : 'none';
   const row = document.getElementById('ranking-chips');
   row.innerHTML = '';
-  [...rankingKeys, RANKING_PROGRESO].forEach(k=>{
+  grupoActivo.claves.forEach(k=>{
     const chip = document.createElement('div');
     chip.className = 'chip' + (k===activeRanking ? ' active':'');
     chip.textContent = (k === RANKING_PROGRESO ? '🏁' : (rankingIcons[k]||'')) + ' ' + k;
