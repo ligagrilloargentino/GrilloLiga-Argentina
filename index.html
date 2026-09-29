@@ -74,7 +74,7 @@ button:active, .auth-btn:active, .mini-juego-card:active, .nav-inferior-item:act
   opacity:0.7; transform:scale(0.97); transition:opacity .05s, transform .05s;
 }
 button, .auth-btn{ transition:opacity .05s, transform .05s; }
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&family=Orbitron:wght@500;700;900&display=swap');
 
 :root{
   --bg:#EAE2CC;
@@ -235,6 +235,10 @@ body.tema-oscuro{
   #usuario-actual-nombre{ font-size:12px !important; }
   #cerrar-sesion-btn{ font-size:10px !important; }
   #tema-toggle-btn, #notif-campana-btn{ font-size:14px !important; }
+}
+#tema-toggle-btn{ display:inline-block; transition:transform .4s cubic-bezier(.34,1.56,.64,1); }
+#tema-toggle-btn.tema-girando{ transform:rotate(360deg) scale(1.15); }
+@media (max-width:600px){
   #notif-dropdown{ top:80px !important; right:10px !important; }
   .usuario-mini-menu{ min-width:180px !important; padding:11px 13px !important; }
 }
@@ -960,6 +964,11 @@ header.top{
   transition:opacity .15s, filter .15s;
 }
 .insignia-desbloqueada{ opacity:1; filter:none; }
+.insignia-nueva{ animation:insigniaPulso 1.1s ease-in-out 3; border-radius:50%; }
+@keyframes insigniaPulso{
+  0%, 100%{ transform:scale(1); filter:none drop-shadow(0 0 0 rgba(255,183,3,0)); }
+  50%{ transform:scale(1.28); filter:none drop-shadow(0 0 9px rgba(255,183,3,.85)); }
+}
 .pp-fila b{ color:var(--text-dim); font-weight:700; }
 .fm-user-clickeable{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
 .fm-user-clickeable:hover{ color:var(--red); }
@@ -1015,6 +1024,20 @@ header.top{
 
 main{max-width:980px; margin:0 auto; padding:22px 14px 70px 14px;}
 .panel{display:none; animation:fadeIn .25s ease;}
+/* Textura sutil de cancha, solo en Inicio y Partidos */
+#panel-inicio, #panel-partidos{
+  position:relative;
+}
+#panel-inicio::before, #panel-partidos::before{
+  content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background-image:repeating-linear-gradient(
+    90deg,
+    var(--grass) 0px, var(--grass) 40px,
+    var(--grass-dim) 40px, var(--grass-dim) 80px
+  );
+  opacity:.035;
+}
+body.tema-oscuro #panel-inicio::before, body.tema-oscuro #panel-partidos::before{ opacity:.05; }
 .panel.active{display:block;}
 @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
 
@@ -1195,6 +1218,9 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .sb-score{
   display:grid; grid-template-columns:1fr auto 1fr;
   align-items:center; padding:18px 10px;
+  background:#0c0c0c;
+  background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.6);
 }
 .sb-youtube-card{
   display:block; margin:0 16px 16px 16px; border-radius:var(--radius);
@@ -1240,16 +1266,22 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .canal-yt-card:hover .canal-yt-footer{ background:#961015; }
 .sb-team{ text-align:center; }
 .sb-team .team-label{
-  font-size:10.5px; letter-spacing:1.5px; font-weight:700; text-transform:uppercase;
-  padding:3px 10px; border-radius:3px; display:inline-block; margin-bottom:8px;
-  font-family:'Alegreya Sans',sans-serif;
+  font-size:10px; letter-spacing:2px; font-weight:700; text-transform:uppercase;
+  padding:3px 10px; border-radius:3px; display:inline-block; margin-bottom:10px;
+  font-family:'Orbitron',sans-serif;
+  background:#1a1a1a; border:1px solid rgba(255,167,38,.35);
+  color:#FFB347; text-shadow:0 0 6px rgba(255,167,38,.65);
 }
-.sb-team.oscuro .team-label{ background:var(--oscuro-bg); color:var(--oscuro-text); border:1px solid #3a2e1c;}
-.sb-team.claro .team-label{ background:var(--claro-bg); color:var(--claro-text); border:1px solid var(--line-strong);}
+.sb-team.oscuro .team-label, .sb-team.claro .team-label{ background:#1a1a1a; }
 .sb-team .team-score{
-  font-family:'Alegreya Sans',sans-serif; font-weight:900; font-size:52px; line-height:1;
+  font-family:'Orbitron',sans-serif; font-weight:900; font-size:52px; line-height:1;
+  color:#FF5A36;
+  text-shadow:0 0 4px rgba(255,90,54,.85), 0 0 16px rgba(255,90,54,.55), 0 0 30px rgba(255,90,54,.3);
 }
-.sb-vs{ font-family:'Alegreya Sans',sans-serif; font-style:italic; color:var(--text-dimmer); font-size:16px; padding:0 6px;}
+.sb-vs{
+  font-family:'Orbitron',sans-serif; font-style:normal; font-weight:500; font-size:13px; padding:0 6px;
+  color:#5a5248; letter-spacing:1px;
+}
 
 .sb-players{ display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line);}
 .sb-col{padding:12px 0;}
@@ -1361,11 +1393,18 @@ footer{
   gap:10px; margin-bottom:20px;
 }
 .jugador-card{
+  position:relative; overflow:hidden;
   background:var(--card); border:1px solid var(--line); border-radius:12px;
   padding:10px 8px 9px; cursor:pointer; text-align:center;
   display:flex; flex-direction:column; align-items:center; gap:6px;
   transition:border-color .15s, transform .1s;
 }
+.jugador-card::after{
+  content:''; position:absolute; top:0; left:-150%; width:60%; height:100%;
+  background:linear-gradient(115deg, transparent, rgba(255,255,255,.16), transparent);
+  transform:skewX(-20deg); transition:left .55s ease; pointer-events:none;
+}
+.jugador-card:hover::after{ left:150%; }
 .jugador-card:hover{ transform:translateY(-2px); border-color:var(--grass-dim); }
 .jugador-card.active{ border-color:var(--red); background:linear-gradient(180deg, rgba(198,40,40,.10), var(--card)); }
 .jc-photo-wrap{
@@ -3318,6 +3357,10 @@ verificarSesion();
   btn.addEventListener('click', ()=>{
     const oscuro = !document.body.classList.contains('tema-oscuro');
     aplicarTema(oscuro);
+    btn.classList.remove('tema-girando');
+    void btn.offsetWidth; // reinicia la animación si se clickea rápido varias veces
+    btn.classList.add('tema-girando');
+    setTimeout(()=>btn.classList.remove('tema-girando'), 450);
     localStorage.setItem('grilloliga-tema', oscuro ? 'oscuro' : 'claro');
   });
 })();
@@ -3434,7 +3477,7 @@ if(LOGIN_REQUERIDO && !modoInvitado){
           }
         });
       calcularInsigniasUsuario(data.user.id).then(insignias => {
-        renderizarInsignias(document.getElementById('umm-insignias'), insignias);
+        renderizarInsignias(document.getElementById('umm-insignias'), insignias, true);
       });
 
       const selEditarJugador = document.getElementById('umm-editar-jugador');
@@ -3859,6 +3902,48 @@ function glVibrar(ms){
   try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){ /* no soportado, ignorar */ }
 }
 
+// Confetti liviano en canvas, sin dependencias externas. colores: array de strings hex.
+function glConfetti(colores){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed; inset:0; z-index:10050; pointer-events:none;';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const cantidad = 110;
+  const piezas = Array.from({length:cantidad}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.4,
+    w: 6 + Math.random() * 6,
+    h: 8 + Math.random() * 8,
+    color: colores[Math.floor(Math.random() * colores.length)],
+    velY: 2.2 + Math.random() * 2.6,
+    velX: (Math.random() - 0.5) * 2.2,
+    rot: Math.random() * 360,
+    velRot: (Math.random() - 0.5) * 12
+  }));
+  const inicio = performance.now();
+  const duracionMs = 2600;
+  function frame(ahora){
+    const t = ahora - inicio;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    piezas.forEach(p => {
+      p.x += p.velX; p.y += p.velY; p.rot += p.velRot;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = t > duracionMs - 500 ? Math.max(0, (duracionMs - t) / 500) : 1;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    if(t < duracionMs){ requestAnimationFrame(frame); }
+    else{ canvas.remove(); }
+  }
+  requestAnimationFrame(frame);
+}
+
 async function glCompartir(titulo, texto){
   const url = location.href;
   if(navigator.share){
@@ -3940,6 +4025,8 @@ function renderScoreboard(){
     </div>
   `;
   glAnimarEntrada(container);
+  if(oscuroWin){ glConfetti(['#B33B22','#8A2C19','#D4AF37','#F0E7D2']); }
+  else if(claroWin){ glConfetti(['#F7F1E1','#D4AF37','#B33B22','#725A22']); }
   document.getElementById('sb-share-btn').addEventListener('click', ()=>{
     glCompartir(
       `Partido #${match.numero} — Grillo Liga Argentina`,
@@ -4030,10 +4117,19 @@ async function calcularInsigniasUsuario(userId){
   return desbloqueadas;
 }
 
-function renderizarInsignias(contenedor, desbloqueadas){
-  contenedor.innerHTML = INSIGNIAS_DEF.map(ins => `
-    <span class="insignia${desbloqueadas.has(ins.id) ? ' insignia-desbloqueada' : ''}" title="${ins.nombre}: ${ins.desc}${desbloqueadas.has(ins.id) ? '' : ' (todavía no)'}">${ins.icono}</span>
-  `).join('');
+function renderizarInsignias(contenedor, desbloqueadas, marcarNuevas){
+  let vistas = new Set();
+  if(marcarNuevas){
+    try{ vistas = new Set(JSON.parse(localStorage.getItem('grilloliga-insignias-vistas') || '[]')); }catch(e){}
+  }
+  contenedor.innerHTML = INSIGNIAS_DEF.map(ins => {
+    const desbloqueada = desbloqueadas.has(ins.id);
+    const esNueva = marcarNuevas && desbloqueada && !vistas.has(ins.id);
+    return `<span class="insignia${desbloqueada ? ' insignia-desbloqueada' : ''}${esNueva ? ' insignia-nueva' : ''}" title="${ins.nombre}: ${ins.desc}${desbloqueada ? '' : ' (todavía no)'}">${ins.icono}</span>`;
+  }).join('');
+  if(marcarNuevas){
+    try{ localStorage.setItem('grilloliga-insignias-vistas', JSON.stringify([...desbloqueadas])); }catch(e){}
+  }
 }
 
 async function mostrarPerfilPublico(username){
@@ -11645,6 +11741,33 @@ function glAnimarContador(el, valorFinal, duracion){
   requestAnimationFrame(paso);
 }
 
+// Anima todos los números dentro de un contenedor que coincidan con el selector
+// (soporta sufijos como "%" o " cm", y deja intacto cualquier texto no numérico, ej. nombres).
+function glAnimarValoresGrid(container, selector, duracion){
+  if(!container) return;
+  duracion = duracion || 700;
+  const reducido = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  container.querySelectorAll(selector).forEach(el => {
+    const texto = el.textContent.trim();
+    const m = texto.match(/^(-?\d+(?:\.\d+)?)(.*)$/);
+    if(!m) return;
+    const numeroTexto = m[1], sufijo = m[2];
+    const final = parseFloat(numeroTexto);
+    if(reducido || final === 0){ el.textContent = numeroTexto + sufijo; return; }
+    const decimales = numeroTexto.includes('.') ? numeroTexto.split('.')[1].length : 0;
+    const inicio = performance.now();
+    function paso(ahora){
+      const t = Math.min((ahora - inicio) / duracion, 1);
+      const suavizado = 1 - Math.pow(1 - t, 3);
+      const actual = final * suavizado;
+      el.textContent = (decimales ? actual.toFixed(decimales) : String(Math.round(actual))) + sufijo;
+      if(t < 1) requestAnimationFrame(paso);
+      else el.textContent = numeroTexto + sufijo;
+    }
+    requestAnimationFrame(paso);
+  });
+}
+
 function renderStatGrid(){
   const s = computeTournamentStats();
   const grid = document.getElementById('stat-grid');
@@ -11977,6 +12100,7 @@ function renderJugadorChips(){
     const row = document.getElementById(id);
     row.innerHTML = html;
     activarFallbackFotos(row);
+    glAnimarValoresGrid(row, '.jc-stats b', 600);
     row.querySelectorAll('.jugador-card').forEach(card=>{
       card.addEventListener('click', ()=>{
         activeJugador = card.dataset.name;
@@ -12121,6 +12245,7 @@ function renderJugadorProfile(){
   `;
   glAnimarEntrada(container);
   activarFallbackFotos(container);
+  glAnimarValoresGrid(container, '.jp-stat .jv', 750);
   container.querySelector('#jp-share-btn').addEventListener('click', ()=>{
     glCompartir(
       `${activeJugador} — Grillo Liga Argentina`,
