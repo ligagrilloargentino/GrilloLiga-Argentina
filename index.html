@@ -11984,7 +11984,8 @@ function renderLeaderGrid(){
     const headers = block.headers;
     const nameKey = headers[0];
     const mainKey = headers[headers.length-1];
-    const leader = block.rows[0];
+    // en la Tabla de Descensos se destaca al que PEOR está (el último), no al primero
+    const leader = k === 'TABLA DE DESCENSOS' ? block.rows[block.rows.length-1] : block.rows[0];
     if(!leader) return '';
     return `
       <div class="leader-card" data-cat="${k}">
@@ -12290,7 +12291,8 @@ function renderJugadorProfile(){
 
   const badges = [];
   Object.entries(DATA.rankings).forEach(([cat, block])=>{
-    if(block.rows[0] && block.rows[0][block.headers[0]] === activeJugador){
+    const destacado = cat === 'TABLA DE DESCENSOS' ? block.rows[block.rows.length-1] : block.rows[0];
+    if(destacado && destacado[block.headers[0]] === activeJugador){
       const catLabels = {
         'TABLA ANUAL GRILLOLIGA':'Puntero',
         'GOLEADORES':'Goleador',
