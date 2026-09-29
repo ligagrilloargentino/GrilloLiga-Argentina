@@ -1000,6 +1000,22 @@ header.top{
 }
 .pp-fila b{ color:var(--text-dim); font-weight:700; }
 .fm-user-clickeable{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
+.gl-marco{ display:inline-flex; align-items:center; gap:3px; padding:0 8px 0 3px; border-radius:999px; border:2px solid var(--marco-c);
+  background:color-mix(in srgb, var(--marco-c) 14%, transparent); line-height:1.5; text-decoration:none; font-weight:700; }
+.gl-marco-ico{ font-size:.95em; }
+.gl-marco-simple{ --marco-c:#4A6B43; }
+.gl-marco-n1{ --marco-c:#B87333; }
+.gl-marco-n2{ --marco-c:#9AA3AC; }
+.gl-marco-n3{ --marco-c:#D4A800; border-color:transparent;
+  background:linear-gradient(var(--card),var(--card)) padding-box, linear-gradient(120deg,#E0B000,#FFF1A8,#B88A00,#E0B000) border-box;
+  background-size:100% 100%, 300% 100%; animation:marcoOro 4s linear infinite; }
+@keyframes marcoOro{ to{ background-position:0 0, 300% 0; } }
+@media (prefers-reduced-motion: reduce){ .gl-marco-n3{ animation:none; } }
+.umm-marcos{ display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+.umm-marco-opcion{ background:transparent; border:1px dashed var(--line-strong); border-radius:10px; padding:4px 6px; cursor:pointer;
+  font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text); }
+.umm-marco-opcion.activo{ border-style:solid; border-color:var(--red); background:rgba(179,59,34,.08); }
+.umm-marco-vacio{ font-size:11.5px; color:var(--text-dimmer); }
 .fm-user-clickeable:hover{ color:var(--red); }
 #votos-overlay{
   position:fixed; inset:0; background:rgba(20,17,12,.6); z-index:10040;
@@ -1222,6 +1238,28 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .pr-controles input[type=range]{ flex:1 1 160px; accent-color:var(--red); }
 .pr-vel{ flex:0 0 auto; }
 @media (prefers-reduced-motion: reduce){ .pr-barra, .pr-barra-relleno{ transition:none; } }
+.fc-ayuda{ font-size:11.5px; color:var(--text-dim); margin:4px 0 10px; }
+.fc-cancha{ position:relative; width:100%; max-width:430px; margin:0 auto; aspect-ratio:2/3; border-radius:10px; overflow:hidden;
+  background:repeating-linear-gradient(180deg, #3F7A45 0 10%, #37703D 10% 20%); border:3px solid rgba(255,255,255,.75); touch-action:pan-y; user-select:none; }
+.fc-linea-media{ position:absolute; left:0; right:0; top:50%; border-top:2px solid rgba(255,255,255,.7); }
+.fc-circulo{ position:absolute; left:50%; top:50%; width:26%; aspect-ratio:1; border:2px solid rgba(255,255,255,.7); border-radius:50%; transform:translate(-50%,-50%); }
+.fc-area{ position:absolute; left:25%; width:50%; height:12%; border:2px solid rgba(255,255,255,.7); }
+.fc-area-arriba{ top:-2px; border-top:none; }
+.fc-area-abajo{ bottom:-2px; border-bottom:none; }
+.fc-rotulo{ position:absolute; right:8px; font-family:'Special Elite',monospace; font-size:11px; color:rgba(255,255,255,.75); letter-spacing:.1em; }
+.fc-rotulo-arriba{ top:44%; } .fc-rotulo-abajo{ top:52%; }
+.fc-jugador{ position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; width:74px; cursor:grab; touch-action:none; z-index:2; }
+.fc-jugador.fc-fijo{ cursor:default; touch-action:auto; }
+.fc-jugador.fc-arrastrando{ cursor:grabbing; z-index:5; transform:translate(-50%,-50%) scale(1.12); }
+.fc-foto{ position:relative; width:40px; height:40px; border-radius:50%; overflow:hidden; border:3px solid var(--fc-c); background:#2B4A36; box-shadow:0 2px 6px rgba(0,0,0,.35); }
+.fc-foto img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.fc-inicial{ display:flex; width:100%; height:100%; align-items:center; justify-content:center; color:#fff; font-weight:800; }
+.fc-oscuro{ --fc-c:#B33B22; } .fc-claro{ --fc-c:#F7F1E1; }
+.fc-nombre{ margin-top:2px; font-size:10.5px; font-weight:700; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.8); text-align:center; line-height:1.1; max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fc-badges{ display:flex; gap:2px; }
+.fc-badge{ font-size:9.5px; background:rgba(0,0,0,.45); color:#fff; border-radius:6px; padding:0 3px; }
+.fc-acciones{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.fc-estado{ font-size:12px; color:var(--text-dim); }
 .sb-placa-btns{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding:0 16px 14px; }
 .rank-nota{ font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text-dim); margin:0 0 10px; }
 .rank-row.descenso .rank-num, .rank-row.descenso .rank-name, .rank-row.descenso .rank-main-val, .rank-row.descenso .rank-extra span b{color:#C4291C;}
@@ -1708,6 +1746,8 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
           <div class="umm-fila" id="umm-jugador-fila"><b>Jugador fetiche:</b> <span id="umm-jugador">—</span></div>
           <div class="umm-fila"><b>Insignias:</b></div>
           <div class="pp-insignias" id="umm-insignias"></div>
+          <div class="umm-fila" style="margin-top:10px;"><b>Mi marco:</b></div>
+          <div class="umm-marcos" id="umm-marcos"><span class="umm-marco-vacio">Cargando…</span></div>
           <div class="umm-editar" id="umm-editar-form" style="display:none;">
             <div class="auth-field"><label>Jugador fetiche</label><select id="umm-editar-jugador"></select></div>
             <div class="auth-field"><label>Club de fútbol favorito</label><input type="text" id="umm-editar-club"></div>
@@ -3571,8 +3611,15 @@ if(LOGIN_REQUERIDO && !modoInvitado){
       document.getElementById('notif-campana-btn').style.display = 'inline-block';
       cargarNotificaciones();
 
-      sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito')
-        .eq('id', data.user.id).maybeSingle().then(({data:perfil})=>{
+      const _promPerfil = sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito, marco')
+        .eq('id', data.user.id).maybeSingle();
+      const _promInsignias = calcularInsigniasUsuario(data.user.id);
+      Promise.all([_promPerfil, _promInsignias]).then(([{ data:perfil }, estadoIns])=>{
+        glRegistrarMarcos(perfil ? [perfil] : []);
+        renderizarSelectorMarco(estadoIns, perfil ? perfil.marco : null, data.user.id, (perfil && perfil.username) || usuario);
+      });
+      glCargarMarcos();
+      _promPerfil.then(({data:perfil})=>{
           if(perfil){
             document.getElementById('umm-usuario').textContent = perfil.username || usuario;
             document.getElementById('umm-club').textContent = perfil.club_favorito || '—';
@@ -3584,7 +3631,7 @@ if(LOGIN_REQUERIDO && !modoInvitado){
             if(fotoFavorito){ new Image().src = fotoFavorito; }
           }
         });
-      calcularInsigniasUsuario(data.user.id).then(insignias => {
+      _promInsignias.then(insignias => {
         renderizarInsignias(document.getElementById('umm-insignias'), insignias, true);
       });
 
@@ -4287,6 +4334,19 @@ function renderScoreboard(){
       <span><span class="dot g"></span>Goles</span>
       <span><span class="dot a"></span>Asistencias</span>
     </div>
+    <div class="cg-pistas-col fc-wrap" style="margin-top:18px;">
+      <div class="gd-pista-titulo">🏟️ Formación en cancha</div>
+      <div class="fc-ayuda" id="fc-ayuda"></div>
+      <div class="fc-cancha" id="fc-cancha">
+        <div class="fc-linea-media"></div><div class="fc-circulo"></div>
+        <div class="fc-area fc-area-arriba"></div><div class="fc-area fc-area-abajo"></div>
+        <div class="fc-rotulo fc-rotulo-arriba">OSCURO</div><div class="fc-rotulo fc-rotulo-abajo">CLARO</div>
+      </div>
+      <div class="fc-acciones">
+        <span class="fc-estado" id="fc-estado"></span>
+        <button class="gl-share-btn" id="fc-reset" style="display:none;">↺ Volver a la automática</button>
+      </div>
+    </div>
     <div class="cg-pistas-col" id="mvp-wrap" style="margin-top:18px;">
       <div class="gd-pista-titulo">🌟 MVP de este partido</div>
       <div id="mvp-lista" style="margin-top:8px;">Cargando…</div>
@@ -4305,6 +4365,112 @@ function renderScoreboard(){
   document.getElementById('sb-placa-historia').addEventListener('click', (e)=> placaGenerarYCompartir(match, 'historia', e.currentTarget));
   cargarYRenderizarComentarios('partido', match.numero, document.getElementById('foro-partido-container'));
   cargarYRenderizarMvp(match);
+  fcRenderizar(match);
+}
+
+/* ---------- FORMACIÓN EN CANCHA (automática; la versión OFICIAL la arma solo el usuario "grillo" y la ven todos) ----------
+   Coordenadas en % de la cancha (vertical): Oscuro arriba (arquero en y≈7), Claro abajo (arquero en y≈93). */
+function fcLineasPara(n){
+  if(n <= 1) return [n];
+  const resto = n - 1; // el primero va al arco
+  const tabla = { 1:[1], 2:[1,1], 3:[2,1], 4:[2,2], 5:[2,2,1], 6:[2,3,1], 7:[3,3,1], 8:[3,3,2], 9:[3,4,2], 10:[4,4,2] };
+  return [1, ...(tabla[resto] || [4,4,resto-8])];
+}
+function fcAutomatica(match){
+  const pos = {};
+  [['oscuro', false], ['claro', true]].forEach(([eq, abajo])=>{
+    // los que menos participaron en el gol quedan atrás, los goleadores adelante
+    const js = (match[eq].jugadores || []).filter(j => j.jugador)
+      .slice().sort((a,b)=> ((a.goles||0)*2 + (a.asistencias||0)) - ((b.goles||0)*2 + (b.asistencias||0)) || a.jugador.localeCompare(b.jugador));
+    const lineas = fcLineasPara(js.length);
+    let k = 0;
+    lineas.forEach((cant, li)=>{
+      const y = lineas.length === 1 ? 25 : 7 + li * (38 / (lineas.length - 1));
+      for(let i = 0; i < cant && k < js.length; i++, k++){
+        const x = (i + 1) * (100 / (cant + 1));
+        pos[eq + '|' + js[k].jugador] = { x, y: abajo ? 100 - y : y };
+      }
+    });
+  });
+  return pos;
+}
+let fcGuardarTimer = null;
+async function fcRenderizar(match){
+  const cancha = document.getElementById('fc-cancha');
+  if(!cancha) return;
+  const auto = fcAutomatica(match);
+  let pos = { ...auto };
+  let personalizada = false;
+  const { data: { user } } = await sbClient.auth.getUser();
+  const esGrillo = !!(user && user.email && user.email.replace(DOMINIO_FALSO, '') === 'grillo');
+  const { data } = await sbClient.from('formaciones_oficiales').select('posiciones').eq('partido_numero', match.numero).maybeSingle();
+  if(data && data.posiciones){
+    Object.keys(pos).forEach(k => { if(data.posiciones[k]) pos[k] = data.posiciones[k]; });
+    personalizada = true;
+  }
+  if(document.getElementById('fc-cancha') !== cancha || activeMatch !== match.numero) return; // cambió de partido mientras cargaba
+  const estado = document.getElementById('fc-estado');
+  const btnReset = document.getElementById('fc-reset');
+  document.getElementById('fc-ayuda').textContent = esGrillo
+    ? '🔧 Sos grillo: arrastrá a los jugadores para armar la formación oficial de este partido. La ven todos.'
+    : '';
+  const marcarEstado = (pers) => {
+    estado.textContent = pers ? '✅ Formación oficial' : '🤖 Formación automática';
+    btnReset.style.display = (pers && esGrillo) ? 'inline-block' : 'none';
+  };
+  marcarEstado(personalizada);
+  cancha.querySelectorAll('.fc-jugador').forEach(el => el.remove());
+  const fotos = (typeof FOTOS_JUGADORES_REMOTAS !== 'undefined' && FOTOS_JUGADORES_REMOTAS) || {};
+  ['oscuro','claro'].forEach(eq=>{
+    (match[eq].jugadores || []).filter(j => j.jugador).forEach(j=>{
+      const clave = eq + '|' + j.jugador;
+      const p = pos[clave];
+      if(!p) return;
+      const el = document.createElement('div');
+      el.className = 'fc-jugador fc-' + eq;
+      el.dataset.clave = clave;
+      el.style.left = p.x + '%'; el.style.top = p.y + '%';
+      const foto = fotos[j.jugador];
+      const extras = (j.goles ? `<span class="fc-badge">⚽${j.goles > 1 ? j.goles : ''}</span>` : '') + (j.asistencias ? `<span class="fc-badge">🧠${j.asistencias > 1 ? j.asistencias : ''}</span>` : '');
+      el.innerHTML = `<div class="fc-foto">${foto ? `<img src="${foto}" alt="" draggable="false" onerror="this.remove()">` : ''}<span class="fc-inicial">${glEsc(j.jugador.slice(0,1))}</span></div>
+        <div class="fc-nombre">${glEsc(j.jugador)}</div>${extras ? `<div class="fc-badges">${extras}</div>` : ''}`;
+      cancha.appendChild(el);
+      if(!esGrillo){ el.classList.add('fc-fijo'); return; }
+      el.addEventListener('pointerdown', (ev)=>{
+        ev.preventDefault();
+        el.setPointerCapture(ev.pointerId);
+        el.classList.add('fc-arrastrando');
+        const mover = (e)=>{
+          const r = cancha.getBoundingClientRect();
+          const x = Math.min(95, Math.max(5, (e.clientX - r.left) / r.width * 100));
+          const y = Math.min(96, Math.max(4, (e.clientY - r.top) / r.height * 100));
+          pos[clave] = { x: Math.round(x*10)/10, y: Math.round(y*10)/10 };
+          el.style.left = pos[clave].x + '%'; el.style.top = pos[clave].y + '%';
+        };
+        const soltar = ()=>{
+          el.classList.remove('fc-arrastrando');
+          el.removeEventListener('pointermove', mover);
+          el.removeEventListener('pointerup', soltar);
+          el.removeEventListener('pointercancel', soltar);
+          marcarEstado(true);
+          clearTimeout(fcGuardarTimer);
+          fcGuardarTimer = setTimeout(async ()=>{
+            const { error } = await sbClient.from('formaciones_oficiales').upsert({ partido_numero:match.numero, posiciones:pos, actualizado_en:new Date().toISOString() }, { onConflict:'partido_numero' });
+            estado.textContent = error ? '⚠️ No se pudo guardar' : '✅ Formación oficial guardada — ya la ven todos';
+          }, 500);
+        };
+        el.addEventListener('pointermove', mover);
+        el.addEventListener('pointerup', soltar);
+        el.addEventListener('pointercancel', soltar);
+      });
+    });
+  });
+  btnReset.onclick = async ()=>{
+    if(!esGrillo) return;
+    await sbClient.from('formaciones_oficiales').delete().eq('partido_numero', match.numero);
+    fcRenderizar(match);
+    glToast('Formación automática restaurada');
+  };
 }
 
 /* ---------- PLACA DEL PARTIDO: imagen para compartir (canvas) ---------- */
@@ -4643,9 +4809,69 @@ function renderizarInsignias(contenedor, estado, marcarNuevas){
   }
 }
 
+
+/* ---------- MARCOS DE PERFIL (desbloqueables con insignias, cada usuario elige cuál mostrar) ----------
+   id del marco = id de la insignia (simples) o "id:nivel" (las de Bronce/Plata/Oro).
+   Se guarda en perfiles_usuario.marco y se muestra en Foro, perfil público y rankings de minijuegos. */
+let glMarcoPorUsername = {};
+function glMarcoInfo(marcoId){
+  if(!marcoId) return null;
+  const [id, nivelTxt] = String(marcoId).split(':');
+  const ins = INSIGNIAS_DEF.find(x => x.id === id);
+  if(!ins) return null;
+  const nivel = nivelTxt ? parseInt(nivelTxt) : 0;
+  return { id: marcoId, icono: ins.icono, nombre: ins.nombre + (nivel ? ' ' + INSIGNIA_NIVELES_NOMBRE[nivel] : ''), clase: nivel ? 'gl-marco-n' + nivel : 'gl-marco-simple' };
+}
+function glEsc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function glNombreConMarco(username){
+  const info = glMarcoInfo(glMarcoPorUsername[username]);
+  if(!info) return glEsc(username);
+  return `<span class="gl-marco ${info.clase}" title="Marco: ${glEsc(info.nombre)}"><span class="gl-marco-ico">${info.icono}</span>${glEsc(username)}</span>`;
+}
+function glRegistrarMarcos(perfiles){ (perfiles || []).forEach(p => { if(p && p.username) glMarcoPorUsername[p.username] = p.marco || null; }); }
+async function glCargarMarcos(){
+  const { data } = await sbClient.from('perfiles_usuario').select('username, marco').not('marco', 'is', null);
+  glRegistrarMarcos(data);
+}
+function glMarcosDesbloqueados(estado){
+  const lista = [];
+  INSIGNIAS_DEF.forEach(ins=>{
+    const { nivel } = estado.get(ins.id) || { nivel:0 };
+    if(!nivel) return;
+    if(ins.niveles){ for(let n = 1; n <= nivel; n++) lista.push(ins.id + ':' + n); }
+    else lista.push(ins.id);
+  });
+  return lista;
+}
+function renderizarSelectorMarco(estado, marcoActual, usuarioId, username){
+  const cont = document.getElementById('umm-marcos');
+  if(!cont) return;
+  const disponibles = glMarcosDesbloqueados(estado);
+  if(!disponibles.length){
+    cont.innerHTML = '<span class="umm-marco-vacio">Desbloqueá insignias para conseguir marcos.</span>';
+    return;
+  }
+  cont.innerHTML = [`<button class="umm-marco-opcion${!marcoActual ? ' activo' : ''}" data-marco="">Sin marco</button>`]
+    .concat(disponibles.map(m => {
+      const info = glMarcoInfo(m);
+      return `<button class="umm-marco-opcion${m === marcoActual ? ' activo' : ''}" data-marco="${m}" title="${glEsc(info.nombre)}"><span class="gl-marco ${info.clase}"><span class="gl-marco-ico">${info.icono}</span>${glEsc(username)}</span></button>`;
+    })).join('');
+  cont.querySelectorAll('[data-marco]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const nuevo = btn.dataset.marco || null;
+      const { error } = await sbClient.from('perfiles_usuario').update({ marco: nuevo }).eq('id', usuarioId);
+      if(error){ glToast('No se pudo guardar el marco.'); return; }
+      glMarcoPorUsername[username] = nuevo;
+      renderizarSelectorMarco(estado, nuevo, usuarioId, username);
+      glToast(nuevo ? '🖼️ Marco actualizado' : 'Marco quitado');
+    });
+  });
+}
+
 async function mostrarPerfilPublico(username){
-  const { data } = await sbClient.from('perfiles_usuario').select('id, username, club_favorito, jugador_favorito, creado_en').eq('username', username).maybeSingle();
-  document.getElementById('pp-username').textContent = username;
+  const { data } = await sbClient.from('perfiles_usuario').select('id, username, club_favorito, jugador_favorito, creado_en, marco').eq('username', username).maybeSingle();
+  if(data) glRegistrarMarcos([data]);
+  document.getElementById('pp-username').innerHTML = glNombreConMarco(username);
   if(data){
     document.getElementById('pp-jugador').textContent = data.jugador_favorito || '—';
     document.getElementById('pp-club').textContent = data.club_favorito || '—';
@@ -4722,7 +4948,7 @@ function renderNodoComentario(nodo, tipo, partidoId, reacciones){
   return `
     <div class="foro-msg" data-id="${nodo.id}">
       <div class="fm-head">
-        <span class="fm-user fm-user-clickeable" data-username="${nodo.username}">${nodo.username}</span>
+        <span class="fm-user fm-user-clickeable" data-username="${nodo.username}">${glNombreConMarco(nodo.username)}</span>
         <span class="fm-fecha">${formatearFechaForo(nodo.creado_en)}</span>
       </div>
       <div class="fm-texto">${nodo.contenido.replace(/</g,'&lt;')}</div>
@@ -5516,8 +5742,9 @@ async function renderRankingMinijuegos(){
   cont.innerHTML = '<div class="cz-online-esperando">Cargando ranking…</div>';
   const [{ data: resultados }, { data: perfiles }] = await Promise.all([
     sbClient.from('minijuegos_resultados').select('usuario_id, juego, resultado').neq('juego', 'pacman'),
-    sbClient.from('perfiles_usuario').select('id, username')
+    sbClient.from('perfiles_usuario').select('id, username, marco')
   ]);
+  glRegistrarMarcos(perfiles);
   if(!resultados || !perfiles){ cont.innerHTML = ''; return; }
   const nombrePorId = {};
   perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
@@ -5534,7 +5761,7 @@ async function renderRankingMinijuegos(){
     return;
   }
   cont.innerHTML = lista.map((f,i) => `
-    <div class="votos-fila fm-user-clickeable" data-username="${f.nombre}" style="cursor:pointer;"><span>${i+1}. ${f.nombre}</span><b>${f.cant} victoria${f.cant===1?'':'s'}</b></div>
+    <div class="votos-fila fm-user-clickeable" data-username="${f.nombre}" style="cursor:pointer;"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${f.cant} victoria${f.cant===1?'':'s'}</b></div>
   `).join('');
   cont.querySelectorAll('[data-username]').forEach(fila=>{
     fila.addEventListener('click', ()=> mostrarPerfilPublico(fila.dataset.username));
@@ -7129,8 +7356,9 @@ async function pmCargarRanking(){
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
   const [{ data: puntajes }, { data: perfiles }] = await Promise.all([
     sbClient.from('pacman_puntajes').select('usuario_id, puntaje'),
-    sbClient.from('perfiles_usuario').select('id, username')
+    sbClient.from('perfiles_usuario').select('id, username, marco')
   ]);
+  glRegistrarMarcos(perfiles);
   if(!puntajes || !perfiles){ cont.innerHTML = ''; return; }
   const nombrePorId = {};
   perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
@@ -7146,7 +7374,7 @@ async function pmCargarRanking(){
     .sort((a,b) => b.puntaje - a.puntaje)
     .slice(0, 10);
   cont.innerHTML = lista.length
-    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${f.puntaje} pts</b></div>`).join('')
+    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${f.puntaje} pts</b></div>`).join('')
     : '<div class="cz-online-esperando">Todavía nadie jugó. ¡Arrancá vos!</div>';
 }
 
@@ -7374,8 +7602,9 @@ async function skCargarRanking(){
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
   const [{ data: tiempos }, { data: perfiles }] = await Promise.all([
     sbClient.from('sudoku_tiempos').select('usuario_id, tiempo_segundos, dificultad'),
-    sbClient.from('perfiles_usuario').select('id, username')
+    sbClient.from('perfiles_usuario').select('id, username, marco')
   ]);
+  glRegistrarMarcos(perfiles);
   if(!tiempos || !perfiles){ cont.innerHTML = ''; return; }
   const nombrePorId = {};
   perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
@@ -7390,7 +7619,7 @@ async function skCargarRanking(){
     .sort((a,b) => a.tiempo - b.tiempo)
     .slice(0, 10);
   cont.innerHTML = lista.length
-    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre} <span style="color:var(--text-dimmer); font-size:11px;">(${f.dificultad})</span></span><b>${skFormatearTiempo(f.tiempo)}</b></div>`).join('')
+    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)} <span style="color:var(--text-dimmer); font-size:11px;">(${f.dificultad})</span></span><b>${skFormatearTiempo(f.tiempo)}</b></div>`).join('')
     : '<div class="cz-online-esperando">Todavía nadie completó uno. ¡Arrancá vos!</div>';
 }
 
@@ -8118,8 +8347,9 @@ async function trCargarRanking(){
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
   const [{ data: partidas }, { data: perfiles }] = await Promise.all([
     sbClient.from('truco_partidas').select('usuario_id, resultado'),
-    sbClient.from('perfiles_usuario').select('id, username')
+    sbClient.from('perfiles_usuario').select('id, username, marco')
   ]);
+  glRegistrarMarcos(perfiles);
   if(!partidas || !perfiles){ cont.innerHTML = ''; return; }
   const nombrePorId = {};
   perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
@@ -8130,7 +8360,7 @@ async function trCargarRanking(){
     .sort((a,b) => b.cant-a.cant)
     .slice(0,10);
   cont.innerHTML = lista.length
-    ? lista.map((f,i)=> `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${f.cant} partida${f.cant===1?'':'s'}</b></div>`).join('')
+    ? lista.map((f,i)=> `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${f.cant} partida${f.cant===1?'':'s'}</b></div>`).join('')
     : '<div class="cz-online-esperando">Todavía nadie ganó una. ¡Arrancá vos!</div>';
 }
 
@@ -12215,8 +12445,9 @@ async function cgCargarRanking(){
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
   const [{ data: tiempos }, { data: perfiles }] = await Promise.all([
     sbClient.from('crucigrillo_tiempos').select('usuario_id, mejor_tiempo_segundos').eq('dificultad', cgDificultadActual),
-    sbClient.from('perfiles_usuario').select('id, username')
+    sbClient.from('perfiles_usuario').select('id, username, marco')
   ]);
+  glRegistrarMarcos(perfiles);
   if(!tiempos || !perfiles){ cont.innerHTML = ''; return; }
   const nombrePorId = {};
   perfiles.forEach(p => { nombrePorId[p.id] = p.username; });
@@ -12225,7 +12456,7 @@ async function cgCargarRanking(){
     .sort((a,b) => a.tiempo - b.tiempo)
     .slice(0,10);
   cont.innerHTML = lista.length
-    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${f.nombre}</span><b>${cgFormatearTiempo(f.tiempo)}</b></div>`).join('')
+    ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${cgFormatearTiempo(f.tiempo)}</b></div>`).join('')
     : '<div class="cz-online-esperando">Todavía nadie completó uno. ¡Arrancá vos!</div>';
 }
 
