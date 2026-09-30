@@ -27,6 +27,9 @@
 <meta name="apple-mobile-web-app-title" content="Grillo Liga">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;0,800;0,900;1,400;1,700&family=Barlow+Condensed:wght@500;600;700&family=Special+Elite&family=Orbitron:wght@500;700;900&display=swap">
 <style>
 button, .auth-btn, .pen-zona, .nav-inferior-item, .tab-btn, .mini-juego-card, canvas{
   touch-action:manipulation; /* evita el doble-tap-zoom de iOS en los controles de juego, sin sacar el zoom de accesibilidad del resto */
@@ -75,7 +78,6 @@ button:active, .auth-btn:active, .mini-juego-card:active, .nav-inferior-item:act
   opacity:0.7; transform:scale(0.97); transition:opacity .05s, transform .05s;
 }
 button, .auth-btn{ transition:opacity .05s, transform .05s; }
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Alegreya+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Special+Elite&family=Orbitron:wght@500;700;900&display=swap');
 
 :root{
   --bg:#EAE2CC;
@@ -1068,7 +1070,7 @@ header.top{
 }
 
 main{max-width:980px; margin:0 auto; padding:22px 14px 70px 14px;}
-.panel{display:none; animation:fadeIn .25s ease;}
+.panel{display:none; animation:fadeIn .32s cubic-bezier(.2,.7,.2,1);}
 /* Textura sutil de cancha, solo en Inicio y Partidos */
 #panel-inicio, #panel-partidos{
   position:relative;
@@ -1084,7 +1086,8 @@ main{max-width:980px; margin:0 auto; padding:22px 14px 70px 14px;}
 }
 body.tema-oscuro #panel-inicio::before, body.tema-oscuro #panel-partidos::before{ opacity:.05; }
 .panel.active{display:block;}
-@keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+@media (prefers-reduced-motion: reduce){ .panel{ animation:none; } }
 
 .section-head{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -1685,6 +1688,110 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   }
   table{font-size:11.5px;}
 }
+
+/* =====================================================================
+   LAVADA DE CARA — sistema visual unificado (tipografía, íconos, tarjetas,
+   textura, tablas y estados vacíos). Va al final para pisar estilos viejos.
+   ===================================================================== */
+:root{
+  --radius:10px;
+  --fs-xs:10.5px; --fs-sm:12.5px; --fs-md:14px; --fs-lg:17px; --fs-xl:24px;
+  --font-num:'Barlow Condensed', 'Alegreya Sans', sans-serif;
+  --card-borde:1px solid var(--line);
+  --card-sombra:0 1px 2px rgba(40,28,12,.06), 0 3px 12px rgba(40,28,12,.05);
+  --card-sombra-hover:0 2px 4px rgba(40,28,12,.08), 0 8px 22px rgba(40,28,12,.09);
+}
+body.tema-oscuro{
+  --card-sombra:0 1px 2px rgba(0,0,0,.35), 0 3px 12px rgba(0,0,0,.25);
+  --card-sombra-hover:0 2px 4px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+}
+
+/* 5. textura de papel, casi imperceptible */
+body::before{
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .27  0 0 0 0 .16  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity:.22;
+}
+body.tema-oscuro::before{ opacity:.06; }
+
+/* 1. íconos de línea */
+.gl-ico{ width:1.15em; height:1.15em; flex:0 0 auto; vertical-align:-0.2em; }
+.drawer-menu .tab-btn{ display:flex; align-items:center; gap:12px; }
+.drawer-menu .tab-btn .gl-ico{ width:19px; height:19px; opacity:.85; }
+.drawer-menu .tab-btn.active .gl-ico{ opacity:1; }
+.nav-inferior-item .nav-icono{ display:flex; }
+.nav-inferior-item .nav-icono .gl-ico{ width:22px; height:22px; }
+.rk-grupo-ico{ display:flex; }
+.rk-grupo-ico .gl-ico{ width:20px; height:20px; }
+
+/* 2. jerarquía tipográfica */
+.section-head{ border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:18px; }
+.section-head h2{
+  display:flex; align-items:center; gap:9px; position:relative;
+  font-family:'Special Elite', 'Alegreya Sans', monospace; font-weight:400; font-size:var(--fs-xl);
+  letter-spacing:.3px; color:var(--text);
+}
+.section-head h2::after{
+  content:''; position:absolute; left:0; bottom:-11px; width:52px; height:3px; border-radius:2px; background:var(--red);
+}
+.section-head .sh-ico{ width:24px; height:24px; color:var(--red); }
+@media (max-width:600px){ .section-head h2{ font-size:21px; } .section-head .sh-ico{ width:21px; height:21px; } }
+
+/* números con presencia de marcador */
+.stat-card .value, .leader-card .lc-val, .jp-stat .jv, .rank-main-val, .sb-team .team-score,
+.jc-stats b, .pen-marcador b, .pr-barra-valor, .rank-extra span b, #stats-table tbody td{
+  font-family:var(--font-num); font-variant-numeric:tabular-nums; letter-spacing:.2px;
+}
+.stat-card .value{ font-weight:700; font-size:32px; }
+.jp-stat .jv{ font-weight:700; font-size:24px; }
+.leader-card .lc-val, .rank-main-val{ font-weight:700; font-size:20px; }
+.sb-team .team-score{ font-weight:700; }
+.jc-stats b{ font-size:15px; font-weight:700; }
+#stats-table tbody td{ font-size:14px; font-weight:500; }
+#stats-table tbody td:first-child{ font-family:'Alegreya Sans', sans-serif; font-size:13px; font-weight:700; }
+/* etiquetas: todas iguales (mayúscula chica y espaciada) */
+.stat-card .label, .leader-card .lc-cat, .jp-stat .jl, .gd-pista-titulo{
+  font-size:var(--fs-xs); text-transform:uppercase; letter-spacing:.07em; font-weight:700; color:var(--text-dim);
+}
+
+/* 3. tarjetas unificadas */
+.stat-card, .leader-card, .historico-card, .jugador-card, .jp-stat, .mini-juego-card, .foro-msg,
+.scoreboard, .rank-list, .table-wrap, .canal-yt-card, .sb-youtube-card, .search-box, .jp-match-row, .cg-pistas-col{
+  border:var(--card-borde); border-radius:var(--radius); box-shadow:var(--card-sombra);
+}
+.stat-card{ border-top:3px solid var(--red); }
+.stat-card-clickable, .leader-card, .historico-card, .jugador-card, .mini-juego-card, .jp-match-row, .canal-yt-card, .sb-youtube-card{
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+.stat-card-clickable:hover, .leader-card:hover, .historico-card:hover, .jugador-card:hover, .mini-juego-card:hover, .canal-yt-card:hover{
+  box-shadow:var(--card-sombra-hover); transform:translateY(-2px);
+}
+.cg-pistas-col{ background:var(--card); }
+.leader-card .lc-icon{ border-radius:10px; }
+body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
+
+/* 9. tablas más legibles */
+.table-wrap{ max-height:72vh; overflow:auto; }
+#stats-table thead th{ z-index:3; box-shadow:0 1px 0 var(--line-strong); }
+#stats-table thead th:first-child{ z-index:4; }
+#stats-table tbody tr:nth-child(even) td{ background:color-mix(in srgb, var(--card2) 45%, var(--card)); }
+#stats-table tbody td:first-child{ background:var(--card); }
+#stats-table tbody tr:nth-child(even) td:first-child{ background:color-mix(in srgb, var(--card2) 45%, var(--card)); }
+#stats-table tbody tr:first-child td{ background:color-mix(in srgb, #D4AF37 14%, var(--card)); }
+#stats-table tbody tr:first-child td:first-child{ box-shadow:inset 3px 0 0 #D4AF37; }
+#stats-table tbody tr:hover td{ background:color-mix(in srgb, var(--red) 8%, var(--card)); }
+.rank-list .rank-row:nth-child(even){ background:color-mix(in srgb, var(--card2) 40%, transparent); }
+.rank-list .rank-row.top1{ background:color-mix(in srgb, #D4AF37 15%, var(--card)); box-shadow:inset 3px 0 0 #D4AF37; }
+.rank-list .rank-row.descenso{ background:rgba(210,40,40,0.09); }
+
+/* 8. estados vacíos con el grillo */
+.jp-empty, .gl-vacio{ font-style:normal; color:var(--text-dim); }
+.jp-empty::before, .gl-vacio::before{
+  content:''; display:block; width:92px; height:69px; margin:0 auto 10px;
+  background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 90'><g fill='none' stroke='%234A6B43' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M40 22 C30 8 18 6 10 8'/><path d='M46 20 C44 6 36 0 28 0'/><path d='M58 56 L50 78 L42 84'/><path d='M74 58 L82 78 L92 82'/><path d='M88 50 L104 30 L114 70'/></g><ellipse cx='74' cy='48' rx='30' ry='14' fill='%236E8F5E'/><ellipse cx='80' cy='44' rx='20' ry='8' fill='%234A6B43' opacity='.55'/><circle cx='44' cy='36' r='13' fill='%236E8F5E'/><circle cx='40' cy='33' r='4' fill='%23F7F1E1'/><circle cx='39' cy='33' r='2' fill='%23161310'/><path d='M36 42 Q40 45 44 42' fill='none' stroke='%23161310' stroke-width='1.8' stroke-linecap='round'/><circle cx='20' cy='70' r='9' fill='%23F7F1E1' stroke='%23161310' stroke-width='2'/><path d='M20 63 l4 4 -1.5 5 h-5 L16 67z' fill='%23161310'/></svg>") center/contain no-repeat;
+  opacity:.9;
+}
+.gl-vacio{ text-align:center; padding:18px 10px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1829,18 +1936,18 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
     <h2>GrilloLiga</h2>
     <button class="drawer-cerrar" id="drawer-cerrar-btn">✕</button>
   </div>
-  <button class="tab-btn active" data-tab="inicio">🏠 Inicio</button>
-  <button class="tab-btn" data-tab="estadisticas">📊 Estadísticas</button>
-  <button class="tab-btn" data-tab="rankings">🏆 Rankings</button>
-  <button class="tab-btn" data-tab="partidos">⚽ Partidos</button>
-  <button class="tab-btn" data-tab="historicos">📜 Partidos Históricos</button>
-  <button class="tab-btn" data-tab="jugadores">👤 Jugadores</button>
-  <button class="tab-btn" data-tab="comunicados">📢 Comunicados</button>
-  <button class="tab-btn" data-tab="foro">💬 Foro general</button>
-  <button class="tab-btn" data-tab="grillobot">🦗 GrilloBOT</button>
-  <button class="tab-btn" data-tab="minijuegos">🎮 Minijuegos</button>
-  <button class="tab-btn" data-tab="simulador">🔮 Simulador</button>
-  <button class="tab-btn" data-tab="comparador">⚖️ Comparar jugadores</button>
+  <button class="tab-btn active" data-tab="inicio"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg><span>Inicio</span></button>
+  <button class="tab-btn" data-tab="estadisticas"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M21 20H3"/></svg><span>Estadísticas</span></button>
+  <button class="tab-btn" data-tab="rankings"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8"/><path d="M12 16v5"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4"/><path d="M17 6h3a3 3 0 0 1-3 4"/></svg><span>Rankings</span></button>
+  <button class="tab-btn" data-tab="partidos"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m12 7.5 3.8 2.8-1.4 4.5H9.6L8.2 10.3z"/><path d="M12 7.5V3.2M15.8 10.3l4-1.4M14.4 14.8l2.5 3.6M9.6 14.8l-2.5 3.6M8.2 10.3l-4-1.4"/></svg><span>Partidos</span></button>
+  <button class="tab-btn" data-tab="historicos"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/><path d="M12 7.5V12l3 2"/></svg><span>Partidos Históricos</span></button>
+  <button class="tab-btn" data-tab="jugadores"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Jugadores</span></button>
+  <button class="tab-btn" data-tab="comunicados"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5v3a1 1 0 0 0 1 1h3l6 4.5v-14L7 9.5H4a1 1 0 0 0-1 1z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19.5 6a8 8 0 0 1 0 12"/></svg><span>Comunicados</span></button>
+  <button class="tab-btn" data-tab="foro"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg><span>Foro general</span></button>
+  <button class="tab-btn" data-tab="grillobot"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M2 13v3M22 13v3"/></svg><span>GrilloBOT</span></button>
+  <button class="tab-btn" data-tab="minijuegos"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="18" cy="14" r="1"/></svg><span>Minijuegos</span></button>
+  <button class="tab-btn" data-tab="simulador"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 3 1.4 3.1L19.5 7.5l-3.1 1.4L15 12l-1.4-3.1-3.1-1.4 3.1-1.4z"/><path d="M4 20l8-8"/><path d="M19 15.5l.7 1.3 1.3.7-1.3.7-.7 1.3-.7-1.3-1.3-.7 1.3-.7z"/></svg><span>Simulador</span></button>
+  <button class="tab-btn" data-tab="comparador"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7.5 21h9"/><path d="M4.5 7h15"/><path d="m5 7-3 6.5a3 3 0 0 0 6 0z"/><path d="m19 7-3 6.5a3 3 0 0 0 6 0z"/></svg><span>Comparar jugadores</span></button>
 </nav>
 
 <main>
@@ -1848,7 +1955,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- INICIO / DASHBOARD -->
   <section id="panel-inicio" class="panel active">
     <div class="section-head">
-      <h2>Resumen del torneo</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6h12M8.5 12h12M8.5 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Resumen del torneo</span></h2>
     </div>
     <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
     <div id="ios-instalar-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.55); align-items:center; justify-content:center;">
@@ -1866,27 +1973,27 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
     <div class="stat-grid" id="stat-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
-      <h2>Partidos destacados</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Partidos destacados</span></h2>
     </div>
     <div class="stat-grid" id="highlight-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
-      <h2>Líderes</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="15" r="6"/><path d="M8.2 3h7.6l-2.4 6.3M10.6 9.3 8.2 3"/></svg><span>Líderes</span></h2>
     </div>
     <div class="leader-grid" id="leader-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
-      <h2>🔥 Mejores y peores rachas</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5a7 7 0 0 0 7-7c0-4-2.7-6.3-4-9.5-1.2 2.2-2.4 3.2-4 3.2 0-2-.9-3.8-2-5.2-1 4-4 6-4 11.5a7 7 0 0 0 7 7z"/></svg><span>Mejores y peores rachas</span></h2>
     </div>
     <div class="leader-grid" id="rachas-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
-      <h2>🎉 La hinchada de la GrilloLiga</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6"/><path d="M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></svg><span>La hinchada de la GrilloLiga</span></h2>
     </div>
     <div class="leader-grid" id="hinchada-grid"><div class="skeleton-box" style="height:64px;"></div><div class="skeleton-box" style="height:64px;"></div></div>
 
     <div class="section-head" style="margin-top:26px;">
-      <h2>📺 Nuestro canal</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/></svg><span>Nuestro canal</span></h2>
     </div>
     <a class="canal-yt-card" href="https://www.youtube.com/@LigaGrilloArgentino" target="_blank" rel="noopener noreferrer">
       <div class="canal-yt-portada" id="canal-yt-portada">
@@ -1902,7 +2009,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- ESTADISTICAS -->
   <section id="panel-estadisticas" class="panel">
     <div class="section-head">
-      <h2>Estadísticas</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M21 20H3"/></svg><span>Estadísticas</span></h2>
       <span class="pill-count" id="stats-count"></span>
     </div>
     <div class="search-box">
@@ -1948,7 +2055,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- RANKINGS -->
   <section id="panel-rankings" class="panel">
     <div class="section-head">
-      <h2>Rankings</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8"/><path d="M12 16v5"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4"/><path d="M17 6h3a3 3 0 0 1-3 4"/></svg><span>Rankings</span></h2>
     </div>
     <div class="rk-grupos" id="ranking-grupos" role="tablist" aria-label="Categorías de rankings"></div>
     <div class="ranking-scroller" id="ranking-scroller">
@@ -1966,7 +2073,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- PARTIDOS -->
   <section id="panel-partidos" class="panel">
     <div class="section-head">
-      <h2>Partidos</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m12 7.5 3.8 2.8-1.4 4.5H9.6L8.2 10.3z"/><path d="M12 7.5V3.2M15.8 10.3l4-1.4M14.4 14.8l2.5 3.6M9.6 14.8l-2.5 3.6M8.2 10.3l-4-1.4"/></svg><span>Partidos</span></h2>
       <span class="pill-count" id="match-count"></span>
     </div>
     <div class="match-select-row" id="match-chips"></div>
@@ -1978,7 +2085,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- PARTIDOS HISTORICOS -->
   <section id="panel-historicos" class="panel">
     <div class="section-head">
-      <h2>Partidos Históricos</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/><path d="M12 7.5V12l3 2"/></svg><span>Partidos Históricos</span></h2>
       <span class="pill-count" id="historicos-count"></span>
     </div>
     <p class="hint-text">Partidos con algo especial: lesiones, situaciones puntuales o formatos distintos al habitual.</p>
@@ -1988,7 +2095,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- JUGADORES -->
   <section id="panel-jugadores" class="panel">
     <div class="section-head">
-      <h2>Jugadores</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Jugadores</span></h2>
       <span class="pill-count" id="jugadores-count"></span>
     </div>
     <div class="search-box">
@@ -2002,7 +2109,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- COMUNICADOS OFICIALES -->
   <section id="panel-comunicados" class="panel">
     <div class="section-head">
-      <h2>📢 Comunicados Oficiales</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5v3a1 1 0 0 0 1 1h3l6 4.5v-14L7 9.5H4a1 1 0 0 0-1 1z"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19.5 6a8 8 0 0 1 0 12"/></svg><span>Comunicados Oficiales</span></h2>
     </div>
     <div class="gd-intro">Anuncios de la organización de la Grillo Liga.</div>
 
@@ -2018,7 +2125,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- FORO GENERAL -->
   <section id="panel-foro" class="panel">
     <div class="section-head">
-      <h2>Foro general</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg><span>Foro general</span></h2>
     </div>
     <div id="foro-general-container"></div>
   </section>
@@ -2026,7 +2133,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- GRILLOBOT -->
   <section id="panel-grillobot" class="panel">
     <div class="section-head">
-      <h2>GrilloBOT</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M2 13v3M22 13v3"/></svg><span>GrilloBOT</span></h2>
     </div>
     <div class="bot-intro">
       Preguntame por historiales, rachas, o por lo mejor y peor del torneo. Ejemplos:<br>
@@ -2042,7 +2149,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- MINIJUEGOS -->
   <section id="panel-minijuegos" class="panel">
     <div class="section-head">
-      <h2>Minijuegos</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="18" cy="14" r="1"/></svg><span>Minijuegos</span></h2>
     </div>
 
     <div class="mini-juegos-lista" id="mini-lista">
@@ -2875,7 +2982,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
 
   <section id="panel-simulador" class="panel">
     <div class="section-head">
-      <h2>🔮 Simulador de partidos</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 3 1.4 3.1L19.5 7.5l-3.1 1.4L15 12l-1.4-3.1-3.1-1.4 3.1-1.4z"/><path d="M4 20l8-8"/><path d="M19 15.5l.7 1.3 1.3.7-1.3.7-.7 1.3-.7-1.3-1.3-.7 1.3-.7z"/></svg><span>Simulador de partidos</span></h2>
     </div>
     <div class="gd-intro">
       Armá dos equipos (mínimo 5 jugadores por lado) y mirá qué resultado saldría, según las estadísticas
@@ -2933,7 +3040,7 @@ button:disabled, .auth-btn:disabled{ opacity:0.75; cursor:default; }
   <!-- COMPARADOR DE JUGADORES -->
   <section id="panel-comparador" class="panel">
     <div class="section-head">
-      <h2>⚖️ Comparar jugadores</h2>
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7.5 21h9"/><path d="M4.5 7h15"/><path d="m5 7-3 6.5a3 3 0 0 0 6 0z"/><path d="m19 7-3 6.5a3 3 0 0 0 6 0z"/></svg><span>Comparar jugadores</span></h2>
     </div>
     <div class="gd-intro">Elegí 2 jugadores de la Grillo Liga y mirá sus estadísticas lado a lado.</div>
     <div class="cz-elegir-fila" style="margin-bottom:16px;">
@@ -3908,21 +4015,22 @@ const rankingIcons = {
   'PEORES DUPLAS':'💔'
 };
 
+const GL_ICO = {"trophy": "<svg class=\"gl-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 21h8\"/><path d=\"M12 16v5\"/><path d=\"M7 4h10v5a5 5 0 0 1-10 0z\"/><path d=\"M7 6H4a3 3 0 0 0 3 4\"/><path d=\"M17 6h3a3 3 0 0 1-3 4\"/></svg>", "ball": "<svg class=\"gl-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m12 7.5 3.8 2.8-1.4 4.5H9.6L8.2 10.3z\"/><path d=\"M12 7.5V3.2M15.8 10.3l4-1.4M14.4 14.8l2.5 3.6M9.6 14.8l-2.5 3.6M8.2 10.3l-4-1.4\"/></svg>", "shield": "<svg class=\"gl-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3 4.5 6v5.5c0 4.7 3.2 8 7.5 9.5 4.3-1.5 7.5-4.8 7.5-9.5V6z\"/></svg>", "users": "<svg class=\"gl-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20a6.5 6.5 0 0 1 13 0\"/><path d=\"M16 4.7a3.5 3.5 0 0 1 0 6.6\"/><path d=\"M18 14.2a6.5 6.5 0 0 1 3.5 5.8\"/></svg>", "flag": "<svg class=\"gl-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 21V3.5\"/><path d=\"M5 4h12.5l-2.5 4 2.5 4H5\"/></svg>", "list": "<svg class=\"gl-ico\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8.5 6h12M8.5 12h12M8.5 18h12\"/><circle cx=\"4.5\" cy=\"6\" r=\"1\"/><circle cx=\"4.5\" cy=\"12\" r=\"1\"/><circle cx=\"4.5\" cy=\"18\" r=\"1\"/></svg>"};
 const RANKING_PROGRESO = 'PROGRESO';
 // Rankings agrupados por categoría: arriba las categorías, abajo solo los rankings de la categoría elegida
 const RANKING_GRUPOS = [
-  { id:'tabla', icono:'🏆', nombre:'Tabla', claves:['TABLA ANUAL GRILLOLIGA','PORCENTAJE DE VICTORIAS','TABLA DE DESCENSOS'] },
-  { id:'ataque', icono:'⚽', nombre:'Ataque', claves:['GOLEADORES','ASISTIDORES','GOLES + ASISTENCIAS','GOLES POR PARTIDO'] },
-  { id:'defensa', icono:'🛡️', nombre:'Defensa', claves:['MENOS GOLES RECIBIDOS POR PARTIDO'] },
-  { id:'duplas', icono:'🤝', nombre:'Duplas', claves:['MEJORES DUPLAS','PEORES DUPLAS'] },
-  { id:'progreso', icono:'🏁', nombre:'Progreso', claves:[RANKING_PROGRESO] }
+  { id:'tabla', icono:GL_ICO.trophy, nombre:'Tabla', claves:['TABLA ANUAL GRILLOLIGA','PORCENTAJE DE VICTORIAS','TABLA DE DESCENSOS'] },
+  { id:'ataque', icono:GL_ICO.ball, nombre:'Ataque', claves:['GOLEADORES','ASISTIDORES','GOLES + ASISTENCIAS','GOLES POR PARTIDO'] },
+  { id:'defensa', icono:GL_ICO.shield, nombre:'Defensa', claves:['MENOS GOLES RECIBIDOS POR PARTIDO'] },
+  { id:'duplas', icono:GL_ICO.users, nombre:'Duplas', claves:['MEJORES DUPLAS','PEORES DUPLAS'] },
+  { id:'progreso', icono:GL_ICO.flag, nombre:'Progreso', claves:[RANKING_PROGRESO] }
 ];
 function rankingGruposVisibles(){
   const todas = [...rankingKeys, RANKING_PROGRESO];
   const grupos = RANKING_GRUPOS.map(g => ({ ...g, claves: g.claves.filter(k => todas.includes(k)) })).filter(g => g.claves.length);
   const agrupadas = new Set(grupos.flatMap(g => g.claves));
   const sueltas = todas.filter(k => !agrupadas.has(k)); // por si en el futuro se suma un ranking nuevo sin grupo
-  if(sueltas.length) grupos.push({ id:'otros', icono:'📋', nombre:'Otros', claves:sueltas });
+  if(sueltas.length) grupos.push({ id:'otros', icono:GL_ICO.list, nombre:'Otros', claves:sueltas });
   return grupos;
 }
 function rankingGrupoDe(clave){
@@ -5815,7 +5923,7 @@ async function renderRankingMinijuegos(){
     .sort((a,b) => b.cant - a.cant)
     .slice(0, 10);
   if(!lista.length){
-    cont.innerHTML = '<div class="cz-online-esperando">Todavía nadie ganó ningún minijuego. ¡Sé el primero!</div>';
+    cont.innerHTML = '<div class="cz-online-esperando gl-vacio">Todavía nadie ganó ningún minijuego. ¡Sé el primero!</div>';
     return;
   }
   cont.innerHTML = lista.map((f,i) => `
@@ -6074,7 +6182,7 @@ function penRenderizarSalaEspera(){
   const lista = document.getElementById('pen-online-lista');
   const otros = [];
   Object.values(estado).forEach(arr => arr.forEach(p=>{ if(p.username !== penMiUsernameOnline) otros.push(p); }));
-  if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
+  if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando gl-vacio">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
   lista.innerHTML = otros.map(p => `
     <div class="cz-online-fila"><b>${p.username}</b><button class="auth-btn" style="max-width:130px; margin:0;" data-desafiar="${p.username}">Desafiar</button></div>
   `).join('');
@@ -7433,7 +7541,7 @@ async function pmCargarRanking(){
     .slice(0, 10);
   cont.innerHTML = lista.length
     ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${f.puntaje} pts</b></div>`).join('')
-    : '<div class="cz-online-esperando">Todavía nadie jugó. ¡Arrancá vos!</div>';
+    : '<div class="cz-online-esperando gl-vacio">Todavía nadie jugó. ¡Arrancá vos!</div>';
 }
 
 function pmIniciarJuego(){
@@ -7678,7 +7786,7 @@ async function skCargarRanking(){
     .slice(0, 10);
   cont.innerHTML = lista.length
     ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)} <span style="color:var(--text-dimmer); font-size:11px;">(${f.dificultad})</span></span><b>${skFormatearTiempo(f.tiempo)}</b></div>`).join('')
-    : '<div class="cz-online-esperando">Todavía nadie completó uno. ¡Arrancá vos!</div>';
+    : '<div class="cz-online-esperando gl-vacio">Todavía nadie completó uno. ¡Arrancá vos!</div>';
 }
 
 document.querySelectorAll('#sk-armado [data-dif]').forEach(btn=>{
@@ -8419,7 +8527,7 @@ async function trCargarRanking(){
     .slice(0,10);
   cont.innerHTML = lista.length
     ? lista.map((f,i)=> `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${f.cant} partida${f.cant===1?'':'s'}</b></div>`).join('')
-    : '<div class="cz-online-esperando">Todavía nadie ganó una. ¡Arrancá vos!</div>';
+    : '<div class="cz-online-esperando gl-vacio">Todavía nadie ganó una. ¡Arrancá vos!</div>';
 }
 
 /* --- GrilloBOT como rival (lógica básica de cuándo cantar/aceptar/mentir) --- */
@@ -8608,7 +8716,7 @@ function trRenderizarSalaEsperaTruco(){
   }
   document.getElementById('tr-equipos-armado-wrap').style.display = 'none';
   const lista = document.getElementById('tr-online-lista');
-  if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
+  if(!otros.length){ lista.innerHTML = '<div class="cz-online-esperando gl-vacio">Sos el único en la sala. Esperá a que entre alguien…</div>'; return; }
   lista.innerHTML = otros.map(p => `
     <div class="cz-online-fila"><b>${p.username}</b><button class="auth-btn" style="max-width:130px; margin:0;" data-desafiar="${p.username}">Desafiar</button></div>
   `).join('');
@@ -8623,7 +8731,7 @@ function trRenderizarSalaEsperaTruco(){
 function trRenderizarChecklistEquipos(otros){
   const cont = document.getElementById('tr-equipos-checklist');
   const necesarios = trFormatoSeleccionado === '2v2' ? 3 : 5;
-  if(!otros.length){ cont.innerHTML = '<div class="cz-online-esperando">No hay nadie más conectado todavía.</div>'; return; }
+  if(!otros.length){ cont.innerHTML = '<div class="cz-online-esperando gl-vacio">No hay nadie más conectado todavía.</div>'; return; }
   cont.innerHTML = otros.map(p => `
     <label class="cz-online-fila" style="cursor:pointer;">
       <span><input type="checkbox" class="tr-check-invitado" value="${p.username}"> <b>${p.username}</b></span>
@@ -10151,7 +10259,7 @@ async function crAbrirHistorial(){
     sbClient.from('perfiles_usuario').select('id, username')
   ]);
   if((!carreras || !carreras.length) && (!archivadas || !archivadas.length)){
-    cont.innerHTML = '<div class="cz-online-esperando">Todavía nadie jugó el Modo Carrera. ¡Arrancá vos!</div>';
+    cont.innerHTML = '<div class="cz-online-esperando gl-vacio">Todavía nadie jugó el Modo Carrera. ¡Arrancá vos!</div>';
     return;
   }
   const nombrePorId = {};
@@ -11585,7 +11693,7 @@ function czRenderizarSalaEspera(){
   const otros = [];
   Object.values(estado).forEach(arr => arr.forEach(p=>{ if(p.username !== czMiUsernameOnline) otros.push(p); }));
   if(!otros.length){
-    lista.innerHTML = '<div class="cz-online-esperando">Sos el único en la sala. Esperá a que entre alguien…</div>';
+    lista.innerHTML = '<div class="cz-online-esperando gl-vacio">Sos el único en la sala. Esperá a que entre alguien…</div>';
     return;
   }
   lista.innerHTML = otros.map(p => `
@@ -12515,7 +12623,7 @@ async function cgCargarRanking(){
     .slice(0,10);
   cont.innerHTML = lista.length
     ? lista.map((f,i) => `<div class="pm-ranking-fila"><span>${i+1}. ${glNombreConMarco(f.nombre)}</span><b>${cgFormatearTiempo(f.tiempo)}</b></div>`).join('')
-    : '<div class="cz-online-esperando">Todavía nadie completó uno. ¡Arrancá vos!</div>';
+    : '<div class="cz-online-esperando gl-vacio">Todavía nadie completó uno. ¡Arrancá vos!</div>';
 }
 
 async function cgRenderizarSeleccion(){
@@ -13481,11 +13589,11 @@ renderJugadorProfile();
 </div>
 
 <nav id="nav-inferior">
-  <button class="nav-inferior-item active" id="nav-inicio" data-tab="inicio"><span class="nav-icono">🏠</span>Inicio</button>
-  <button class="nav-inferior-item" id="nav-minijuegos" data-tab="minijuegos"><span class="nav-icono">🎮</span>Juegos</button>
-  <button class="nav-inferior-item" id="nav-carrera" data-tab="minijuegos"><span class="nav-icono">🌟</span>Carrera</button>
-  <button class="nav-inferior-item" id="nav-foro" data-tab="foro"><span class="nav-icono">💬</span>Foro</button>
-  <button class="nav-inferior-item" id="nav-mas"><span class="nav-icono">☰</span>Más</button>
+  <button class="nav-inferior-item active" id="nav-inicio" data-tab="inicio"><span class="nav-icono"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg></span>Inicio</button>
+  <button class="nav-inferior-item" id="nav-minijuegos" data-tab="minijuegos"><span class="nav-icono"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="18" cy="14" r="1"/></svg></span>Juegos</button>
+  <button class="nav-inferior-item" id="nav-carrera" data-tab="minijuegos"><span class="nav-icono"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span>Carrera</button>
+  <button class="nav-inferior-item" id="nav-foro" data-tab="foro"><span class="nav-icono"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg></span>Foro</button>
+  <button class="nav-inferior-item" id="nav-mas"><span class="nav-icono"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg></span>Más</button>
 </nav>
 </body>
 </html>
