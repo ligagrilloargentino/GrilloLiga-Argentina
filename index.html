@@ -1792,6 +1792,12 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
   opacity:.9;
 }
 .gl-vacio{ text-align:center; padding:18px 10px; }
+
+/* botón de Google (colores oficiales: fondo blanco, borde gris) */
+.auth-btn.auth-btn-google{ display:flex; align-items:center; justify-content:center; gap:10px; background:#fff; color:#1f1f1f; border:1px solid #dadce0; font-weight:600; }
+.auth-btn.auth-btn-google:hover{ background:#f7f8f8; }
+.auth-separador{ display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--text-dimmer); font-size:11.5px; }
+.auth-separador::before, .auth-separador::after{ content:''; flex:1; border-top:1px solid var(--line); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1804,6 +1810,7 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
       <h1>Grillo Liga</h1>
       <div class="auth-sub">Iniciá sesión para entrar</div>
       <div class="auth-error" id="login-error"></div>
+      <button type="button" class="auth-btn auth-btn-google gl-google-btn" style="display:none;"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continuar con Google</span></button><div class="auth-separador gl-google-btn" style="display:none;"><span>o con tu usuario</span></div>
       <div class="auth-field"><label>Usuario</label><input type="text" id="login-username" autocomplete="username"></div>
       <div class="auth-field"><label>Contraseña</label>
         <div class="auth-pass-wrap">
@@ -1820,6 +1827,7 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
       <h1>Crear cuenta</h1>
       <div class="auth-sub">Elegí tu usuario y contraseña</div>
       <div class="auth-error" id="registro-error"></div>
+      <button type="button" class="auth-btn auth-btn-google gl-google-btn" style="display:none;"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continuar con Google</span></button><div class="auth-separador gl-google-btn" style="display:none;"><span>o con tu usuario</span></div>
       <div class="auth-field"><label>Usuario</label><input type="text" id="registro-username" autocomplete="username"></div>
       <div class="auth-field"><label>Contraseña</label>
         <div class="auth-pass-wrap">
@@ -1835,6 +1843,7 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
       <h1>Completá tu perfil</h1>
       <div class="auth-sub">Últimos datos antes de entrar</div>
       <div class="auth-error" id="perfil-error"></div>
+      <div class="auth-field" id="perfil-username-campo" style="display:none;"><label>Nombre de usuario (así te van a ver todos)</label><input type="text" id="perfil-username" autocomplete="username" maxlength="20" placeholder="Ej: fede10"></div>
       <div class="auth-field"><label>Nombre</label><input type="text" id="perfil-nombre"></div>
       <div class="auth-field"><label>Fecha de nacimiento</label><input type="date" id="perfil-fecha"></div>
       <div class="auth-field"><label>Jugador fetiche</label><select id="perfil-jugador"><option value="">Elegí un jugador…</option></select></div>
@@ -1880,6 +1889,10 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
             <button class="auth-btn" id="umm-guardar-btn" style="margin-top:6px;">Guardar</button>
           </div>
           <span class="umm-editar-toggle" id="umm-editar-toggle">✏️ Editar mi perfil</span>
+          <div id="umm-google-wrap" style="display:none; margin-top:10px; padding-top:8px; border-top:1px solid var(--line);">
+            <div class="umm-fila" id="umm-google-estado"></div>
+            <button class="auth-btn auth-btn-google" id="umm-vincular-google" style="margin-top:4px; font-size:12px; padding:8px;"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Vincular con Google</span></button>
+          </div>
         </div>
       </div>
       <span id="cerrar-sesion-btn" style="cursor:pointer; font-size:12px; color:var(--text-dimmer); text-decoration:underline; display:none;">Cerrar sesión</span>
@@ -3456,6 +3469,38 @@ let DATA, FOTOS_JUGADORES_REMOTAS;
 const DOMINIO_FALSO = '@grilloliga.com';
 function emailDesdeUsuario(u){ return u.trim().toLowerCase().replace(/\s+/g,'') + DOMINIO_FALSO; }
 
+/* ---------- LOGIN CON GOOGLE ----------
+   INTERRUPTOR: queda en false hasta terminar la configuración en Google Cloud + Supabase.
+   Con true aparece "Continuar con Google" en el login y "Vincular con Google" en el menú de usuario. */
+const GL_GOOGLE_ACTIVO = false;
+// El nombre de usuario sale SIEMPRE del perfil (con Google el mail es real, ya no sirve deducirlo del mail inventado)
+let GL_USERNAME = null;
+function glUsernameDe(user){
+  if(GL_USERNAME) return GL_USERNAME;
+  const email = (user && user.email) || '';
+  return email.endsWith(DOMINIO_FALSO) ? email.replace(DOMINIO_FALSO, '') : null;
+}
+async function glCargarUsernameActual(){
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return null;
+  const { data } = await sbClient.from('perfiles_usuario').select('username').eq('id', user.id).maybeSingle();
+  GL_USERNAME = data ? data.username : null;
+  return GL_USERNAME;
+}
+function glUrlDeVuelta(){ return location.origin + location.pathname; }
+async function glEntrarConGoogle(){
+  const { error } = await sbClient.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: glUrlDeVuelta() } });
+  if(error) mostrarError('login-error', 'No se pudo conectar con Google. Probá de nuevo.');
+}
+async function glVincularGoogle(){
+  const { error } = await sbClient.auth.linkIdentity({ provider:'google', options:{ redirectTo: glUrlDeVuelta() } });
+  if(error) alert('No se pudo vincular con Google: ' + error.message);
+}
+if(GL_GOOGLE_ACTIVO){
+  document.querySelectorAll('.gl-google-btn').forEach(el => el.style.display = '');
+  document.querySelectorAll('.auth-btn-google').forEach(b => b.addEventListener('click', glEntrarConGoogle));
+}
+
 const authOverlay = document.getElementById('auth-overlay');
 const vLogin = document.getElementById('auth-login');
 const vRegistro = document.getElementById('auth-registro');
@@ -3545,7 +3590,8 @@ document.getElementById('registro-submit').addEventListener('click', async ()=>{
 
 async function mostrarPasoPerfil(usernameElegido){
   vPerfil.style.display='block';
-  vPerfil.dataset.username = usernameElegido;
+  vPerfil.dataset.username = usernameElegido || '';
+  document.getElementById('perfil-username-campo').style.display = usernameElegido ? 'none' : 'block';
   const sel = document.getElementById('perfil-jugador');
   if(sel.options.length <= 1){
     const { data } = await sbClient.rpc('jugadores_publico_fn');
@@ -3564,13 +3610,24 @@ document.getElementById('perfil-submit').addEventListener('click', async ()=>{
   const jugador = document.getElementById('perfil-jugador').value;
   const club = document.getElementById('perfil-club').value.trim();
   if(!nombre || !fecha || !jugador || !club){ mostrarError('perfil-error', 'Completá todos los campos.'); return; }
+  if(!vPerfil.dataset.username){
+    const elegido = document.getElementById('perfil-username').value.trim().toLowerCase().replace(/\s+/g,'');
+    if(!/^[a-z0-9_.ñ]{3,20}$/.test(elegido)){ mostrarError('perfil-error', 'El usuario debe tener entre 3 y 20 caracteres (letras, números, punto o guion bajo).'); return; }
+    const { data: yaExiste } = await sbClient.from('perfiles_usuario').select('id').eq('username', elegido).maybeSingle();
+    if(yaExiste){ mostrarError('perfil-error', 'Ese nombre de usuario ya está en uso, elegí otro.'); return; }
+    vPerfil.dataset.username = elegido;
+  }
   const { data: { user } } = await sbClient.auth.getUser();
   const { error } = await sbClient.from('perfiles_usuario').insert({
     id: user.id,
     username: vPerfil.dataset.username,
     nombre, fecha_nacimiento: fecha, jugador_favorito: jugador, club_favorito: club
   });
-  if(error){ mostrarError('perfil-error', 'No se pudo guardar el perfil: ' + error.message); return; }
+  if(error){
+    if(!document.getElementById('perfil-username-campo').style.display.includes('none')) vPerfil.dataset.username = '';
+    mostrarError('perfil-error', String(error.message).includes('username') ? 'Ese nombre de usuario ya está en uso, elegí otro.' : 'No se pudo guardar el perfil: ' + error.message);
+    return;
+  }
   sbClient.functions.invoke('sincronizar-usuario', {
     body: { usuario: vPerfil.dataset.username, nombre, fecha_nacimiento: fecha, jugador_favorito: jugador, club_favorito: club }
   }).catch(e => console.warn('No se pudo sincronizar con la planilla de usuarios:', e));
@@ -3581,6 +3638,7 @@ async function despuesDeLoguearse(){
   authOverlay.style.display = 'none';
   document.body.appendChild(_cargaInicial);
   try {
+    await glCargarUsernameActual();
     const d = await cargarDatosDesdeSupabase();
     DATA = { estadisticas: d.estadisticas, rankings: d.rankings, partidos: d.partidos };
     FOTOS_JUGADORES_REMOTAS = d.fotos;
@@ -3611,7 +3669,7 @@ async function verificarSesion(){
   const { data: perfil } = await sbClient.from('perfiles_usuario').select('username').eq('id', session.user.id).maybeSingle();
   if(!perfil){
     authOverlay.style.display='flex';
-    const usuarioAdivinado = session.user.email.replace(DOMINIO_FALSO, '');
+    const usuarioAdivinado = glUsernameDe(session.user); // null si entró con Google: se le pide elegir usuario
     vLogin.style.display='none';
     await mostrarPasoPerfil(usuarioAdivinado);
     return;
@@ -3730,7 +3788,7 @@ if(LOGIN_REQUERIDO && !modoInvitado){
   _btnCerrarSesion.style.display = 'inline';
   sbClient.auth.getUser().then(({data})=>{
     if(data && data.user){
-      const usuario = data.user.email.replace(DOMINIO_FALSO, '');
+      const usuario = glUsernameDe(data.user);
       _labelUsuario.textContent = usuario;
       _labelUsuario.style.display = 'inline';
       document.getElementById('mini-card-carrera').style.display = '';
@@ -3741,6 +3799,17 @@ if(LOGIN_REQUERIDO && !modoInvitado){
       const _promPerfil = sbClient.from('perfiles_usuario').select('username, club_favorito, jugador_favorito, marco')
         .eq('id', data.user.id).maybeSingle();
       const _promInsignias = calcularInsigniasUsuario(data.user.id);
+      if(GL_GOOGLE_ACTIVO){
+        const tieneGoogle = (data.user.identities || []).some(i => i.provider === 'google');
+        const wrap = document.getElementById('umm-google-wrap');
+        wrap.style.display = 'block';
+        document.getElementById('umm-google-estado').innerHTML = tieneGoogle
+          ? '✅ <b>Cuenta vinculada con Google</b>'
+          : '⚠️ Vinculá tu cuenta con Google para poder entrar sin contraseña y no perderla nunca.';
+        const btnVinc = document.getElementById('umm-vincular-google');
+        btnVinc.style.display = tieneGoogle ? 'none' : '';
+        btnVinc.onclick = glVincularGoogle;
+      }
       Promise.all([_promPerfil, _promInsignias]).then(([{ data:perfil }, estadoIns])=>{
         glRegistrarMarcos(perfil ? [perfil] : []);
         renderizarSelectorMarco(estadoIns, perfil ? perfil.marco : null, data.user.id, (perfil && perfil.username) || usuario);
@@ -4568,7 +4637,7 @@ async function fcRenderizar(match){
   let pos = { ...auto };
   let personalizada = false;
   const { data: { user } } = await sbClient.auth.getUser();
-  const esGrillo = !!(user && user.email && user.email.replace(DOMINIO_FALSO, '') === 'grillo');
+  const esGrillo = !!(user && glUsernameDe(user) === 'grillo');
   const { data } = await sbClient.from('formaciones_oficiales').select('posiciones').eq('partido_numero', match.numero).maybeSingle();
   if(data && data.posiciones){
     Object.keys(pos).forEach(k => { if(data.posiciones[k]) pos[k] = data.posiciones[k]; });
@@ -4885,7 +4954,7 @@ async function obtenerUsernameActual(){
   if(usuarioActualUsername) return usuarioActualUsername;
   const { data: { user } } = await sbClient.auth.getUser();
   if(!user) return null;
-  usuarioActualUsername = user.email.replace(DOMINIO_FALSO, '');
+  usuarioActualUsername = glUsernameDe(user);
   return usuarioActualUsername;
 }
 
@@ -6155,7 +6224,7 @@ let penMiEleccionPendiente = null, penEleccionRivalRecibida = null;
 async function penEntrarSalaEspera(){
   const { data: { user } } = await sbClient.auth.getUser();
   if(!user){ glToast('Necesitás estar logueado para jugar online.'); return; }
-  penMiUsernameOnline = user.email.replace(DOMINIO_FALSO, '');
+  penMiUsernameOnline = glUsernameDe(user);
   document.getElementById('pen-elegir-modo').style.display = 'none';
   document.getElementById('pen-online-lobby').style.display = 'block';
   document.getElementById('pen-online-lista').innerHTML = '<div class="cz-online-esperando">Conectando a la sala…</div>';
@@ -8647,7 +8716,7 @@ let trMiUsernameOnlineTr = null, trOponenteOnlineTr = null;
 async function trEntrarSalaEsperaTruco(){
   const { data: { user } } = await sbClient.auth.getUser();
   if(!user){ glToast('Necesitás estar logueado para jugar online.'); return; }
-  trMiUsernameOnlineTr = user.email.replace(DOMINIO_FALSO, '');
+  trMiUsernameOnlineTr = glUsernameDe(user);
   document.getElementById('tr-armado').style.display = 'none';
   document.getElementById('tr-online-lobby').style.display = 'block';
   document.getElementById('tr-online-lista').innerHTML = '<div class="cz-online-esperando">Conectando a la sala…</div>';
@@ -11654,7 +11723,7 @@ function czCapturarInputLocalGuest(){
 async function czEntrarSalaEspera(){
   const { data: { user } } = await sbClient.auth.getUser();
   if(!user){ glToast('Necesitás estar logueado para jugar online.'); return; }
-  czMiUsernameOnline = user.email.replace(DOMINIO_FALSO, '');
+  czMiUsernameOnline = glUsernameDe(user);
 
   document.getElementById('cz-armado').style.display = 'none';
   document.getElementById('cz-online-lobby').style.display = 'block';
