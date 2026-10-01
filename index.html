@@ -3472,7 +3472,7 @@ function emailDesdeUsuario(u){ return u.trim().toLowerCase().replace(/\s+/g,'') 
 /* ---------- LOGIN CON GOOGLE ----------
    INTERRUPTOR: queda en false hasta terminar la configuración en Google Cloud + Supabase.
    Con true aparece "Continuar con Google" en el login y "Vincular con Google" en el menú de usuario. */
-const GL_GOOGLE_ACTIVO = false;
+const GL_GOOGLE_ACTIVO = true;
 // El nombre de usuario sale SIEMPRE del perfil (con Google el mail es real, ya no sirve deducirlo del mail inventado)
 let GL_USERNAME = null;
 function glUsernameDe(user){
