@@ -13079,7 +13079,7 @@ async function cargarComunicados(){
       <div class="cg-pistas-col" style="margin-bottom:12px;">
         <div class="gd-pista-titulo">${comEsc(c.titulo)}</div>
         <div class="gd-intro" style="margin-top:6px; white-space:pre-wrap;">${comEsc(c.contenido)}</div>
-        <div style="font-size:11px; color:var(--text-dimmer); margin-top:8px;">${formatearFechaForo(c.creado_en)}${c.editado_en ? ' · editado ' + formatearFechaForo(c.editado_en) : ''}</div>
+        <div style="font-size:11px; color:var(--text-dimmer); margin-top:8px;">${formatearFechaForo(c.creado_en)}${(esGrillo && c.editado_en) ? ' · editado ' + formatearFechaForo(c.editado_en) : ''}</div>
         ${esGrillo ? `<div class="com-acciones">
           <button class="gl-share-btn" data-com-editar="${c.id}">✏️ Editar</button>
           <button class="gl-share-btn com-borrar" data-com-borrar="${c.id}">🗑️ Eliminar</button>
