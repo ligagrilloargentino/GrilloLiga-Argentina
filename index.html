@@ -1793,6 +1793,9 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
 }
 .gl-vacio{ text-align:center; padding:18px 10px; }
 
+/* comunicados: acciones de grillo */
+.com-acciones{ display:flex; gap:8px; margin-top:10px; }
+.com-acciones .com-borrar{ color:#B33B22; }
 /* aviso visible para vincular con Google (solo cuentas sin Google) */
 .gl-aviso-google{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:0 0 18px; padding:14px 16px;
   background:var(--card); border:1px solid var(--line); border-left:4px solid #4285F4; border-radius:10px; box-shadow:var(--card-sombra); }
@@ -2163,7 +2166,10 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
     <div id="com-publicar-wrap" style="display:none; margin-bottom:20px;">
       <div class="auth-field"><label>Título</label><input type="text" id="com-titulo-input" placeholder="Título del comunicado"></div>
       <div class="auth-field"><label>Contenido</label><textarea id="com-contenido-input" rows="4" style="width:100%; box-sizing:border-box; padding:9px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:13px;" placeholder="Escribí el comunicado…"></textarea></div>
-      <button class="auth-btn" id="com-publicar-btn" style="max-width:200px;">Publicar comunicado</button>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <button class="auth-btn" id="com-publicar-btn" style="max-width:200px; margin:0;">Publicar comunicado</button>
+        <button class="gag-despues" id="com-cancelar-edicion" style="display:none;">Cancelar edición</button>
+      </div>
     </div>
 
     <div id="com-lista"></div>
@@ -13055,31 +13061,80 @@ document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
 });
 
 
-/* ---------- COMUNICADOS OFICIALES ---------- */
+/* ---------- COMUNICADOS OFICIALES (solo "grillo" publica, edita y borra; la base lo controla también) ---------- */
+let comEditandoId = null;
+let comCache = [];
+function comEsc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 async function cargarComunicados(){
   const cont = document.getElementById('com-lista');
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
-  const { data } = await sbClient.from('comunicados_oficiales').select('titulo, contenido, creado_en').order('creado_en', { ascending:false });
-  cont.innerHTML = (data && data.length)
-    ? data.map(c => `
+  const [{ data }, { data: { user } }] = await Promise.all([
+    sbClient.from('comunicados_oficiales').select('id, titulo, contenido, creado_en, editado_en').order('creado_en', { ascending:false }),
+    sbClient.auth.getUser()
+  ]);
+  const esGrillo = !!(user && glUsernameDe(user) === 'grillo');
+  comCache = data || [];
+  cont.innerHTML = comCache.length
+    ? comCache.map(c => `
       <div class="cg-pistas-col" style="margin-bottom:12px;">
-        <div class="gd-pista-titulo">${c.titulo}</div>
-        <div class="gd-intro" style="margin-top:6px; white-space:pre-wrap;">${c.contenido}</div>
-        <div style="font-size:11px; color:var(--text-dimmer); margin-top:8px;">${formatearFechaForo(c.creado_en)}</div>
+        <div class="gd-pista-titulo">${comEsc(c.titulo)}</div>
+        <div class="gd-intro" style="margin-top:6px; white-space:pre-wrap;">${comEsc(c.contenido)}</div>
+        <div style="font-size:11px; color:var(--text-dimmer); margin-top:8px;">${formatearFechaForo(c.creado_en)}${c.editado_en ? ' · editado ' + formatearFechaForo(c.editado_en) : ''}</div>
+        ${esGrillo ? `<div class="com-acciones">
+          <button class="gl-share-btn" data-com-editar="${c.id}">✏️ Editar</button>
+          <button class="gl-share-btn com-borrar" data-com-borrar="${c.id}">🗑️ Eliminar</button>
+        </div>` : ''}
       </div>`).join('')
-    : '<div class="cz-online-esperando">Todavía no hay comunicados publicados.</div>';
+    : '<div class="cz-online-esperando gl-vacio">Todavía no hay comunicados publicados.</div>';
+  cont.querySelectorAll('[data-com-editar]').forEach(b => b.addEventListener('click', ()=> comEmpezarEdicion(Number(b.dataset.comEditar))));
+  cont.querySelectorAll('[data-com-borrar]').forEach(b => b.addEventListener('click', async ()=>{
+    const c = comCache.find(x => x.id === Number(b.dataset.comBorrar));
+    if(!c || !confirm(`¿Eliminar el comunicado "${c.titulo}"? No se puede deshacer.`)) return;
+    const { error } = await sbClient.from('comunicados_oficiales').delete().eq('id', c.id);
+    if(error){ glToast('No se pudo eliminar el comunicado.'); return; }
+    if(comEditandoId === c.id) comCancelarEdicion();
+    glToast('🗑️ Comunicado eliminado');
+    cargarComunicados();
+  }));
 }
+function comEmpezarEdicion(id){
+  const c = comCache.find(x => x.id === id);
+  if(!c) return;
+  comEditandoId = id;
+  document.getElementById('com-titulo-input').value = c.titulo;
+  document.getElementById('com-contenido-input').value = c.contenido;
+  document.getElementById('com-publicar-btn').textContent = 'Guardar cambios';
+  document.getElementById('com-cancelar-edicion').style.display = '';
+  document.getElementById('com-publicar-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+  document.getElementById('com-titulo-input').focus();
+}
+function comCancelarEdicion(){
+  comEditandoId = null;
+  document.getElementById('com-titulo-input').value = '';
+  document.getElementById('com-contenido-input').value = '';
+  document.getElementById('com-publicar-btn').textContent = 'Publicar comunicado';
+  document.getElementById('com-cancelar-edicion').style.display = 'none';
+}
+document.getElementById('com-cancelar-edicion').addEventListener('click', comCancelarEdicion);
 document.getElementById('com-publicar-btn').addEventListener('click', async (e)=>{
   const titulo = document.getElementById('com-titulo-input').value.trim();
   const contenido = document.getElementById('com-contenido-input').value.trim();
-  if(!titulo || !contenido) return;
-  glBotonCargando(e.currentTarget, true);
-  const { data: { user } } = await sbClient.auth.getUser();
-  await sbClient.from('comunicados_oficiales').insert({ usuario_id:user.id, titulo, contenido }).then(()=>{}, ()=>{});
-  document.getElementById('com-titulo-input').value = '';
-  document.getElementById('com-contenido-input').value = '';
+  if(!titulo || !contenido){ glToast('Completá título y contenido.'); return; }
+  const btn = e.currentTarget;
+  delete btn.dataset.glTextoOriginal; // el texto cambia entre "Publicar" y "Guardar cambios"
+  glBotonCargando(btn, true);
+  let error;
+  if(comEditandoId){
+    ({ error } = await sbClient.from('comunicados_oficiales').update({ titulo, contenido, editado_en:new Date().toISOString() }).eq('id', comEditandoId));
+  } else {
+    const { data: { user } } = await sbClient.auth.getUser();
+    ({ error } = await sbClient.from('comunicados_oficiales').insert({ usuario_id:user.id, titulo, contenido }));
+  }
+  glBotonCargando(btn, false);
+  if(error){ glToast('No se pudo guardar el comunicado.'); return; }
+  glToast(comEditandoId ? '✅ Comunicado actualizado' : '📢 Comunicado publicado');
+  comCancelarEdicion();
   await cargarComunicados();
-  glBotonCargando(e.currentTarget, false);
 });
 
 renderMatchChips();
