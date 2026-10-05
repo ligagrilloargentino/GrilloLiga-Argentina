@@ -1793,6 +1793,12 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
 }
 .gl-vacio{ text-align:center; padding:18px 10px; }
 
+/* Crucigrillo: archivo y letras reveladas */
+.cg-archivo-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:12px; font-size:13px; color:var(--text-dim); }
+.cg-archivo-row select{ padding:6px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; }
+.cg-archivo-nota{ font-size:11.5px; color:var(--red); }
+.cg-archivo-aviso{ background:color-mix(in srgb, #4285F4 10%, var(--card)); border:1px solid var(--line); border-left:4px solid #4285F4; border-radius:10px; padding:8px 12px; font-size:12.5px; margin-bottom:10px; }
+.cg-celda.cg-revelada input{ color:#4285F4 !important; font-style:italic; }
 /* Crucigrillo: selector de tema */
 .cg-tema-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 auto 14px; max-width:520px; }
 .cg-tema{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:12px 8px; border-radius:12px; cursor:pointer;
@@ -2583,15 +2589,21 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
           <button class="mg-toggle" data-dif="medio">🙂 Medio<br><span class="cg-seleccion-estado" data-estado="medio"></span></button>
           <button class="mg-toggle" data-dif="dificil">🔥 Difícil<br><span class="cg-seleccion-estado" data-estado="dificil"></span></button>
         </div>
+        <div class="cg-archivo-row">
+          <label for="cg-archivo-select">📅 Día:</label>
+          <select id="cg-archivo-select"></select>
+          <span class="cg-archivo-nota" id="cg-archivo-nota"></span>
+        </div>
       </div>
 
       <div id="cg-juego-wrap" style="display:none;">
+      <div class="cg-archivo-aviso" id="cg-archivo-aviso" style="display:none;"></div>
       <div class="cg-actual-barra">
         <div class="cg-actual-texto">
           <span id="cg-actual-progreso">1/15</span> · <b id="cg-actual-numero">1</b> <span id="cg-actual-dir"></span> — <span id="cg-actual-pista">…</span>
         </div>
         <span style="font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--red);" id="cg-cronometro">00:00</span>
-        <button class="auth-btn" id="cg-pista-btn" style="max-width:110px; margin:0;">💡 Pista (<span id="cg-pistas-restantes">3</span>)</button>
+        <button class="auth-btn" id="cg-pista-btn" style="max-width:130px; margin:0;" title="Revela una letra de la palabra activa">💡 Letra (<span id="cg-pistas-restantes">5</span>)</button>
         <button class="auth-btn" id="cg-saltar-btn" style="max-width:130px; margin:0;">Saltar ⏭</button>
       </div>
       <div class="cg-layout">
@@ -2604,7 +2616,7 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
             <button class="auth-btn" id="cg-nuevo-btn" style="max-width:160px; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">← Elegir otra dificultad</button>
           </div>
           <div id="cg-resultado" class="cg-resultado"></div>
-          <div class="cg-pistas-col" style="margin-top:16px;">
+          <div class="cg-pistas-col" id="cg-ranking-caja" style="margin-top:16px;">
             <div class="gd-pista-titulo">🏆 Mejores tiempos</div>
             <div id="cg-ranking-lista" style="margin-top:8px;"></div>
           </div>
@@ -5052,15 +5064,19 @@ const INSIGNIAS_DEF = [
   { id:'diez_mochila', icono:'💯', nombre:'Diez en la mochila', desc:'victorias totales sumadas entre todos los juegos', niveles:[10,20,30] },
   { id:'campeon_temporada', icono:'🏆', nombre:'Campeón de Temporada', desc:'Grillo Temporadas ganadas', niveles:[1,2,3] },
   { id:'campeon_copa', icono:'🏅', nombre:'Campeón de Copa', desc:'Grillo Copas ganadas', niveles:[1,2,3] },
-  { id:'cabezon_fierro', icono:'⚽', nombre:'Cabezón de fierro', desc:'victorias en Cabezones', niveles:[5,10,15] }
+  { id:'cabezon_fierro', icono:'⚽', nombre:'Cabezón de fierro', desc:'victorias en Cabezones', niveles:[5,10,15] },
+  { id:'crucigrillero', icono:'📰', nombre:'Crucigrillero', desc:'días de mejor racha en el Crucigrillo', niveles:[7,30,100] },
+  { id:'sin_ayuda', icono:'🧩', nombre:'Sin ayuda', desc:'Completó un Crucigrillo Difícil del día sin revelar letras' }
 ];
 const INSIGNIA_NIVELES_NOMBRE = ['', 'Bronce', 'Plata', 'Oro'];
 
 // Devuelve un Map id -> { nivel (0 = bloqueada; 1..3 si tiene niveles; 1 si es simple), valor }
 async function calcularInsigniasUsuario(userId){
-  const [{ data: resultados }, { data: historial }] = await Promise.all([
+  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }] = await Promise.all([
     sbClient.from('minijuegos_resultados').select('juego, resultado').eq('usuario_id', userId),
-    sbClient.from('cabezones_historial').select('modo, fue_campeon').eq('usuario_id', userId)
+    sbClient.from('cabezones_historial').select('modo, fue_campeon').eq('usuario_id', userId),
+    sbClient.from('crucigrillo_racha').select('mejor_racha').eq('usuario_id', userId).maybeSingle(),
+    sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId).eq('dificultad', 'dificil').eq('pistas_usadas', 0).limit(1)
   ]);
   const r = resultados || [];
   const h = historial || [];
@@ -5071,9 +5087,11 @@ async function calcularInsigniasUsuario(userId){
     diez_mochila: r.filter(x => x.resultado === 'victoria').length,
     campeon_temporada: h.filter(x => x.modo === 'temporada' && x.fue_campeon).length,
     campeon_copa: h.filter(x => x.modo === 'copa' && x.fue_campeon).length,
-    cabezon_fierro: r.filter(x => x.juego === 'cabezones' && x.resultado === 'victoria').length
+    cabezon_fierro: r.filter(x => x.juego === 'cabezones' && x.resultado === 'victoria').length,
+    crucigrillero: cgRacha ? (cgRacha.mejor_racha || 0) : 0,
+    sin_ayuda: (cgLimpios || []).length
   };
-  const umbralSimple = { primeros_pasos:1, coleccionista:5 };
+  const umbralSimple = { primeros_pasos:1, coleccionista:5, sin_ayuda:1 };
   const estado = new Map();
   INSIGNIAS_DEF.forEach(ins => {
     const v = valores[ins.id] || 0;
@@ -13369,7 +13387,10 @@ let cgSegundos = 0;
 let cgIntervaloCronometro = null;
 let cgTerminado = false;
 let cgDificultadActual = 'medio';
-let cgPistasRestantes = 3;
+const CG_LETRAS_POR_PARTIDA = 5;
+let cgPistasRestantes = CG_LETRAS_POR_PARTIDA;
+let cgPistasUsadas = 0;
+let cgFechaJuego = null; // null = el de hoy; 'YYYY-MM-DD' = archivo (no cuenta para racha ni ranking)
 const CG_DIFICULTAD_PALABRAS = { facil:10, medio:15, dificil:20 };
 const CG_ETIQUETAS_DIF = { facil:'Sencillo', medio:'Medio', dificil:'Difícil' };
 
@@ -13422,10 +13443,12 @@ async function cgGuardarMejorTiempo(){
     await sbClient.from('crucigrillo_tiempos').upsert({ usuario_id:user.id, dificultad:cgDificultadActual, tema:cgTemaActual, mejor_tiempo_segundos:cgSegundos, actualizado_en:new Date().toISOString() }).then(()=>{}, ()=>{});
   }
   await sbClient.from('crucigrillo_progreso_diario').insert({
-    usuario_id:user.id, fecha:cgFechaHoy(), dificultad:cgDificultadActual, tema:cgTemaActual, tiempo_segundos:cgSegundos, pistas_usadas: 3-cgPistasRestantes
+    usuario_id:user.id, fecha:cgFechaHoy(), dificultad:cgDificultadActual, tema:cgTemaActual, tiempo_segundos:cgSegundos, pistas_usadas: cgPistasUsadas
   }).then(()=>{}, ()=>{});
   await cgActualizarRacha(user.id);
   cgCargarRanking();
+  const cont = document.getElementById('umm-insignias');
+  if(cont) calcularInsigniasUsuario(user.id).then(est => renderizarInsignias(cont, est, true));
 }
 
 async function cgActualizarRacha(usuarioId){
@@ -13460,7 +13483,22 @@ async function cgCargarRanking(){
     : '<div class="cz-online-esperando gl-vacio">Todavía nadie completó uno. ¡Arrancá vos!</div>';
 }
 
+function cgFechaLinda(f){ const [y,m,d] = f.split('-'); return `${d}/${m}`; }
+function cgArmarSelectorArchivo(){
+  const sel = document.getElementById('cg-archivo-select');
+  const opciones = [`<option value="">Hoy (cuenta para la racha)</option>`];
+  for(let i = 1; i <= 14; i++){
+    const d = new Date(Date.now() - i * 86400000);
+    const f = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const nombreDia = d.toLocaleDateString('es-AR', { weekday:'long' });
+    opciones.push(`<option value="${f}"${cgFechaJuego === f ? ' selected' : ''}>${nombreDia} ${cgFechaLinda(f)} (archivo)</option>`);
+  }
+  sel.innerHTML = opciones.join('');
+  sel.parentElement.style.display = opciones.length > 1 ? '' : 'none';
+}
 async function cgRenderizarSeleccion(){
+  cgArmarSelectorArchivo();
+  document.getElementById('cg-archivo-nota').textContent = cgFechaJuego ? 'No cuenta para racha ni ranking' : '';
   const { data: { user } } = await sbClient.auth.getUser();
   const hoy = cgFechaHoy();
   const [{ data: progresoHoy }, { data: racha }] = await Promise.all([
@@ -13470,6 +13508,7 @@ async function cgRenderizarSeleccion(){
   document.getElementById('cg-racha-actual').textContent = racha ? racha.racha_actual : 0;
   document.getElementById('cg-racha-mejor').textContent = racha ? racha.mejor_racha : 0;
   ['facil','medio','dificil'].forEach(dif=>{
+    if(cgFechaJuego){ document.querySelector(`[data-estado="${dif}"]`).textContent = 'Archivo'; return; }
     const hecho = (progresoHoy||[]).find(p => p.dificultad === dif && (p.tema || 'general') === cgTemaActual);
     document.querySelector(`[data-estado="${dif}"]`).textContent = hecho ? `✅ ${cgFormatearTiempo(hecho.tiempo_segundos)}` : 'Sin jugar hoy';
   });
@@ -13669,12 +13708,22 @@ function cgRenderizar(resultado){
 
 function cgPista(){
   if(cgPistasRestantes <= 0 || cgTerminado) return;
-  const vacias = Array.from(document.querySelectorAll('#cg-grilla input')).filter(inp => !inp.value);
-  if(!vacias.length) return;
-  const elegida = vacias[Math.floor(Math.random()*vacias.length)];
+  // revela UNA letra de la palabra activa: la primera vacía o mal puesta; si no hay palabra activa, cualquier vacía
+  const malOVacia = inp => inp && inp.value !== inp.dataset.letra;
+  let elegida = null;
+  if(cgPalabraActual){
+    const celda = cgPalabraActual.celdas.find(({row,col}) => malOVacia(cgInputDe(row,col)));
+    if(celda) elegida = cgInputDe(celda.row, celda.col);
+  }
+  if(!elegida) elegida = Array.from(document.querySelectorAll('#cg-grilla input')).find(malOVacia);
+  if(!elegida){ glToast('No quedan letras por revelar.'); return; }
   elegida.value = elegida.dataset.letra;
-  elegida.parentElement.classList.add('cg-ok');
+  elegida.readOnly = true;
+  elegida.parentElement.classList.remove('cg-mal');
+  elegida.parentElement.classList.add('cg-ok', 'cg-revelada');
+  cgPistasUsadas++;
   cgPistasRestantes--;
+  if(cgPalabraActual && cgPalabraCompleta(cgPalabraActual)) cgActivarPalabra(cgIndiceActual + 1);
   document.getElementById('cg-pistas-restantes').textContent = cgPistasRestantes;
   document.getElementById('cg-pista-btn').disabled = cgPistasRestantes <= 0;
 }
@@ -13693,7 +13742,9 @@ function cgCorregir(){
     if(!cgTerminado){
       cgTerminado = true;
       clearInterval(cgIntervaloCronometro);
-      cgGuardarMejorTiempo();
+      glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+      if(cgPistasUsadas === 0) document.getElementById('cg-resultado').textContent += ' ¡Y sin usar letras! 🧩';
+      if(!cgFechaJuego) cgGuardarMejorTiempo();
     }
   } else {
     document.getElementById('cg-resultado').textContent = `${correctas} de ${total} letras correctas.`;
@@ -13702,16 +13753,22 @@ function cgCorregir(){
 
 function cgIniciarCrucigrama(dificultad){
   cgDificultadActual = dificultad;
-  cgPistasRestantes = 3;
-  document.getElementById('cg-pistas-restantes').textContent = 3;
+  cgPistasRestantes = CG_LETRAS_POR_PARTIDA;
+  cgPistasUsadas = 0;
+  document.getElementById('cg-pistas-restantes').textContent = CG_LETRAS_POR_PARTIDA;
   document.getElementById('cg-pista-btn').disabled = false;
   document.getElementById('cg-resultado').textContent = '';
   document.getElementById('cg-seleccion-wrap').style.display = 'none';
   document.getElementById('cg-juego-wrap').style.display = 'block';
 
   const cantidadPalabras = CG_DIFICULTAD_PALABRAS[dificultad];
-  const seed = `${cgFechaHoy()}-${dificultad}-${cgTemaActual}`;
-  const hoy = cgFechaHoy();
+  const hoy = cgFechaJuego || cgFechaHoy();
+  const seed = `${hoy}-${dificultad}-${cgTemaActual}`;
+  const esArchivo = !!cgFechaJuego;
+  const aviso = document.getElementById('cg-archivo-aviso');
+  aviso.style.display = esArchivo ? 'block' : 'none';
+  if(esArchivo) aviso.textContent = `📅 Archivo · Crucigrillo del ${cgFechaLinda(hoy)} — se juega por diversión: no cuenta para la racha, el ranking ni las medallas.`;
+  document.getElementById('cg-ranking-caja').style.display = esArchivo ? 'none' : '';
   const candidatos = [...cgCandidatosDelDia(dificultad, hoy, cgTemaActual), ...cgJugadoresDelDia(dificultad === 'facil' ? 2 : 3, hoy, dificultad + cgTemaActual)];
   cgConSeed(seed, ()=>{
     // la más larga va primero (ancla del crucigrama); el resto mezclado para que no salgan siempre las largas
@@ -13722,7 +13779,7 @@ function cgIniciarCrucigrama(dificultad){
     cgRenderizar(final);
   });
   cgIniciarCronometro();
-  cgCargarRanking();
+  if(!esArchivo) cgCargarRanking();
 }
 
 document.getElementById('cg-corregir-btn').addEventListener('click', cgCorregir);
@@ -13731,6 +13788,10 @@ document.getElementById('cg-nuevo-btn').addEventListener('click', ()=>{
   if(cgIntervaloCronometro) clearInterval(cgIntervaloCronometro);
   document.getElementById('cg-juego-wrap').style.display = 'none';
   document.getElementById('cg-seleccion-wrap').style.display = 'block';
+  cgRenderizarSeleccion();
+});
+document.getElementById('cg-archivo-select').addEventListener('change', (e)=>{
+  cgFechaJuego = e.target.value || null;
   cgRenderizarSeleccion();
 });
 document.querySelectorAll('#cg-tema-row [data-tema]').forEach(btn=>{
