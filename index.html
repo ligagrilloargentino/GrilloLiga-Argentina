@@ -1793,6 +1793,20 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
 }
 .gl-vacio{ text-align:center; padding:18px 10px; }
 
+/* Crucigrillo: opciones, definiciones tocables y teclado propio */
+.cg-opcion{ background:transparent; border:1px solid var(--line-strong); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; color:var(--text-dim); font-family:'Alegreya Sans',sans-serif; }
+.cg-opcion.activo{ border-color:var(--grass); color:var(--grass); background:color-mix(in srgb, var(--grass) 10%, transparent); font-weight:700; }
+.cg-pistas-col li.cg-li-tocable{ cursor:pointer; border-radius:6px; transition:background .12s; }
+.cg-pistas-col li.cg-li-tocable:hover{ background:var(--card2); }
+.cg-teclado{ position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--card2); border-top:1px solid var(--line-strong);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow:0 -4px 16px rgba(0,0,0,.12); user-select:none; touch-action:manipulation; }
+.cg-tec-fila{ display:flex; justify-content:center; gap:4px; margin:4px 0; }
+.cg-tec{ flex:1 1 0; max-width:42px; height:46px; border:none; border-radius:7px; background:var(--card); color:var(--text);
+  font-family:'Alegreya Sans',sans-serif; font-weight:800; font-size:17px; box-shadow:0 1px 0 rgba(0,0,0,.25); cursor:pointer; padding:0; }
+.cg-tec:active{ background:var(--red); color:#fff; transform:scale(.95); }
+.cg-tec-borrar{ max-width:62px; flex:1.5 1 0; background:var(--line-strong); color:var(--text); }
+body.cg-teclado-on #nav-inferior{ display:none !important; }
+body.cg-teclado-on{ padding-bottom:180px !important; }
 /* Crucigrillo: archivo y letras reveladas */
 .cg-archivo-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:12px; font-size:13px; color:var(--text-dim); }
 .cg-archivo-row select{ padding:6px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; }
@@ -2605,6 +2619,8 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
         <span style="font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--red);" id="cg-cronometro">00:00</span>
         <button class="auth-btn" id="cg-pista-btn" style="max-width:130px; margin:0;" title="Revela una letra de la palabra activa">💡 Letra (<span id="cg-pistas-restantes">5</span>)</button>
         <button class="auth-btn" id="cg-saltar-btn" style="max-width:130px; margin:0;">Saltar ⏭</button>
+        <button class="cg-opcion" id="cg-auto-btn" title="Marcar en verde cada palabra apenas está bien">✅ Auto</button>
+        <button class="cg-opcion" id="cg-teclado-btn" title="Usar el teclado de la Grillo Liga en lugar del del celular">⌨️ Teclado</button>
       </div>
       <div class="cg-layout">
         <div class="cg-grilla-wrap">
@@ -2616,6 +2632,7 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
             <button class="auth-btn" id="cg-nuevo-btn" style="max-width:160px; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">← Elegir otra dificultad</button>
           </div>
           <div id="cg-resultado" class="cg-resultado"></div>
+          <div class="cg-teclado" id="cg-teclado" aria-label="Teclado del Crucigrillo"></div>
           <div class="cg-pistas-col" id="cg-ranking-caja" style="margin-top:16px;">
             <div class="gd-pista-titulo">🏆 Mejores tiempos</div>
             <div id="cg-ranking-lista" style="margin-top:8px;"></div>
@@ -13664,11 +13681,12 @@ function cgRenderizar(resultado){
     const row = parseInt(inp.dataset.row), col = parseInt(inp.dataset.col);
 
     // Cualquier celda con letra se puede tocar/enfocar en cualquier momento (no solo la "palabra activa")
-    inp.addEventListener('focus', ()=> cgSeleccionarCelda(row, col));
+    inp.addEventListener('focus', ()=>{ cgUltimoInput = inp; cgSeleccionarCelda(row, col); });
     inp.addEventListener('click', ()=> cgSeleccionarCelda(row, col));
 
     inp.addEventListener('input', ()=>{
-      inp.value = inp.value.toUpperCase().slice(0,1).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      inp.value = inp.value.toUpperCase().slice(-1).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z]/g,'');
+      cgActualizarEstadoPalabras();
       if(!inp.value) return;
       let palabra = cgPalabraActual;
       if(!palabra || !palabra.celdas.some(c=>c.row===row && c.col===col)){
@@ -13684,7 +13702,8 @@ function cgRenderizar(resultado){
         const sig = palabra.celdas[idx+1];
         const siguiente = cgInputDe(sig.row, sig.col);
         if(siguiente) siguiente.focus();
-      } else if(cgPalabraCompleta(palabra)){
+      } else if(cgPalabraCompleta(palabra) && (!cgAutoVerificar || cgPalabraCorrecta(palabra))){
+        // con "Auto", si la palabra quedó mal no salta a la siguiente: te deja corregirla
         const pendiente = cgCola.find(p => p !== palabra && !cgPalabraCompleta(p));
         cgActivarPalabraObj(pendiente || null);
       }
@@ -13702,9 +13721,116 @@ function cgRenderizar(resultado){
     });
   });
 
+  // definiciones tocables: llevan directo a esa palabra en la grilla
+  document.querySelectorAll('#cg-pistas-horizontales li[data-row], #cg-pistas-verticales li[data-row]').forEach(li=>{
+    const dir = li.closest('#cg-pistas-horizontales') ? 'H' : 'V';
+    const pal = cgCola.find(p => p.dir === dir && p.row === +li.dataset.row && p.col === +li.dataset.col);
+    if(!pal) return;
+    li.classList.add('cg-li-tocable');
+    li.addEventListener('click', ()=>{
+      cgActivarPalabraObj(pal);
+      const primera = cgInputDe(pal.celdas[0].row, pal.celdas[0].col);
+      if(primera && primera.scrollIntoView) primera.scrollIntoView({ behavior:'smooth', block:'center', inline:'center' });
+    });
+  });
+
   document.getElementById('cg-resultado').textContent = '';
+  cgAplicarModoTeclado();
   cgActivarPalabraObj(cgCola[0]);
 }
+
+/* ---------- Verificación automática, definiciones tocables y teclado propio ---------- */
+function cgPref(clave, porDefecto){ try{ const v = localStorage.getItem(clave); return v === null ? porDefecto : v === '1'; }catch(_){ return porDefecto; } }
+function cgGuardarPref(clave, v){ try{ localStorage.setItem(clave, v ? '1' : '0'); }catch(_){} }
+const CG_ES_TACTIL = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+let cgAutoVerificar = cgPref('grilloliga-cg-auto', true);
+let cgTecladoPropio = CG_ES_TACTIL && cgPref('grilloliga-cg-teclado', true);
+let cgUltimoInput = null;
+
+function cgPalabraCorrecta(palabra){
+  return palabra.celdas.every(({row,col}) => { const inp = cgInputDe(row,col); return inp && inp.value === inp.dataset.letra; });
+}
+function cgLiDe(palabra){
+  return document.querySelector(`#cg-pistas-${palabra.dir === 'H' ? 'horizontales' : 'verticales'} li[data-row="${palabra.row}"][data-col="${palabra.col}"]`);
+}
+// Revisa el estado de todas las palabras: tacha las definiciones resueltas y, con "Auto", pinta verde/rojo
+function cgActualizarEstadoPalabras(){
+  if(!cgCola.length) return;
+  document.querySelectorAll('#cg-grilla .cg-celda').forEach(div => { if(!div.classList.contains('cg-revelada')) div.classList.remove('cg-ok','cg-mal'); });
+  let todasBien = true;
+  cgCola.forEach(pal=>{
+    const completa = cgPalabraCompleta(pal), correcta = completa && cgPalabraCorrecta(pal);
+    if(!correcta) todasBien = false;
+    const li = cgLiDe(pal);
+    if(li) li.classList.toggle('cg-completa', cgAutoVerificar ? correcta : completa);
+    if(!cgAutoVerificar || !completa) return;
+    pal.celdas.forEach(({row,col})=>{
+      const inp = cgInputDe(row,col);
+      if(!inp) return;
+      if(correcta) inp.parentElement.classList.add('cg-ok');
+      else if(inp.value !== inp.dataset.letra) inp.parentElement.classList.add('cg-mal');
+    });
+  });
+  if(cgAutoVerificar && todasBien && !cgTerminado) cgCorregir();
+}
+
+// Teclado propio (solo en celular): letras grandes, sin autocorrector, sin que salte la pantalla
+function cgEscribirLetra(letra){
+  const inp = cgUltimoInput;
+  if(!inp || cgTerminado) return;
+  if(inp.readOnly){ inp.dispatchEvent(new Event('input')); return; }
+  inp.value = letra;
+  inp.dispatchEvent(new Event('input'));
+}
+function cgBorrarLetra(){
+  const inp = cgUltimoInput;
+  if(!inp || cgTerminado) return;
+  if(inp.value && !inp.readOnly){ inp.value = ''; cgActualizarEstadoPalabras(); return; }
+  const pal = cgPalabraActual;
+  if(!pal) return;
+  const idx = pal.celdas.findIndex(c => c.row === +inp.dataset.row && c.col === +inp.dataset.col);
+  if(idx > 0){
+    const ant = cgInputDe(pal.celdas[idx-1].row, pal.celdas[idx-1].col);
+    if(ant){ if(!ant.readOnly) ant.value = ''; ant.focus(); cgActualizarEstadoPalabras(); }
+  }
+}
+function cgArmarTeclado(){
+  const cont = document.getElementById('cg-teclado');
+  const filas = ['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+  cont.innerHTML = filas.map((f,i) => `<div class="cg-tec-fila">${f.split('').map(l => `<button type="button" class="cg-tec" data-letra="${l}">${l}</button>`).join('')}${i === 2 ? '<button type="button" class="cg-tec cg-tec-borrar" data-borrar="1" aria-label="Borrar">⌫</button>' : ''}</div>`).join('');
+  // pointerdown + preventDefault: el foco no se va de la celda, así sigue resaltada la palabra
+  cont.querySelectorAll('.cg-tec').forEach(b => b.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    glVibrar(8);
+    if(b.dataset.borrar) cgBorrarLetra(); else cgEscribirLetra(b.dataset.letra);
+  }));
+}
+function cgAplicarModoTeclado(){
+  const enJuego = document.getElementById('cg-juego-wrap').style.display !== 'none';
+  document.getElementById('cg-teclado-btn').style.display = CG_ES_TACTIL ? '' : 'none';
+  document.getElementById('cg-teclado-btn').classList.toggle('activo', cgTecladoPropio);
+  document.getElementById('cg-auto-btn').classList.toggle('activo', cgAutoVerificar);
+  document.getElementById('cg-teclado').style.display = (cgTecladoPropio && enJuego) ? '' : 'none';
+  document.body.classList.toggle('cg-teclado-on', cgTecladoPropio && enJuego);
+  document.querySelectorAll('#cg-grilla input').forEach(inp=>{
+    // inputmode="none": el celular no abre su teclado, pero la celda se puede seguir tocando y resaltando
+    if(cgTecladoPropio) inp.setAttribute('inputmode','none'); else inp.removeAttribute('inputmode');
+  });
+  if(cgTecladoPropio && document.activeElement && document.activeElement.closest && document.activeElement.closest('#cg-grilla')){
+    document.activeElement.blur(); if(cgUltimoInput) cgUltimoInput.focus();
+  }
+}
+document.getElementById('cg-auto-btn').addEventListener('click', ()=>{
+  cgAutoVerificar = !cgAutoVerificar; cgGuardarPref('grilloliga-cg-auto', cgAutoVerificar);
+  cgAplicarModoTeclado(); cgActualizarEstadoPalabras();
+  glToast(cgAutoVerificar ? '✅ Verificación automática activada' : 'Verificación automática desactivada: usá "Corregir"');
+});
+document.getElementById('cg-teclado-btn').addEventListener('click', ()=>{
+  cgTecladoPropio = !cgTecladoPropio; cgGuardarPref('grilloliga-cg-teclado', cgTecladoPropio);
+  cgAplicarModoTeclado();
+  glToast(cgTecladoPropio ? '⌨️ Teclado de la Grillo Liga' : 'Teclado del celular');
+});
+cgArmarTeclado();
 
 function cgPista(){
   if(cgPistasRestantes <= 0 || cgTerminado) return;
@@ -13723,6 +13849,7 @@ function cgPista(){
   elegida.parentElement.classList.add('cg-ok', 'cg-revelada');
   cgPistasUsadas++;
   cgPistasRestantes--;
+  cgActualizarEstadoPalabras();
   if(cgPalabraActual && cgPalabraCompleta(cgPalabraActual)) cgActivarPalabra(cgIndiceActual + 1);
   document.getElementById('cg-pistas-restantes').textContent = cgPistasRestantes;
   document.getElementById('cg-pista-btn').disabled = cgPistasRestantes <= 0;
@@ -13787,6 +13914,7 @@ document.getElementById('cg-pista-btn').addEventListener('click', cgPista);
 document.getElementById('cg-nuevo-btn').addEventListener('click', ()=>{
   if(cgIntervaloCronometro) clearInterval(cgIntervaloCronometro);
   document.getElementById('cg-juego-wrap').style.display = 'none';
+  cgAplicarModoTeclado();
   document.getElementById('cg-seleccion-wrap').style.display = 'block';
   cgRenderizarSeleccion();
 });
@@ -13823,6 +13951,8 @@ document.getElementById('mini-card-crucigrillo').addEventListener('click', ()=>{
 });
 document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
   if(cgIntervaloCronometro) clearInterval(cgIntervaloCronometro);
+  document.getElementById('cg-juego-wrap').style.display = 'none';
+  cgAplicarModoTeclado();
   document.getElementById('mini-crucigrillo').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'grid';
 });
