@@ -1842,6 +1842,157 @@ body.cg-teclado-on{ padding-bottom:180px !important; }
 .auth-btn.auth-btn-google:hover{ background:#f7f8f8; }
 .auth-separador{ display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--text-dimmer); font-size:11.5px; }
 .auth-separador::before, .auth-separador::after{ content:''; flex:1; border-top:1px solid var(--line); }
+
+/* =====================================================================
+   TRUCO RENOVADO: paño, cartas españolas con caras, fósforos, globos
+   ===================================================================== */
+#tr-mesa-wrap .pen-marcador{ display:none; }
+#tr-mesa, .treq-pano{
+  position:relative; overflow:hidden; max-width:680px; margin:0 auto;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 38%, rgba(255,236,180,.16), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, #2f7d45 0%, #226236 58%, #173f24 100%);
+  border:12px solid #5c3a1e; border-radius:26px;
+  box-shadow:0 12px 30px rgba(0,0,0,.45), inset 0 0 70px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.07), 0 0 0 2px #3c2512;
+  padding:20px 14px;
+}
+#tr-mesa::before, .treq-pano::before{
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 .1  0 0 0 0 0  0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#tr-mesa::after{ color:rgba(247,241,225,.06); font-family:'Special Elite',monospace; font-weight:400; }
+.treq-pano{ padding:14px 10px 10px; margin-top:8px; }
+.treq-pano .treq-mi-mano-titulo{ color:rgba(247,241,225,.75); position:relative; }
+.treq-titulo-fijo{ text-align:center; font-family:'Special Elite',monospace; font-size:17px; color:var(--red); margin-bottom:8px; }
+
+/* cartas españolas con la cara del jugador */
+.tr-carta{
+  --palo-c:#2F5DA8; position:relative; display:block; width:70px; height:104px; padding:0; flex:0 0 auto;
+  border-radius:9px; background:linear-gradient(160deg, #fffef9 0%, #f4ecd7 100%); border:1px solid #b9a984;
+  box-shadow:0 3px 8px rgba(0,0,0,.35); color:#161310; overflow:hidden;
+  transition:transform .18s ease, box-shadow .18s ease, opacity .2s;
+}
+.tr-carta::before{ content:''; position:absolute; inset:4px; border:1px solid color-mix(in srgb, var(--palo-c) 35%, transparent); border-radius:6px; pointer-events:none; }
+.tr-p-espada{ --palo-c:#2F5DA8; } .tr-p-basto{ --palo-c:#3E7A3A; } .tr-p-oro{ --palo-c:#A9831F; } .tr-p-copa{ --palo-c:#C0392B; }
+.tr-c-esq{ position:absolute; display:flex; flex-direction:column; align-items:center; line-height:.9; z-index:1; }
+.tr-c-esq b{ font-family:'Barlow Condensed','Alegreya Sans',sans-serif; font-size:18px; font-weight:700; color:var(--palo-c); }
+.tr-c-esq svg{ width:12px; height:12px; margin-top:1px; }
+.tr-c-sup{ top:5px; left:6px; } .tr-c-inf{ bottom:5px; right:6px; transform:rotate(180deg); }
+.tr-c-centro{ position:absolute; inset:12px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; }
+.tr-c-foto{ width:44px; height:44px; border-radius:50%; background:#e8dcc0 center/cover; border:2px solid var(--palo-c); box-shadow:0 1px 4px rgba(0,0,0,.3); }
+.tr-c-nombre{ font-family:'Alegreya Sans',sans-serif; font-size:9px; font-weight:800; color:#4b3c26; max-width:54px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+.tr-c-palo-mini svg{ width:15px; height:15px; display:block; }
+.tr-c-palo-grande svg{ width:42px; height:42px; display:block; }
+.tr-carta:hover{ transform:none; }
+.tr-carta.tr-jugable{ cursor:grab; touch-action:none; }
+.tr-carta.tr-jugable:hover{ transform:translateY(-10px); box-shadow:0 12px 20px rgba(0,0,0,.45); }
+.tr-carta.tr-bloqueada{ cursor:default; filter:saturate(.8) brightness(.96); }
+.tr-carta.tr-arrastrando{ transition:none; z-index:40; box-shadow:0 18px 30px rgba(0,0,0,.55); cursor:grabbing; }
+.tr-carta.tr-dorso{
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 18px, rgba(0,0,0,.0) 18px),
+    repeating-linear-gradient(45deg, #9b2f1b 0 5px, #7d2414 5px 10px);
+  border:3px solid #f4ecd7; cursor:default;
+}
+.tr-carta.tr-dorso::before{ border-color:rgba(244,236,215,.5); }
+.tr-carta.tr-dorso span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Special Elite',monospace; font-size:17px; color:#f4ecd7; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+.tr-repartida{ animation:trReparto .5s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes trReparto{ from{ opacity:0; transform:translate(0,-140px) rotate(-30deg) scale(.55); } to{ opacity:1; transform:none; } }
+.tr-en-mesa{ cursor:default; animation:trCae .28s ease-out both; }
+@keyframes trCae{ from{ opacity:0; transform:translateY(24px) scale(1.12); } to{ opacity:1; transform:none; } }
+.tr-jugadas .tr-carta:nth-child(1){ rotate:-4deg; } .tr-jugadas .tr-carta:nth-child(2){ rotate:3deg; } .tr-jugadas .tr-carta:nth-child(3){ rotate:-2deg; }
+.tr-gana{ box-shadow:0 0 0 3px #E0B000, 0 0 18px rgba(224,176,0,.85); z-index:2; }
+.tr-pierde{ opacity:.62; filter:saturate(.6); }
+.tr-parda{ box-shadow:0 0 0 2px #9AA3AC; }
+.tr-cabeza{ border:3px solid #f4ecd7; box-shadow:0 2px 6px rgba(0,0,0,.4); transition:box-shadow .2s; }
+.tr-cabeza.tr-turno{ box-shadow:0 0 0 3px #E0B000, 0 0 16px rgba(224,176,0,.85); animation:trLatido 1.4s ease-in-out infinite; }
+@keyframes trLatido{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.06); } }
+.tr-centro{ min-height:120px; border:2px dashed rgba(247,241,225,.14); border-radius:14px; margin:6px 0; position:relative; }
+.tr-canto-actual{ font-size:13px; }
+
+/* tanteador con fósforos */
+.tr-tanteador{ display:grid; grid-template-columns:1fr 1fr; gap:8px; max-width:680px; margin:0 auto 10px; }
+.tr-tanto{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px 10px; box-shadow:var(--card-sombra); transition:box-shadow .2s, border-color .2s; }
+.tr-tanto-turno{ border-color:#E0B000; box-shadow:0 0 0 2px rgba(224,176,0,.45), var(--card-sombra); }
+.tr-tanto-nombre{ display:flex; justify-content:space-between; align-items:flex-start; gap:6px; font-weight:800; font-size:13px; margin-bottom:2px; }
+.tr-tanto-nombre small{ display:block; font-weight:400; font-size:10.5px; color:var(--text-dim); }
+.tr-tanto-nombre b{ font-family:var(--font-num); font-size:22px; line-height:1; color:var(--red); }
+.tr-tanto-fila{ display:flex; align-items:center; gap:1px; }
+.tr-tanto-apagada{ opacity:.35; }
+.tr-tanto-etq{ font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dimmer); width:40px; flex:0 0 auto; }
+.tr-fosforos{ width:26px; height:24px; flex:0 0 auto; }
+.tr-fosforos line{ stroke:#D8B47A; stroke-width:2.2; stroke-linecap:round; }
+.tr-fosforos .tr-fos-cruz{ stroke:#C9A36B; }
+.tr-fosforos circle{ fill:#B33B22; }
+.tr-tanto.tr-desconectado{ opacity:.7; }
+.tr-tanto.tr-desconectado .tr-tanto-nombre > span::after{ content:' · 📶 sin conexión'; font-weight:400; font-size:10px; color:var(--red); }
+.treq-eq-A.tr-tanto{ border-left:4px solid #B33B22; } .treq-eq-B.tr-tanto{ border-left:4px solid #4A6B43; }
+
+/* globos de canto y resumen de mano */
+.tr-globo{ position:absolute; left:50%; top:44%; z-index:30; pointer-events:none; text-align:center;
+  background:#fffdf5; color:#161310; border-radius:18px; padding:10px 20px 8px; box-shadow:0 10px 26px rgba(0,0,0,.45);
+  animation:trGlobo 1.9s ease both; white-space:nowrap; }
+.tr-globo::after{ content:''; position:absolute; left:50%; bottom:-9px; margin-left:-9px; border:9px solid transparent; border-bottom:0; border-top-color:#fffdf5; }
+.tr-globo b{ display:block; font-family:'Special Elite',monospace; font-weight:400; font-size:27px; color:#B33B22; line-height:1.1; }
+.tr-globo span{ font-size:12px; color:#57503F; font-weight:700; }
+@keyframes trGlobo{ 0%{ opacity:0; transform:translate(-50%,-50%) scale(.4); } 12%{ opacity:1; transform:translate(-50%,-50%) scale(1.1); }
+  22%{ transform:translate(-50%,-50%) scale(1); } 80%{ opacity:1; transform:translate(-50%,-50%) scale(1); } 100%{ opacity:0; transform:translate(-50%,-62%) scale(.96); } }
+.tr-resumen{ position:absolute; left:50%; bottom:10px; transform:translateX(-50%); z-index:25; min-width:230px; max-width:92%;
+  background:rgba(14,22,16,.93); color:#f4ecd7; border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:8px 14px; text-align:center;
+  font-size:13px; animation:trResumen 2.7s ease both; pointer-events:none; }
+.tr-resumen b{ display:block; font-family:'Special Elite',monospace; font-weight:400; color:#E0B000; }
+.tr-resumen small{ display:block; margin-top:4px; font-size:11px; color:rgba(244,236,215,.8); line-height:1.35; }
+@keyframes trResumen{ 0%{ opacity:0; transform:translate(-50%,12px); } 12%,85%{ opacity:1; transform:translate(-50%,0); } 100%{ opacity:0; } }
+@media (prefers-reduced-motion: reduce){ .tr-repartida, .tr-en-mesa, .tr-globo, .tr-resumen, .tr-cabeza.tr-turno{ animation-duration:.01s; } }
+
+/* estado, botonera fija y respuestas */
+.tr-estado-turno{ text-align:center; font-weight:800; font-size:13.5px; margin:10px 0 0; color:var(--text-dim); min-height:18px; }
+.tr-estado-turno.tr-estado-mio{ color:var(--red); }
+.tr-botonera{ display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; max-width:520px; margin:10px auto 0; }
+.tr-botonera .tr-btn-chico, .tr-respuestas .tr-btn-chico{ max-width:none; width:100%; margin:0; }
+.tr-botonera button:disabled{ opacity:.32; cursor:not-allowed; filter:grayscale(.6); }
+.tr-btn-envido{ background:#2F5DA8 !important; border-color:#2F5DA8 !important; }
+.tr-btn-truco{ background:#B33B22 !important; border-color:#B33B22 !important; }
+.tr-btn-flor{ background:#A9831F !important; border-color:#A9831F !important; }
+.tr-btn-mazo{ background:transparent !important; color:var(--text-dim) !important; border-color:var(--line-strong) !important; }
+.tr-respuestas{ max-width:520px; margin:10px auto 0; padding:8px; border-radius:12px; background:color-mix(in srgb, #E0B000 14%, var(--card)); border:1px solid #E0B000; animation:trCae .25s ease-out; }
+.tr-respuestas .tr-btn-chico{ flex:1 1 30%; }
+.tr-mi-envido-fila{ display:flex; align-items:center; justify-content:center; gap:10px; margin-top:8px; flex-wrap:wrap; min-height:28px; }
+.tr-mi-envido{ font-size:12.5px; color:var(--text-dim); font-weight:700; }
+.tr-conexion{ max-width:680px; margin:0 auto 8px; padding:8px 12px; border-radius:10px; font-size:12.5px; font-weight:700;
+  background:color-mix(in srgb, var(--red) 12%, var(--card)); border:1px solid var(--red); color:var(--red); text-align:center; }
+
+/* equipos: asientos sobre el paño, avatares y señas */
+.treq-mesa{ position:relative; }
+.treq-asiento{ background:rgba(10,30,16,.55); border:1px solid rgba(255,255,255,.12); border-left:4px solid var(--treq-color); color:#f4ecd7; position:relative; }
+.treq-asiento.treq-yo{ background:rgba(10,30,16,.75); }
+.treq-asiento.treq-turno{ box-shadow:0 0 0 2px #E0B000, 0 0 14px rgba(224,176,0,.6); }
+.treq-asiento.treq-desconectado{ opacity:.55; }
+.treq-asiento-cab{ display:flex; align-items:center; gap:8px; }
+.treq-avatar{ width:30px; height:30px; border-radius:50%; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  background:var(--treq-color); color:#fff; font-weight:800; font-size:14px; border:2px solid #f4ecd7; }
+.treq-asiento-nombre{ color:#f4ecd7; } .treq-asiento-nombre span{ color:#f0c27a; }
+.treq-asiento-tags{ color:rgba(244,236,215,.7); }
+.treq-asiento-cartas{ min-height:76px; }
+.treq-asiento-cartas .tr-carta{ transform:scale(.7); transform-origin:top left; margin-right:-20px; margin-bottom:-30px; }
+.treq-asiento-cartas .tr-carta.tr-en-mesa{ animation:none; }
+.treq-sin-cartas{ color:rgba(244,236,215,.5); }
+.treq-senas-wrap{ max-width:520px; margin:10px auto 0; text-align:center; }
+.treq-senas-menu{ flex-wrap:wrap; gap:6px; justify-content:center; margin-top:8px; }
+.treq-sena-op{ border:1px solid var(--line-strong); background:var(--card); color:var(--text); border-radius:999px; padding:6px 10px; font-size:12.5px; cursor:pointer; font-family:'Alegreya Sans',sans-serif; }
+.treq-sena-op:hover{ border-color:var(--red); }
+.treq-sena-globo{ position:absolute; left:6px; right:6px; bottom:6px; z-index:20; background:#fffdf5; color:#161310; border-radius:10px; padding:5px 9px;
+  font-size:12.5px; font-weight:800; box-shadow:0 6px 16px rgba(0,0,0,.4); animation:trSena 4.2s ease both; text-align:center; }
+@keyframes trSena{ 0%{ opacity:0; transform:translateY(8px); } 10%,85%{ opacity:1; transform:none; } 100%{ opacity:0; } }
+#treq-canto{ color:var(--red); text-shadow:none; }
+@media (max-width:600px){
+  .tr-carta{ width:62px; height:92px; }
+  .tr-c-foto{ width:38px; height:38px; }
+  .tr-c-nombre{ max-width:48px; }
+  .tr-globo b{ font-size:22px; }
+  .tr-botonera{ grid-template-columns:repeat(3, 1fr); }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -2851,6 +3002,8 @@ body.cg-teclado-on{ padding-bottom:180px !important; }
           <div id="tr-nombre-yo">Vos<br><b id="tr-puntos-yo">0</b></div>
         </div>
 
+        <div class="tr-conexion" id="tr-conexion" style="display:none;"></div>
+        <div class="tr-tanteador" id="tr-tanteador"></div>
         <div id="tr-mesa">
           <div class="tr-fila-rival">
             <div class="tr-cabeza" id="tr-cabeza-rival"></div>
@@ -2867,34 +3020,49 @@ body.cg-teclado-on{ padding-bottom:180px !important; }
           </div>
         </div>
 
-        <div id="tr-acciones-canto" class="tr-acciones"></div>
-        <div id="tr-acciones-jugar" class="tr-acciones">
-          <button class="auth-btn tr-btn-chico" id="tr-btn-truco">Truco</button>
-          <button class="auth-btn tr-btn-chico" id="tr-btn-envido">Envido</button>
-          <button class="auth-btn tr-btn-chico" id="tr-btn-real-envido">Real Envido</button>
-          <button class="auth-btn tr-btn-chico" id="tr-btn-falta-envido">Falta Envido</button>
-          <button class="auth-btn tr-btn-chico" id="tr-btn-flor">Flor</button>
-          <button class="auth-btn tr-btn-chico" id="tr-btn-irse-mazo" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Irse al mazo</button>
+        <div class="tr-mi-envido-fila">
+          <span class="tr-mi-envido" id="tr-mi-envido"></span>
+          <button class="cg-opcion tr-envido-toggle" id="tr-envido-toggle" title="Mostrar u ocultar tus puntos de envido">👁 Mi envido</button>
+        </div>
+        <div class="tr-estado-turno" id="tr-estado-turno"></div>
+        <div id="tr-acciones-canto" class="tr-acciones tr-respuestas"></div>
+        <div id="tr-acciones-jugar" class="tr-botonera">
+          <button class="auth-btn tr-btn-chico tr-btn-envido" id="tr-btn-envido">Envido</button>
+          <button class="auth-btn tr-btn-chico tr-btn-envido" id="tr-btn-real-envido">Real Envido</button>
+          <button class="auth-btn tr-btn-chico tr-btn-envido" id="tr-btn-falta-envido">Falta Envido</button>
+          <button class="auth-btn tr-btn-chico tr-btn-truco" id="tr-btn-truco">Truco</button>
+          <button class="auth-btn tr-btn-chico tr-btn-flor" id="tr-btn-flor">Flor</button>
+          <button class="auth-btn tr-btn-chico tr-btn-mazo" id="tr-btn-irse-mazo">Irse al mazo</button>
         </div>
 
         <div id="tr-log" class="cz-controles-info"></div>
       </div>
 
       <div id="tr-mesa-equipos-wrap" style="display:none;">
-        <div class="pen-marcador">
-          <div>Equipo A<br><b id="treq-puntos-a">0</b></div>
-          <div class="pen-ronda" id="treq-titulo">Truco en equipos</div>
-          <div>Equipo B<br><b id="treq-puntos-b">0</b></div>
-        </div>
+        <div class="treq-titulo-fijo" id="treq-titulo">Truco en equipos</div>
+        <span id="treq-puntos-a" hidden>0</span><span id="treq-puntos-b" hidden>0</span>
+        <div class="tr-conexion" id="treq-conexion" style="display:none;"></div>
+        <div class="tr-tanteador" id="treq-tanteador"></div>
         <div class="treq-companeros" id="treq-companeros"></div>
         <div class="gd-intro treq-info" id="treq-info">Esperando…</div>
         <div class="tr-canto-actual" id="treq-canto"></div>
         <div class="treq-rondas" id="treq-rondas"></div>
-        <div id="treq-mesa-jugadas" class="treq-mesa"></div>
-        <div class="treq-mi-mano-titulo">Tus cartas</div>
-        <div id="treq-mi-mano" class="tr-mano" style="margin:6px 0 4px; justify-content:center;"></div>
-        <div class="treq-mi-envido" id="treq-mi-envido"></div>
-        <div id="treq-acciones" class="tr-acciones"></div>
+        <div class="treq-pano" id="treq-pano">
+          <div id="treq-mesa-jugadas" class="treq-mesa"></div>
+          <div class="treq-mi-mano-titulo">Tus cartas</div>
+          <div id="treq-mi-mano" class="tr-mano" style="margin:6px 0 4px; justify-content:center;"></div>
+        </div>
+        <div class="tr-mi-envido-fila">
+          <span class="tr-mi-envido" id="treq-mi-envido"></span>
+          <button class="cg-opcion tr-envido-toggle" id="treq-envido-toggle" title="Mostrar u ocultar tus puntos de envido">👁 Mi envido</button>
+        </div>
+        <div class="tr-estado-turno" id="treq-estado-turno"></div>
+        <div id="treq-respuestas" class="tr-acciones tr-respuestas"></div>
+        <div id="treq-botonera" class="tr-botonera"></div>
+        <div class="treq-senas-wrap">
+          <button class="cg-opcion" id="treq-senas-btn">🤫 Hacer una seña</button>
+          <div class="treq-senas-menu" id="treq-senas-menu" style="display:none;"></div>
+        </div>
         <div id="treq-log" class="cz-controles-info" style="margin-top:14px;"></div>
       </div>
 
@@ -8239,6 +8407,7 @@ let trMazoConfig = {}; // { 1:'Chiappe', 2:'Pablo', ... } — se carga de Supaba
 
 let trMazo = [];
 let trManoYo = [], trManoRival = [];
+let trManoInicialYo = [], trManoInicialRival = []; // las 3 cartas repartidas: el envido y la flor se calculan con estas
 let trJugadasRonda = [];
 let trCartasMesaYo = [], trCartasMesaRival = [];
 let trPuntosYo = 0, trPuntosRival = 0;
@@ -8308,11 +8477,121 @@ function trNombreCarta(carta){
   return `${carta.numero} ${palos[carta.palo]}`;
 }
 
-function trHtmlCarta(carta){
+/* ===== TRUCO: presentación (cartas españolas con caras, fósforos, globos, arrastre, resumen) ===== */
+const TR_PALO_SVG = {
+  espada:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l2.2 3.2v11.3h-4.4V4.7z" fill="#2F5DA8"/><path d="M12 3.5v12" stroke="#BFD0EE" stroke-width=".8"/><rect x="6.5" y="15.8" width="11" height="2.3" rx="1.1" fill="#C9A227"/><rect x="10.9" y="18" width="2.2" height="3.6" rx=".6" fill="#6B4A2D"/><circle cx="12" cy="22.2" r="1.2" fill="#C9A227"/></svg>',
+  basto:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.3 22.3l1.9-15.6c.3-2.5 4.9-2.3 4.7.3l-2.4 15.3c-.2 1.2-4.4 1.2-4.2 0z" fill="#4E8A3E"/><path d="M14.6 5.2c1.4-.9 2.4-.2 2 1.1M11.6 12.5l-1.4-.6M14.2 15.3l1.3-.5" stroke="#2A5527" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>',
+  oro:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#E2B93B" stroke="#9C7A2E" stroke-width="1.4"/><circle cx="12" cy="12" r="5.6" fill="none" stroke="#9C7A2E" stroke-width="1.2"/><circle cx="12" cy="12" r="1.8" fill="#9C7A2E"/></svg>',
+  copa:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 2.5h13c0 6.3-2.8 9.7-6.5 9.7S5.5 8.8 5.5 2.5z" fill="#C0392B"/><path d="M7.4 4.6h9.2" stroke="#F3C1B8" stroke-width=".9"/><rect x="11" y="12" width="2" height="6" fill="#C0392B"/><rect x="7" y="18" width="10" height="3" rx="1.4" fill="#C0392B"/></svg>'
+};
+function trHtmlCarta(carta, extra){
   const jugador = trMazoConfig[carta.numero];
   const foto = jugador ? czObtenerImagen(jugador) : null;
-  const fotoHtml = foto ? `<div class="tr-carta-foto" style="background-image:url(${foto.src});"></div>` : '';
-  return `<div class="tr-carta"><div class="tr-carta-num">${carta.numero}</div>${fotoHtml}<div class="tr-carta-palo">${carta.palo}</div></div>`;
+  const palo = TR_PALO_SVG[carta.palo] || '';
+  const centro = foto
+    ? `<div class="tr-c-foto" style="background-image:url(${foto.src});"></div><div class="tr-c-nombre">${jugador}</div><div class="tr-c-palo-mini">${palo}</div>`
+    : `<div class="tr-c-palo-grande">${palo}</div>${jugador ? `<div class="tr-c-nombre">${jugador}</div>` : ''}`;
+  return `<div class="tr-carta tr-p-${carta.palo}${extra ? ' ' + extra : ''}" title="${trNombreCarta(carta)}${jugador ? ' · ' + jugador : ''}">`
+    + `<div class="tr-c-esq tr-c-sup"><b>${carta.numero}</b>${palo}</div>`
+    + `<div class="tr-c-centro">${centro}</div>`
+    + `<div class="tr-c-esq tr-c-inf"><b>${carta.numero}</b>${palo}</div></div>`;
+}
+function trHtmlDorso(extra, estilo){ return `<div class="tr-carta tr-dorso${extra ? ' ' + extra : ''}"${estilo ? ` style="${estilo}"` : ''}><span>GL</span></div>`; }
+
+// Tanteador con fósforos: grupos de 5 (4 palitos + 1 cruzado), separando malas (0-15) y buenas (16-30)
+function trHtmlFosforosGrupo(n){
+  if(!n) return '<svg class="tr-fosforos tr-fos-vacio" viewBox="0 0 26 24"></svg>';
+  let h = '';
+  for(let i = 0; i < Math.min(n, 4); i++){
+    const x = 5 + i * 5;
+    h += `<line x1="${x}" y1="5" x2="${x}" y2="21"/><circle cx="${x}" cy="4" r="1.7"/>`;
+  }
+  if(n >= 5) h += '<line x1="2" y1="19" x2="24" y2="6" class="tr-fos-cruz"/><circle cx="24" cy="5.5" r="1.7"/>';
+  return `<svg class="tr-fosforos" viewBox="0 0 26 24">${h}</svg>`;
+}
+function trHtmlFosforos(puntos){
+  const tira = n => [0,1,2].map(g => trHtmlFosforosGrupo(Math.max(0, Math.min(5, n - g * 5)))).join('');
+  const malas = Math.min(puntos, 15), buenas = Math.max(0, puntos - 15);
+  return `<div class="tr-tanto-fila"><span class="tr-tanto-etq">malas</span>${tira(malas)}</div>`
+       + `<div class="tr-tanto-fila${buenas ? '' : ' tr-tanto-apagada'}"><span class="tr-tanto-etq">buenas</span>${tira(buenas)}</div>`;
+}
+function trHtmlTanteador(lados){
+  return lados.map(l => `<div class="tr-tanto ${l.clase || ''}">
+    <div class="tr-tanto-nombre"><span>${l.nombre}${l.sub ? `<small>${l.sub}</small>` : ''}</span><b>${l.puntos}</b></div>
+    ${trHtmlFosforos(l.puntos)}</div>`).join('');
+}
+
+// Globos con los cantos ("¡TRUCO!") sacados del historial, así funcionan igual para host, invitado y equipos
+const trLogVisto = {};
+function trInterpretarCanto(m){
+  m = String(m);
+  const limpiar = n => n.replace(/^[^\p{L}\p{N}]+/u, '').replace(/\s*\([AB]\)\s*$/, '').trim();
+  let r;
+  if((r = m.match(/^(.+?):\s*¡El envido está primero!\s*(.+?)\.?$/))) return { t:'¡EL ENVIDO ESTÁ PRIMERO!', s: limpiar(r[1]) };
+  if((r = m.match(/^(.+?) cantó ¡?([^.!]+)/))) return { t:'¡' + r[2].trim().toUpperCase() + '!', s: limpiar(r[1]) };
+  if((r = m.match(/^(.+?)(?: dijo|:)\s*No [Qq]uiero/))) return { t:'NO QUIERO', s: limpiar(r[1]) };
+  if((r = m.match(/^(.+?)(?: dijo|:)\s*¡Quiero!/))) return { t:'¡QUIERO!', s: limpiar(r[1]) };
+  if((r = m.match(/^(.+?) se fue al mazo/))) return { t:'AL MAZO', s: limpiar(r[1]) };
+  return null;
+}
+function trMostrarGlobo(contenedor, info){
+  if(!contenedor || !info) return;
+  const g = document.createElement('div');
+  g.className = 'tr-globo';
+  g.innerHTML = `<b>${info.t}</b><span>${info.s}</span>`;
+  contenedor.appendChild(g);
+  setTimeout(() => g.remove(), 1900);
+}
+function trDetectarCantos(lista, clave, contenedor){
+  lista = lista || [];
+  if(trLogVisto[clave] === undefined || lista.length < trLogVisto[clave]){ trLogVisto[clave] = lista.length; return; }
+  let ultimo = null;
+  for(let i = trLogVisto[clave]; i < lista.length; i++){ const c = trInterpretarCanto(lista[i]); if(c) ultimo = c; }
+  trLogVisto[clave] = lista.length;
+  if(ultimo){ trMostrarGlobo(contenedor, ultimo); glVibrar(25); }
+}
+
+// Resumen al final de cada mano
+function trMostrarResumenMano(contenedor, lineas, detalle){
+  if(!contenedor) return;
+  const r = document.createElement('div');
+  r.className = 'tr-resumen';
+  r.innerHTML = `<b>Fin de la mano</b><div>${lineas.join(' · ')}</div>${detalle.length ? `<small>${detalle.join('<br>')}</small>` : ''}`;
+  contenedor.appendChild(r);
+  setTimeout(() => r.remove(), 2700);
+}
+
+// Jugar arrastrando la carta a la mesa (tocarla también la juega)
+function trHacerArrastrable(el, zona, onJugar){
+  el.addEventListener('pointerdown', (e)=>{
+    if(e.button > 0) return;
+    const x0 = e.clientX, y0 = e.clientY;
+    let movio = false;
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    const mover = (ev)=>{
+      const dx = ev.clientX - x0, dy = ev.clientY - y0;
+      if(!movio && Math.hypot(dx, dy) > 8){ movio = true; el.classList.add('tr-arrastrando'); }
+      if(movio) el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
+    };
+    const soltar = (ev)=>{
+      el.removeEventListener('pointermove', mover); el.removeEventListener('pointerup', soltar); el.removeEventListener('pointercancel', soltar);
+      el.classList.remove('tr-arrastrando');
+      if(!movio){ onJugar(); return; }
+      const r = zona ? zona.getBoundingClientRect() : null;
+      const dentro = r && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+      if(ev.type === 'pointerup' && (dentro || (y0 - ev.clientY) > 70)) onJugar();
+      else el.style.transform = '';
+    };
+    el.addEventListener('pointermove', mover); el.addEventListener('pointerup', soltar); el.addEventListener('pointercancel', soltar);
+  });
+}
+
+// Preferencia "ver mi envido"
+let trVerEnvido = (()=>{ try{ return localStorage.getItem('grilloliga-tr-envido') !== '0'; }catch(_){ return true; } })();
+function trToggleVerEnvido(){
+  trVerEnvido = !trVerEnvido;
+  try{ localStorage.setItem('grilloliga-tr-envido', trVerEnvido ? '1' : '0'); }catch(_){}
+  if(trEqActivo && typeof trEqRenderizar === 'function') trEqRenderizar(); else trRenderizarBase();
 }
 
 let trHistorialPartida = [];
@@ -8343,6 +8622,8 @@ function trIniciarMano(){
   trMazo = trCrearMazo();
   trManoYo = trMazo.slice(0,3);
   trManoRival = trMazo.slice(3,6);
+  trManoInicialYo = trManoYo.slice();
+  trManoInicialRival = trManoRival.slice();
   trJugadasRonda = [];
   trCartasMesaYo = [];
   trCartasMesaRival = [];
@@ -8372,59 +8653,103 @@ function trAccionesDisponibles(){
     disponibles.push('envido', 'real_envido', 'falta_envido');
   }
   if(rondaLibre && trFlorHabilitada && !trFlorYaCantada){
-    const mano = trTurno === 'yo' ? trManoYo : trManoRival;
-    if(trTieneFlor(mano)) disponibles.push('flor');
+    const mano = trTurno === 'yo' ? trManoInicialYo : trManoInicialRival;
+    if(mano && mano.length === 3 && trTieneFlor(mano)) disponibles.push('flor');
   }
   return disponibles;
 }
 
+let trFirmaMano = null, trSnapMano = null, trResumenMostrado = false, trRivalDesconectado = false;
 function trRenderizarBase(){
   const contMano = document.getElementById('tr-mano-yo');
-  contMano.innerHTML = trManoYo.map((c,i) => {
-    const html = trHtmlCarta(c);
-    return html.replace('class="tr-carta"', `class="tr-carta" data-idx="${i}"`);
-  }).join('');
-  if(trTurno === 'yo' && !trPendiente && trJugadasRonda.every(j => j.quien !== 'yo')){
-    contMano.querySelectorAll('.tr-carta').forEach(el=>{
-      el.addEventListener('click', () => trJugarCarta('yo', parseInt(el.dataset.idx)));
-    });
+  const yaJugueRonda = trJugadasRonda.some(j => j.quien === 'yo');
+  const miTurnoLibre = trJuegoActivo && !trManoTerminada && trTurno === 'yo' && !trPendiente;
+  const puedoJugar = miTurnoLibre && !yaJugueRonda;
+
+  // ¿empezó una mano nueva? -> animar el reparto y sacar foto de los puntos para el resumen
+  const manoNueva = trManoYo.length === 3 && !trCartasMesaYo.length && !trCartasMesaRival.length && !trManoTerminada;
+  const firma = manoNueva ? JSON.stringify(trManoYo) : trFirmaMano;
+  const animar = manoNueva && firma !== trFirmaMano;
+  if(animar){
+    trFirmaMano = firma;
+    trSnapMano = { yo: trPuntosYo, rival: trPuntosRival, logIdx: trHistorialPartida.length };
+    trResumenMostrado = false;
   }
 
-  document.getElementById('tr-mano-rival').innerHTML = trManoRival.map(() => `<div class="tr-carta tr-dorso"></div>`).join('');
+  contMano.innerHTML = trManoYo.map((c,i) => trHtmlCarta(c, (puedoJugar ? 'tr-jugable' : 'tr-bloqueada') + (animar ? ' tr-repartida' : ''))).join('');
+  contMano.querySelectorAll('.tr-carta').forEach((el,i)=>{
+    if(animar) el.style.animationDelay = (0.1 + i * 0.18) + 's';
+    if(puedoJugar) trHacerArrastrable(el, document.querySelector('#tr-mesa .tr-centro'), () => trJugarCarta('yo', i));
+  });
+  document.getElementById('tr-mano-rival').innerHTML = trManoRival.map((_,i) => trHtmlDorso(animar ? 'tr-repartida' : '', animar ? `animation-delay:${i * 0.18}s` : '')).join('');
 
-  document.getElementById('tr-jugadas-yo').innerHTML = trCartasMesaYo.map(c => trHtmlCarta(c)).join('');
-  document.getElementById('tr-jugadas-rival').innerHTML = trCartasMesaRival.map(c => trHtmlCarta(c)).join('');
+  // cartas en la mesa: la que ganó cada ronda se destaca
+  const resRonda = i => {
+    const a = trCartasMesaYo[i], b = trCartasMesaRival[i];
+    if(!a || !b) return ['', ''];
+    const va = trValorTruco(a), vb = trValorTruco(b);
+    return va === vb ? ['tr-parda','tr-parda'] : (va > vb ? ['tr-gana','tr-pierde'] : ['tr-pierde','tr-gana']);
+  };
+  document.getElementById('tr-jugadas-yo').innerHTML = trCartasMesaYo.map((c,i) => trHtmlCarta(c, 'tr-en-mesa ' + resRonda(i)[0])).join('');
+  document.getElementById('tr-jugadas-rival').innerHTML = trCartasMesaRival.map((c,i) => trHtmlCarta(c, 'tr-en-mesa ' + resRonda(i)[1])).join('');
 
-  document.getElementById('tr-puntos-yo').textContent = trPuntosYo;
-  document.getElementById('tr-puntos-riv').textContent = trPuntosRival;
+  // tanteador con fósforos (+ compatibilidad con el marcador viejo)
+  const py = document.getElementById('tr-puntos-yo'), pr = document.getElementById('tr-puntos-riv');
+  if(py) py.textContent = trPuntosYo;
+  if(pr) pr.textContent = trPuntosRival;
+  const enJuego = trJuegoActivo && !trManoTerminada;
+  document.getElementById('tr-tanteador').innerHTML = trHtmlTanteador([
+    { nombre: trNombreRivalTr || 'Rival', puntos: trPuntosRival, clase: (enJuego && trTurno === 'rival' ? 'tr-tanto-turno' : '') + (trRivalDesconectado ? ' tr-desconectado' : '') },
+    { nombre: (trNombreJugadorTr || 'Vos') + ' (vos)', puntos: trPuntosYo, clase: enJuego && trTurno === 'yo' ? 'tr-tanto-turno' : '' }
+  ]);
+  document.getElementById('tr-cabeza-yo').classList.toggle('tr-turno', enJuego && trTurno === 'yo');
+  document.getElementById('tr-cabeza-rival').classList.toggle('tr-turno', enJuego && trTurno === 'rival');
 
   const textoCanto = [];
-  if(trTrucoNivel > 0) textoCanto.push(['Truco','Retruco','Vale Cuatro'][trTrucoNivel-1] + ' cantado');
+  if(trTrucoNivel > 0) textoCanto.push(['Truco','Retruco','Vale Cuatro'][trTrucoNivel-1] + (trPendiente && trPendiente.tipo === 'truco' ? ' (esperando respuesta)' : ' querido'));
   if(trEnvidoCadena.length) textoCanto.push(trEnvidoCadena.map(e=>e.etiqueta).join(' → '));
   document.getElementById('tr-canto-actual').textContent = textoCanto.join(' · ');
 
+  // ayuda de envido (opcional)
+  const ini = trManoInicialYo && trManoInicialYo.length === 3 ? trManoInicialYo : null;
+  document.getElementById('tr-mi-envido').textContent = (trVerEnvido && ini)
+    ? `Tu envido: ${trValorEnvido(ini)}${trFlorHabilitada && trTieneFlor(ini) ? ` · ¡Tenés flor! (${trValorFlor(ini)})` : ''}` : '';
+  document.getElementById('tr-envido-toggle').classList.toggle('activo', trVerEnvido);
+
+  // estado del turno + botonera fija (lo que no se puede usar queda atenuado, no desaparece)
+  const estado = document.getElementById('tr-estado-turno');
+  estado.textContent = !trJuegoActivo ? '' : trManoTerminada ? 'Mano terminada — repartiendo…'
+    : trPendiente ? (trTurno === 'yo' ? '👉 Te cantaron: respondé' : '⏳ Esperando la respuesta del rival…')
+    : trTurno === 'yo' ? (yaJugueRonda ? '⏳ Esperando al rival…' : '👉 Te toca: jugá una carta o cantá') : '⏳ Turno del rival';
+  estado.classList.toggle('tr-estado-mio', miTurnoLibre || (trPendiente && trTurno === 'yo'));
+
   const accJugar = document.getElementById('tr-acciones-jugar');
   const accCanto = document.getElementById('tr-acciones-canto');
-  if(trPendiente){
-    accJugar.style.display = 'none';
-    accCanto.style.display = 'flex';
-    trRenderizarRespuestas();
-  } else {
-    accCanto.style.display = 'none';
-    accJugar.style.display = trTurno === 'yo' ? 'flex' : 'none';
-    if(trTurno === 'yo'){
-      const disp = trAccionesDisponibles();
-      const etiquetas = { truco:'Truco', retruco:'Retruco', vale_cuatro:'Vale Cuatro' };
-      const btnTruco = document.getElementById('tr-btn-truco');
-      const tipoTruco = disp.find(d => ['truco','retruco','vale_cuatro'].includes(d));
-      btnTruco.style.display = tipoTruco ? 'inline-block' : 'none';
-      if(tipoTruco) btnTruco.textContent = etiquetas[tipoTruco];
-      btnTruco.dataset.tipo = tipoTruco || '';
-      document.getElementById('tr-btn-envido').style.display = disp.includes('envido') ? 'inline-block' : 'none';
-      document.getElementById('tr-btn-real-envido').style.display = disp.includes('real_envido') ? 'inline-block' : 'none';
-      document.getElementById('tr-btn-falta-envido').style.display = disp.includes('falta_envido') ? 'inline-block' : 'none';
-      document.getElementById('tr-btn-flor').style.display = disp.includes('flor') ? 'inline-block' : 'none';
-    }
+  accJugar.style.display = trJuegoActivo ? 'grid' : 'none';
+  if(trPendiente && trTurno === 'yo' && trJuegoActivo && !trManoTerminada){ accCanto.style.display = 'flex'; trRenderizarRespuestas(); }
+  else accCanto.style.display = 'none';
+  const disp = miTurnoLibre ? trAccionesDisponibles() : [];
+  const tipoTruco = ['truco','retruco','vale_cuatro'][Math.min(trTrucoNivel, 2)];
+  const btnTruco = document.getElementById('tr-btn-truco');
+  btnTruco.textContent = { truco:'Truco', retruco:'Retruco', vale_cuatro:'Vale Cuatro' }[tipoTruco];
+  btnTruco.dataset.tipo = tipoTruco;
+  btnTruco.disabled = !disp.includes(tipoTruco);
+  document.getElementById('tr-btn-envido').disabled = !disp.includes('envido');
+  document.getElementById('tr-btn-real-envido').disabled = !disp.includes('real_envido');
+  document.getElementById('tr-btn-falta-envido').disabled = !disp.includes('falta_envido');
+  const btnFlor = document.getElementById('tr-btn-flor');
+  btnFlor.style.display = trFlorHabilitada ? '' : 'none';
+  btnFlor.disabled = !disp.includes('flor');
+  document.getElementById('tr-btn-irse-mazo').disabled = !miTurnoLibre;
+
+  // globos de canto y resumen de la mano
+  const mesa = document.getElementById('tr-mesa');
+  trDetectarCantos(trHistorialPartida, 'tr1v1', mesa);
+  if(trManoTerminada && trSnapMano && !trResumenMostrado){
+    trResumenMostrado = true;
+    const dy = trPuntosYo - trSnapMano.yo, dr = trPuntosRival - trSnapMano.rival;
+    const detalle = trHistorialPartida.slice(trSnapMano.logIdx).filter(m => /Se lleva|se llevó/.test(m)).slice(-3);
+    trMostrarResumenMano(mesa, [`${trNombreJugadorTr || 'Vos'} +${dy}`, `${trNombreRivalTr || 'Rival'} +${dr}`], detalle);
   }
 }
 
@@ -8456,8 +8781,8 @@ function trCantar(tipo){
 function trIniciarCanto(tipo, quien){
   if(tipo === 'flor'){
     trFlorYaCantada = true;
-    const mano = quien === 'yo' ? trManoYo : trManoRival;
-    const rivalMano = quien === 'yo' ? trManoRival : trManoYo;
+    const mano = quien === 'yo' ? trManoInicialYo : trManoInicialRival;
+    const rivalMano = quien === 'yo' ? trManoInicialRival : trManoInicialYo;
     trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} cantó ¡Flor!`);
     if(trTieneFlor(rivalMano)){
       const valMano = trValorFlor(mano), valRival = trValorFlor(rivalMano);
@@ -8505,6 +8830,7 @@ function trAplicarRespuesta(resp, quien){
       trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} dijo No Quiero. Se lleva ${puntosPrevios} ${p.quienCanto==='yo'?trNombreJugadorTr:trNombreRivalTr}.`);
       trPendiente = null;
       trManoTerminada = true;
+      trRenderizar();
       setTimeout(() => trSiguienteManoOFin(), 1400);
       return;
     } else {
@@ -8519,6 +8845,7 @@ function trAplicarRespuesta(resp, quien){
     }
   }
   if(resp === 'quiero'){
+    trLog(`${quien==='yo'?trNombreJugadorTr:trNombreRivalTr} dijo ¡Quiero!`);
     if(p.tipo === 'truco'){
       trPendiente = null;
       trContinuarTurnoTrasCanto();
@@ -8542,7 +8869,7 @@ function trQuienEsRondaLibreTurno(){
 }
 
 function trResolverEnvido(){
-  const valYo = trValorEnvido(trManoYo), valRival = trValorEnvido(trManoRival);
+  const valYo = trValorEnvido(trManoInicialYo), valRival = trValorEnvido(trManoInicialRival);
   const gana = valYo >= valRival ? 'yo' : 'rival';
   const totalPuntos = trEnvidoCadena.reduce((s,e)=> s + (e.tipo==='falta_envido' ? 0 : e.valor), 0);
   const tieneFalta = trEnvidoCadena.some(e => e.tipo === 'falta_envido');
@@ -8561,6 +8888,7 @@ function trIrseAlMazo(){
   trSumarPuntos('rival', puntos);
   trLog(`${trNombreJugadorTr} se fue al mazo. Se lleva ${puntos} ${trNombreRivalTr}.`);
   trManoTerminada = true;
+  trRenderizar();
   setTimeout(() => trSiguienteManoOFin(), 1200);
 }
 
@@ -8728,7 +9056,7 @@ function trTurnoBot(){
   if(trTurno !== 'rival') return;
 
   const disp = trAccionesDisponibles();
-  const valEnvido = trValorEnvido(trManoRival);
+  const valEnvido = trValorEnvido(trManoInicialRival);
   const sumaTruco = trManoRival.reduce((s,c)=> s+trValorTruco(c), 0);
 
   if(disp.includes('flor') && Math.random() < 0.9){ trIniciarCanto('flor','rival'); return; }
@@ -8758,7 +9086,7 @@ function trBotResponder(){
     else if(sumaTruco >= 26 && Math.random()<0.4) trAplicarRespuesta('quiero','rival');
     else trAplicarRespuesta('no_quiero','rival');
   } else {
-    const valEnvido = trValorEnvido(trManoRival);
+    const valEnvido = trValorEnvido(trManoInicialRival);
     if(valEnvido >= 29) trAplicarRespuesta('quiero','rival');
     else if(valEnvido >= 24 && Math.random()<0.5) trAplicarRespuesta('quiero','rival');
     else trAplicarRespuesta('no_quiero','rival');
@@ -8785,7 +9113,9 @@ document.querySelectorAll('#tr-armado [data-flor]').forEach(btn=>{
     document.querySelectorAll('#tr-armado [data-flor]').forEach(b => b.classList.toggle('active', b === btn));
   });
 });
-document.getElementById('tr-btn-truco').addEventListener('click', (e)=> trCantar(e.target.dataset.tipo));
+document.getElementById('tr-btn-truco').addEventListener('click', (e)=> trCantar(e.currentTarget.dataset.tipo));
+document.getElementById('tr-envido-toggle').addEventListener('click', trToggleVerEnvido);
+document.getElementById('treq-envido-toggle').addEventListener('click', trToggleVerEnvido);
 document.getElementById('tr-btn-envido').addEventListener('click', ()=> trCantar('envido'));
 document.getElementById('tr-btn-real-envido').addEventListener('click', ()=> trCantar('real_envido'));
 document.getElementById('tr-btn-falta-envido').addEventListener('click', ()=> trCantar('falta_envido'));
@@ -8994,16 +9324,35 @@ function trIniciarOnline(esHost, roomId, nombreRival, cabezaRival){
   document.getElementById('tr-online-lobby').style.display = 'none';
   if(trLobbyChannel){ trLobbyChannel.unsubscribe(); trLobbyChannel = null; }
   trMatchChannel = sbClient.channel('truco-match-' + roomId);
+  // si el rival se corta, se le dan 30 segundos para volver antes de dar la partida por terminada
+  let trEsperaTimer = null, trEsperaSeg = 0;
+  const banner = document.getElementById('tr-conexion');
+  const cancelarEspera = ()=>{ clearInterval(trEsperaTimer); trEsperaTimer = null; banner.style.display = 'none'; trRivalDesconectado = false; };
   trMatchChannel.on('presence', { event:'leave' }, ({ leftPresences })=>{
-    if(!trJuegoActivo) return;
-    if(leftPresences.some(p => p.username === trOponenteOnlineTr.username)){
+    if(!trJuegoActivo || trEsperaTimer) return;
+    if(!leftPresences.some(p => p.username === trOponenteOnlineTr.username)) return;
+    trRivalDesconectado = true; trEsperaSeg = 30;
+    banner.style.display = 'block';
+    banner.textContent = `📶 ${trOponenteOnlineTr.username} se desconectó. Esperando que vuelva… (${trEsperaSeg})`;
+    trRenderizarBase();
+    trEsperaTimer = setInterval(()=>{
+      trEsperaSeg--;
+      banner.textContent = `📶 ${trOponenteOnlineTr.username} se desconectó. Esperando que vuelva… (${trEsperaSeg})`;
+      if(trEsperaSeg > 0) return;
+      cancelarEspera();
       trJuegoActivo = false;
       document.getElementById('tr-mesa-wrap').style.display = 'none';
       document.getElementById('tr-final-titulo').textContent = '⚠️ Se desconectó el rival. La partida no cuenta.';
       document.getElementById('tr-final-detalle').textContent = '';
       document.getElementById('tr-final').style.display = 'block';
       document.getElementById('tr-ranking-wrap').style.display = 'none';
-    }
+    }, 1000);
+  });
+  trMatchChannel.on('presence', { event:'join' }, ({ newPresences })=>{
+    if(!newPresences.some(p => p.username === trOponenteOnlineTr.username)) return;
+    if(trEsperaTimer){ cancelarEspera(); glToast(`✅ ${trOponenteOnlineTr.username} volvió`); }
+    if(trEsHostOnline && trJuegoActivo) trRenderizar(); // le reenvía la mesa tal como está
+    else trRenderizarBase();
   });
   trMatchChannel.on('broadcast', { event:'estado' }, (msg)=> trAplicarEstadoRemotoTruco(msg.payload));
   trMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{ if(trEsHostOnline) trProcesarAccionRemota(msg.payload); });
@@ -9030,7 +9379,7 @@ function trRenderizar(){
 
 function trEmpaquetarEstado(){
   return {
-    manoInvitado: trManoRival, manoHostCant: trManoYo.length,
+    manoInvitado: trManoRival, manoHostCant: trManoYo.length, manoInicialInvitado: trManoInicialRival,
     jugadasRonda: trJugadasRonda, puntosInvitado: trPuntosRival, puntosHost: trPuntosYo,
     turno: trTurno === 'yo' ? 'rival' : 'yo', pendiente: trPendiente, trucoNivel: trTrucoNivel,
     envidoCadena: trEnvidoCadena, nombreInvitado: trNombreRivalTr, nombreHost: trNombreJugadorTr,
@@ -9045,6 +9394,7 @@ function trEmpaquetarEstado(){
 function trAplicarEstadoRemotoTruco(estado){
   if(trEsHostOnline) return;
   trManoYo = estado.manoInvitado;
+  trManoInicialYo = estado.manoInicialInvitado || trManoYo;
   trManoRival = Array(estado.manoHostCant).fill(null);
   trJugadasRonda = estado.jugadasRonda;
   trPuntosYo = estado.puntosInvitado; trPuntosRival = estado.puntosHost;
@@ -9078,7 +9428,9 @@ function trProcesarAccionRemota(accion){
   else if(accion.tipo === 'irse_mazo'){
     const puntos = trTrucoNivel === 0 ? 1 : trTrucoNivel + 1; // misma corrección
     trSumarPuntos('yo', puntos);
+    trLog(`${trNombreRivalTr} se fue al mazo. Se lleva ${puntos} ${trNombreJugadorTr}.`);
     trManoTerminada = true;
+    trRenderizar();
     setTimeout(() => trSiguienteManoOFin(), 1200);
   }
 }
@@ -9151,10 +9503,11 @@ function trIniciarOnlineEquipos(payload){
   trEqMatchChannel = sbClient.channel('truco-equipo-match-' + trEqRoomId, { config:{ presence:{ key: trMiUsernameOnlineTr } } });
   trEqMatchChannel.on('broadcast', { event:'accion' }, (msg)=>{ if(trEqEsHost) trEqProcesarAccion(msg.payload); });
   trEqMatchChannel.on('broadcast', { event:'estado' }, (msg)=> trEqAplicarEstado(msg.payload));
+  trEqMatchChannel.on('broadcast', { event:'sena' }, (msg)=> trEqRecibirSena(msg.payload));
+  // si alguien se corta, 30 segundos para volver antes de cortar la partida
   trEqMatchChannel.on('presence', { event:'leave' }, ({ leftPresences })=>{
     if(!trEqActivo || !trEqEstado || trEqEstado.terminado) return;
-    const se = leftPresences.find(p => trEqParticipantes.includes(p.username));
-    if(se) trEqCortarPorDesconexion(se.username);
+    leftPresences.filter(p => trEqParticipantes.includes(p.username) && p.username !== trMiUsernameOnlineTr).forEach(p => trEqEmpezarEspera(p.username));
   });
   // el host reparte recién cuando están TODOS sentados en la mesa (o a los 6 segundos, por las dudas),
   // y si alguien se conecta tarde le reenvía el estado actual para que no se quede en "Conectando…"
@@ -9166,7 +9519,8 @@ function trIniciarOnlineEquipos(payload){
     if(forzar || trEqParticipantes.every(u => presentes.has(u))) trEqIniciarPartida();
   };
   trEqMatchChannel.on('presence', { event:'sync' }, ()=> arrancarSiEstanTodos(false));
-  trEqMatchChannel.on('presence', { event:'join' }, ()=>{
+  trEqMatchChannel.on('presence', { event:'join' }, ({ newPresences })=>{
+    (newPresences || []).forEach(p => trEqTerminarEspera(p.username));
     if(trEqEsHost && trEqEstado && trEqEstado.manos && canal === trEqMatchChannel){
       canal.send({ type:'broadcast', event:'estado', payload: trEqEstado });
     }
@@ -9549,24 +9903,101 @@ async function trEqMostrarFinal(){
   trCargarRanking();
 }
 
+const trEqEsperas = {}; // username -> { seg, timer }
+function trEqActualizarBannerConexion(){
+  const banner = document.getElementById('treq-conexion');
+  const nombres = Object.keys(trEqEsperas);
+  banner.style.display = nombres.length ? 'block' : 'none';
+  banner.textContent = nombres.map(u => `📶 ${u} se desconectó. Esperando que vuelva… (${trEqEsperas[u].seg})`).join(' · ');
+}
+function trEqEmpezarEspera(u){
+  if(trEqEsperas[u]) return;
+  const esp = trEqEsperas[u] = { seg:30, timer:null };
+  esp.timer = setInterval(()=>{
+    esp.seg--;
+    trEqActualizarBannerConexion();
+    if(esp.seg <= 0){ clearInterval(esp.timer); delete trEqEsperas[u]; trEqActualizarBannerConexion(); if(trEqActivo) trEqCortarPorDesconexion(u); }
+  }, 1000);
+  trEqActualizarBannerConexion();
+  if(trEqEstado) trEqRenderizar();
+}
+function trEqTerminarEspera(u){
+  const esp = trEqEsperas[u];
+  if(!esp) return;
+  clearInterval(esp.timer); delete trEqEsperas[u];
+  trEqActualizarBannerConexion();
+  glToast(`✅ ${u} volvió`);
+  if(trEqEstado) trEqRenderizar();
+}
+
+// Señas entre compañeros: solo las muestra tu equipo
+const TR_SENAS = [
+  ['🤨','Ancho de espada'], ['😉','Ancho de basto'], ['😏','Siete de espada'], ['😼','Siete de oro'],
+  ['😬','Tengo un tres'], ['🫦','Tengo un dos'], ['🌸','Tengo flor'], ['👍','Buen envido (27 o más)'],
+  ['🫥','No tengo nada'], ['✋','Andá al mazo'], ['🔥','¡Cantá truco!']
+];
+function trEqArmarSenas(){
+  const menu = document.getElementById('treq-senas-menu');
+  menu.innerHTML = TR_SENAS.map(([e,t],i) => `<button class="treq-sena-op" data-sena="${i}">${e} ${t}</button>`).join('');
+  menu.querySelectorAll('[data-sena]').forEach(b => b.addEventListener('click', ()=>{
+    const [e,t] = TR_SENAS[+b.dataset.sena];
+    if(trEqMatchChannel) trEqMatchChannel.send({ type:'broadcast', event:'sena', payload:{ de:trMiUsernameOnlineTr, equipo:trEqEquipoDe[trMiUsernameOnlineTr], sena:`${e} ${t}` } });
+    menu.style.display = 'none';
+    glToast(`🤫 Seña enviada a tu equipo: ${e} ${t}`);
+  }));
+}
+document.getElementById('treq-senas-btn').addEventListener('click', ()=>{
+  const menu = document.getElementById('treq-senas-menu');
+  if(!menu.innerHTML) trEqArmarSenas();
+  menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+});
+function trEqRecibirSena(p){
+  if(!p || p.de === trMiUsernameOnlineTr || p.equipo !== trEqEquipoDe[trMiUsernameOnlineTr]) return; // el otro equipo no la ve
+  const asiento = document.querySelector(`.treq-asiento[data-u="${CSS.escape(p.de)}"]`);
+  const g = document.createElement('div');
+  g.className = 'treq-sena-globo';
+  g.textContent = `🤫 ${p.sena}`;
+  (asiento || document.getElementById('treq-pano')).appendChild(g);
+  glVibrar([30,40,30]);
+  setTimeout(() => g.remove(), 4200);
+}
+
+let trEqFirma = null, trEqSnap = null, trEqResumenOk = false;
+let trEqEraMiTurno = false;
 function trEqRenderizar(){
   const e = trEqEstado;
   if(!e || !e.manos) return;
   const yo = trMiUsernameOnlineTr;
   const miEq = trEqEquipoDe[yo];
-  document.getElementById('treq-puntos-a').textContent = e.puntosA;
-  document.getElementById('treq-puntos-b').textContent = e.puntosB;
-
   const jugadorTurno = trEqParticipantes[e.turnoIdx];
   const miTurno = jugadorTurno === yo;
+  const enJuego = !e.terminado && !e.manoTerminada;
+
+  // mano nueva -> animación de reparto + foto de puntos para el resumen
+  const miMano = e.manos[yo] || [];
+  const mesaVacia = trEqParticipantes.every(u => !(e.mesa[u] || []).length);
+  const nueva = mesaVacia && miMano.length === 3 && enJuego;
+  const firma = nueva ? JSON.stringify(miMano) + '#' + e.manoIdx : trEqFirma;
+  const animar = nueva && firma !== trEqFirma;
+  if(animar){ trEqFirma = firma; trEqSnap = { A:e.puntosA, B:e.puntosB, logIdx:e.log.length }; trEqResumenOk = false; }
+
+  // tanteador con fósforos
+  document.getElementById('treq-puntos-a').textContent = e.puntosA;
+  document.getElementById('treq-puntos-b').textContent = e.puntosB;
+  const integrantes = eq => trEqParticipantes.filter(u => trEqEquipoDe[u] === eq).join(' + ');
+  const turnoEq = enJuego ? trEqEquipoDe[jugadorTurno] : null;
+  document.getElementById('treq-tanteador').innerHTML = trHtmlTanteador(['A','B'].map(eq => ({
+    nombre: `Equipo ${eq}${eq === miEq ? ' (vos)' : ''}`, sub: integrantes(eq), puntos: eq === 'A' ? e.puntosA : e.puntosB,
+    clase: `treq-eq-${eq}` + (turnoEq === eq ? ' tr-tanto-turno' : '')
+  })));
+
   let info;
   if(e.terminado) info = `🏆 ¡Ganó el Equipo ${e.ganador}!`;
   else if(e.manoTerminada) info = 'Mano terminada — repartiendo…';
   else if(e.pendiente){
     const et = e.pendiente.tipo === 'truco' ? TR_EQ_ETIQUETAS[['','truco','retruco','vale_cuatro'][e.pendiente.nivel]] : TR_EQ_ETIQUETAS[e.pendiente.ultimoTipo];
     const responde = trEqOtro(e.pendiente.equipoCanto);
-    const quien = e.pendiente.tipo === 'envido' ? `responde ${trEqPieDe(responde)} (pie del Equipo ${responde})` : `responde el Equipo ${responde}`;
-    info = `${e.pendiente.cantor} cantó ${et} — ${quien}.`;
+    info = `${e.pendiente.cantor} cantó ${et} — ` + (e.pendiente.tipo === 'envido' ? `responde ${trEqPieDe(responde)} (pie del Equipo ${responde})` : `responde el Equipo ${responde}`);
   }
   else info = miTurno ? '👉 Te toca jugar.' : `Turno de ${trEqNom(jugadorTurno)}`;
   document.getElementById('treq-info').textContent = info;
@@ -9575,79 +10006,103 @@ function trEqRenderizar(){
   if(e.trucoNivel > 0) canto.push(['Truco','Retruco','Vale Cuatro'][e.trucoNivel-1] + (e.pendiente && e.pendiente.tipo==='truco' ? ' (esperando respuesta)' : ' querido'));
   if(e.envidoCadena.length) canto.push(e.envidoCadena.map(x=>x.etiqueta).join(' → '));
   document.getElementById('treq-canto').textContent = canto.join(' · ');
+  document.getElementById('treq-rondas').textContent = e.resultadosRondas.map((r,i)=> `R${i+1}: ${r==='parda'?'parda':'Eq. '+r}`).join(' · ');
 
-  const rondas = e.resultadosRondas.map((r,i)=> `R${i+1}: ${r==='parda'?'parda':'Eq. '+r}`).join(' · ');
-  document.getElementById('treq-rondas').textContent = rondas;
+  // carta ganadora de cada ronda
+  const marca = {};
+  e.resultadosRondas.forEach((r, i)=>{
+    const tiradas = trEqParticipantes.filter(u => (e.mesa[u] || [])[i]).map(u => ({ u, v: trValorTruco(e.mesa[u][i]) }));
+    if(!tiradas.length) return;
+    const max = Math.max(...tiradas.map(t => t.v));
+    tiradas.forEach(t => { marca[t.u + '|' + i] = 'tr-pierde'; });
+    if(r === 'parda') tiradas.filter(t => t.v === max).forEach(t => { marca[t.u + '|' + i] = 'tr-parda'; });
+    else { const g = tiradas.find(t => trEqEquipoDe[t.u] === r && t.v === max); if(g) marca[g.u + '|' + i] = 'tr-gana'; }
+  });
 
-  // mesa: cada jugador con las cartas que ya tiró en esta mano
   const mesa = document.getElementById('treq-mesa-jugadas');
   mesa.innerHTML = trEqOrdenDesde(e.manoIdx).map(u => {
     const clases = ['treq-asiento', 'treq-eq-' + trEqEquipoDe[u]];
-    if(u === jugadorTurno && !e.manoTerminada && !e.terminado) clases.push('treq-turno');
+    if(u === jugadorTurno && enJuego) clases.push('treq-turno');
     if(u === yo) clases.push('treq-yo');
+    if(trEqEsperas[u]) clases.push('treq-desconectado');
     const etiquetas = [];
     if(u === trEqParticipantes[e.manoIdx]) etiquetas.push('mano');
     if(trEqEsPie(u)) etiquetas.push('pie');
-    const cartas = (e.mesa[u] || []).map(c => trHtmlCarta(c)).join('');
+    const cartas = (e.mesa[u] || []).map((c,i) => trHtmlCarta(c, 'tr-en-mesa ' + (marca[u + '|' + i] || ''))).join('');
     const quedan = (e.manos[u] || []).length;
-    return `<div class="${clases.join(' ')}">
-      <div class="treq-asiento-nombre">${u === yo ? 'Vos' : u} <span>(${trEqEquipoDe[u]})</span></div>
-      <div class="treq-asiento-tags">${etiquetas.join(' · ')}${u !== yo ? ` · ${quedan} en mano` : ''}</div>
+    return `<div class="${clases.join(' ')}" data-u="${u.replace(/"/g,'&quot;')}">
+      <div class="treq-asiento-cab">
+        <span class="treq-avatar">${u.slice(0,1).toUpperCase()}</span>
+        <div><div class="treq-asiento-nombre">${u === yo ? 'Vos' : u} <span>(${trEqEquipoDe[u]})</span></div>
+        <div class="treq-asiento-tags">${etiquetas.join(' · ')}${u !== yo ? `${etiquetas.length ? ' · ' : ''}${quedan} en mano` : ''}${trEqEsperas[u] ? ' · 📶 sin conexión' : ''}</div></div>
+      </div>
       <div class="treq-asiento-cartas">${cartas || '<span class="treq-sin-cartas">—</span>'}</div>
     </div>`;
   }).join('');
 
-  // mi mano
-  const miMano = e.manos[yo] || [];
-  const puedoJugar = miTurno && !e.pendiente && !e.manoTerminada && !e.terminado && !trEqYaJugoEstaRonda(yo);
+  // mi mano: tocar o arrastrar a la mesa
+  const puedoJugar = miTurno && !e.pendiente && enJuego && !trEqYaJugoEstaRonda(yo);
   const cont = document.getElementById('treq-mi-mano');
-  cont.innerHTML = '';
-  miMano.forEach((c,i)=>{
-    const div = document.createElement('div');
-    div.innerHTML = trHtmlCarta(c);
-    const el = div.firstElementChild;
-    el.style.cursor = puedoJugar ? 'pointer' : 'default';
-    if(!puedoJugar) el.style.opacity = '0.75';
-    if(puedoJugar) el.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'jugar', idx:i }));
-    cont.appendChild(el);
+  cont.innerHTML = miMano.map(c => trHtmlCarta(c, (puedoJugar ? 'tr-jugable' : 'tr-bloqueada') + (animar ? ' tr-repartida' : ''))).join('');
+  cont.querySelectorAll('.tr-carta').forEach((el,i)=>{
+    if(animar) el.style.animationDelay = (0.1 + i * 0.18) + 's';
+    if(puedoJugar) trHacerArrastrable(el, mesa, () => trEqEnviarAccion({ tipo:'jugar', idx:i }));
   });
-  const misIniciales = e.manosIniciales[yo] || [];
-  let pista = misIniciales.length ? `Tu envido: ${trValorEnvido(misIniciales)}` : '';
-  if(e.florHabilitada && misIniciales.length && trTieneFlor(misIniciales)) pista += ` · ¡Tenés Flor! (${trValorFlor(misIniciales)})`;
-  if(misIniciales.length && trEqEsPie(yo)) pista += ' · Sos el pie de tu equipo: vos manejás el envido';
-  document.getElementById('treq-mi-envido').textContent = pista;
 
-  // botones
-  const acc = document.getElementById('treq-acciones');
-  let html = '';
-  const resp = trEqRespuestasDisponibles(yo);
-  if(resp.length){
-    const esEnvidoPrimero = e.pendiente.tipo === 'truco';
-    html = resp.map(r => {
-      let label = r === 'quiero' ? 'Quiero' : r === 'no_quiero' ? 'No quiero' : TR_EQ_ETIQUETAS[r];
-      if(esEnvidoPrimero && ['envido','real_envido','falta_envido'].includes(r)) label = '¡Envido primero! ' + label;
-      const estilo = r === 'no_quiero' ? ' style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);"' : '';
-      return `<button class="auth-btn tr-btn-chico" data-treq-resp="${r}"${estilo}>${label}</button>`;
-    }).join('');
-  } else {
-    const cantos = trEqCantosDisponibles(yo);
-    html = cantos.map(c => `<button class="auth-btn tr-btn-chico" data-treq-canto="${c}">${TR_EQ_ETIQUETAS[c]}</button>`).join('');
-    if(miTurno && !e.pendiente && !e.manoTerminada && !e.terminado){
-      html += `<button class="auth-btn tr-btn-chico" data-treq-mazo="1" style="background:transparent; color:var(--text-dim); border-color:var(--line-strong);">Irse al mazo</button>`;
-    }
+  // ayuda de envido (opcional)
+  const ini = e.manosIniciales[yo] || [];
+  let pista = '';
+  if(trVerEnvido && ini.length){
+    pista = `Tu envido: ${trValorEnvido(ini)}`;
+    if(e.florHabilitada && trTieneFlor(ini)) pista += ` · ¡Tenés flor! (${trValorFlor(ini)})`;
   }
-  acc.innerHTML = html;
-  acc.querySelectorAll('[data-treq-resp]').forEach(b => b.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'responder', valor:b.dataset.treqResp })));
-  acc.querySelectorAll('[data-treq-canto]').forEach(b => b.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'cantar', valor:b.dataset.treqCanto })));
-  acc.querySelectorAll('[data-treq-mazo]').forEach(b => b.addEventListener('click', ()=>{
+  if(ini.length && trEqEsPie(yo)) pista += (pista ? ' · ' : '') + 'Sos el pie: vos manejás el envido';
+  document.getElementById('treq-mi-envido').textContent = pista;
+  document.getElementById('treq-envido-toggle').classList.toggle('activo', trVerEnvido);
+
+  // estado + respuestas + botonera fija
+  const resp = trEqRespuestasDisponibles(yo);
+  const estado = document.getElementById('treq-estado-turno');
+  estado.textContent = e.terminado ? '' : e.manoTerminada ? 'Mano terminada — repartiendo…'
+    : resp.length ? '👉 Te cantaron: respondé' : e.pendiente ? '⏳ Esperando la respuesta…'
+    : puedoJugar ? '👉 Te toca: jugá una carta o cantá' : '⏳ Esperando…';
+  estado.classList.toggle('tr-estado-mio', resp.length > 0 || puedoJugar);
+  const respCont = document.getElementById('treq-respuestas');
+  respCont.style.display = resp.length ? 'flex' : 'none';
+  respCont.innerHTML = resp.map(r => {
+    let label = r === 'quiero' ? 'Quiero' : r === 'no_quiero' ? 'No quiero' : TR_EQ_ETIQUETAS[r];
+    if(e.pendiente && e.pendiente.tipo === 'truco' && ['envido','real_envido','falta_envido'].includes(r)) label = '¡Envido primero! ' + label;
+    return `<button class="auth-btn tr-btn-chico${r === 'no_quiero' ? ' tr-btn-mazo' : ''}" data-treq-resp="${r}">${label}</button>`;
+  }).join('');
+  respCont.querySelectorAll('[data-treq-resp]').forEach(b => b.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'responder', valor:b.dataset.treqResp })));
+
+  const cantos = trEqCantosDisponibles(yo);
+  const tipoTruco = ['truco','retruco','vale_cuatro'][Math.min(e.trucoNivel, 2)];
+  const botones = [['envido','tr-btn-envido'], ['real_envido','tr-btn-envido'], ['falta_envido','tr-btn-envido'], [tipoTruco,'tr-btn-truco']];
+  if(e.florHabilitada) botones.push(['flor','tr-btn-flor']);
+  const bot = document.getElementById('treq-botonera');
+  bot.style.display = e.terminado ? 'none' : 'grid';
+  bot.innerHTML = botones.map(([c,cl]) => `<button class="auth-btn tr-btn-chico ${cl}" data-treq-canto="${c}"${cantos.includes(c) ? '' : ' disabled'}>${TR_EQ_ETIQUETAS[c]}</button>`).join('')
+    + `<button class="auth-btn tr-btn-chico tr-btn-mazo" data-treq-mazo="1"${miTurno && !e.pendiente && enJuego ? '' : ' disabled'}>Irse al mazo</button>`;
+  bot.querySelectorAll('[data-treq-canto]').forEach(b => b.addEventListener('click', ()=> trEqEnviarAccion({ tipo:'cantar', valor:b.dataset.treqCanto })));
+  bot.querySelectorAll('[data-treq-mazo]').forEach(b => b.addEventListener('click', ()=>{
     if(confirm('¿Irse al mazo? Abandona la mano todo tu equipo.')) trEqEnviarAccion({ tipo:'mazo' });
   }));
 
   document.getElementById('treq-log').innerHTML = `<b>Historial de la partida</b><div class="tr-historial-lista">` +
     e.log.slice().reverse().map(m => `<div>${m}</div>`).join('') + `</div>`;
-  if(miTurno && !e.pendiente && !e.manoTerminada && !e.terminado) glVibrar(20);
-}
 
+  // globos y resumen
+  const pano = document.getElementById('treq-pano');
+  trDetectarCantos(e.log, 'treq', pano);
+  if(e.manoTerminada && trEqSnap && !trEqResumenOk && !e.terminado){
+    trEqResumenOk = true;
+    const detalle = e.log.slice(trEqSnap.logIdx).filter(m => /Se lleva|Mano para/.test(m)).slice(-3);
+    trMostrarResumenMano(pano, [`Equipo A +${e.puntosA - trEqSnap.A}`, `Equipo B +${e.puntosB - trEqSnap.B}`], detalle);
+  }
+  if(puedoJugar && !trEqEraMiTurno) glVibrar(20);
+  trEqEraMiTurno = puedoJugar;
+}
 
 /* ---------- MODO CARRERA (Fase 1: partidos de prueba + ojeador) ---------- */
 const CR_UMBRAL_PARTIDO1 = 70;
