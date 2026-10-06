@@ -1904,6 +1904,62 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
 .cg-tema span{ font-size:24px; line-height:1; }
 .cg-tema small{ font-weight:400; font-size:11px; color:var(--text-dim); text-align:center; }
 .cg-tema.activo{ border:2px solid var(--red); background:color-mix(in srgb, var(--red) 8%, var(--card)); }
+/* ---------- SOPA GRILLERA ---------- */
+.sg-niveles{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; max-width:640px; margin:0 auto; }
+.sg-nivel{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 6px; border-radius:12px; cursor:pointer;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; transition:transform .12s, border-color .15s; }
+.sg-nivel b{ font-size:15px; }
+.sg-nivel small{ font-size:11px; color:var(--text-dim); text-align:center; line-height:1.25; }
+.sg-nivel:hover{ border-color:var(--red); transform:translateY(-2px); }
+@media (max-width:600px){ .sg-niveles{ grid-template-columns:1fr 1fr; } }
+.sg-barra{ display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin-bottom:12px; }
+.sg-barra-prog{ font-family:'Alegreya Sans',sans-serif; font-size:14px; }
+.sg-barra-prog b{ color:var(--red); }
+.sg-reloj{ font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--red); margin-right:auto; }
+.sg-barra-btn{ width:auto !important; max-width:none !important; margin:0 !important; padding:7px 12px !important; font-size:13px !important; }
+.sg-layout{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; align-items:start; }
+.sg-col{ display:flex; flex-direction:column; gap:14px; min-width:0; }
+@media (max-width:760px){ .sg-layout{ grid-template-columns:minmax(0,1fr); } }
+.sg-papel{ min-width:0; display:flex; flex-direction:column; align-items:center; background:#F7F4EC; border:1px solid #cfc9b8; padding:14px 10px 10px; border-radius:2px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.sg-armando{ font-family:'Alegreya Sans',sans-serif; font-weight:800; letter-spacing:2px; font-size:15px; color:#555; min-height:20px; margin:-6px 0 6px; text-align:center; }
+.sg-armando.activa{ color:#B33B22; }
+.sg-tablero{ position:relative; touch-action:none; user-select:none; -webkit-user-select:none; cursor:pointer; --sg-celda:30px; border:2px solid #1a1a1a; box-sizing:content-box; background:#fff; }
+.sg-letras{ position:absolute; inset:0; display:grid; }
+.sg-letra{ display:flex; align-items:center; justify-content:center; font-family:Georgia,'Times New Roman',serif; font-weight:700;
+  font-size:calc(var(--sg-celda) * .56); color:#1a1a1a; position:relative; z-index:2; pointer-events:none; }
+.sg-trazos{ position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+.sg-trazos-tmp{ z-index:3; }
+.sg-trazo-nuevo{ animation:sg-trazo .35s ease-out; }
+@keyframes sg-trazo{ from{ stroke-width:0; } to{ stroke-width:7.6; } }
+.sg-letra.sg-inicio{ background:rgba(179,59,34,.25); border-radius:50%; }
+.sg-letra.sg-pista::after{ content:''; position:absolute; inset:8%; border:2.5px solid #D4AF37; border-radius:50%; animation:sg-latido 1s ease-in-out infinite; }
+@keyframes sg-latido{ 0%,100%{ transform:scale(.85); opacity:.6; } 50%{ transform:scale(1.1); opacity:1; } }
+.sg-letra.sg-sobra{ color:#B33B22; border-radius:6px; animation:sg-sobra .5s ease-out both; }
+@keyframes sg-sobra{ 0%{ transform:scale(1); } 50%{ transform:scale(1.3); } 100%{ transform:scale(1); } }
+.sg-letra.sg-sobra::before{ content:''; position:absolute; inset:10%; border-radius:50%; background:rgba(212,175,55,.35); z-index:-1; }
+.sg-tablero.sg-error{ animation:sg-error .3s; }
+@keyframes sg-error{ 25%{ transform:translateX(-4px); } 75%{ transform:translateX(4px); } }
+.sg-ayuda{ font-size:11px; color:#777; margin-top:8px; text-align:center; font-family:Georgia,serif; font-style:italic; }
+.sg-lista{ list-style:none; margin:8px 0 0; padding:0; display:grid; grid-template-columns:repeat(auto-fill, minmax(118px, 1fr)); gap:4px 10px; }
+.sg-lista li{ display:flex; align-items:center; gap:6px; font-family:Georgia,serif; font-size:13px; font-weight:700; letter-spacing:.5px; color:var(--text); }
+.sg-lista li.sg-hecha{ text-decoration:line-through; opacity:.5; font-weight:400; }
+.sg-lista li.sg-recien{ animation:sg-pop .4s ease-out; }
+@keyframes sg-pop{ 50%{ transform:scale(1.12); } }
+.sg-punto{ flex:0 0 10px; width:10px; height:10px; border-radius:50%; border:1.5px solid var(--line-strong); }
+.sg-lista.sg-lista-def{ grid-template-columns:1fr; gap:7px; }
+.sg-lista.sg-lista-def li{ align-items:flex-start; font-weight:400; letter-spacing:0; font-size:12.5px; line-height:1.35; }
+.sg-lista.sg-lista-def li .sg-punto{ margin-top:3px; }
+.sg-lista.sg-lista-def li.sg-hecha{ text-decoration:none; opacity:.6; }
+.sg-lista.sg-lista-def li.sg-hecha .sg-def{ text-decoration:line-through; }
+.sg-def-palabra{ color:var(--red); letter-spacing:.5px; }
+.sg-final{ background:var(--card); border:2px solid #D4AF37; border-radius:12px; padding:14px; text-align:center; box-shadow:var(--card-sombra); }
+.sg-final-titulo{ font-family:var(--font-num); font-weight:800; font-size:21px; text-transform:uppercase; }
+.sg-frase-intro{ font-size:13px; color:var(--text-dim); margin-top:6px; }
+.sg-frase-letras{ font-family:Georgia,serif; font-weight:700; letter-spacing:2px; font-size:14px; color:#B33B22; word-break:break-all; margin-top:8px; }
+.sg-frase-texto{ font-family:Georgia,serif; font-style:italic; font-size:17px; margin-top:10px; }
+.sg-frase-autor{ font-size:12px; color:var(--text-dim); margin-top:2px; }
+.sg-ranking-tabs{ display:flex; gap:6px; margin-top:8px; }
+.sg-ranking-tabs .cg-opcion.activo{ border-color:var(--red); color:var(--red); font-weight:700; }
 /* comunicados: acciones de grillo */
 .com-acciones{ display:flex; gap:8px; margin-top:10px; }
 .com-acciones .com-borrar{ color:#B33B22; }
@@ -2492,6 +2548,10 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
         <h3>📰 Crucigrillo</h3>
         <p>Crucigrama de fútbol y cultura general.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-sopa">
+        <h3>🔎 Sopa Grillera</h3>
+        <p>Encontrá las palabras escondidas: Fútbol o De todo un poco, en 4 dificultades. Una nueva cada día.</p>
+      </div>
       <div class="mini-juego-card" id="mini-card-pacman">
         <h3>🦗 GrilloMan</h3>
         <p>Comé pelotitas y esquivá a los rivales por el laberinto.</p>
@@ -2954,6 +3014,71 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
           </div>
         </div>
       </div>
+      </div>
+    </div>
+
+    <div id="mini-sopa" style="display:none;">
+      <span class="rps-volver" id="sopa-volver">← Volver a Minijuegos</span>
+      <div id="sg-seleccion">
+        <div class="gd-intro">Todos los días hay sopas nuevas, iguales para todos, en dos modos y cuatro dificultades. Cuando encontrás todas las palabras, las letras que sobran esconden una frase. Completá al menos una sopa del día para mantener tu racha.</div>
+        <div style="text-align:center; margin-bottom:14px;">
+          <span class="tr-config-link">🔥 Racha actual: <b id="sg-racha-actual">0</b> día(s) — mejor racha: <b id="sg-racha-mejor">0</b></span>
+        </div>
+        <div class="cg-tema-row" id="sg-modo-row">
+          <button class="cg-tema activo" data-modo="futbol"><span>⚽</span>Fútbol<small>Clubes, cracks, jerga… y jugadores de la Grillo Liga</small></button>
+          <button class="cg-tema" data-modo="general"><span>🧠</span>De todo un poco<small>Comidas, animales, geografía, música, historia…</small></button>
+        </div>
+        <div class="sg-niveles" id="sg-niveles">
+          <button class="sg-nivel" data-nivel="facil"><b>😌 Fácil</b><small>10×10 · solo → y ↓</small><span class="cg-seleccion-estado" data-estado="facil"></span></button>
+          <button class="sg-nivel" data-nivel="medio"><b>🙂 Medio</b><small>12×12 · con diagonales</small><span class="cg-seleccion-estado" data-estado="medio"></span></button>
+          <button class="sg-nivel" data-nivel="dificil"><b>🔥 Difícil</b><small>14×14 · 8 direcciones, también al revés</small><span class="cg-seleccion-estado" data-estado="dificil"></span></button>
+          <button class="sg-nivel" data-nivel="experto"><b>🧠 Experto</b><small>14×14 · definiciones en vez de palabras</small><span class="cg-seleccion-estado" data-estado="experto"></span></button>
+        </div>
+        <div class="cg-archivo-row">
+          <label for="sg-dia-select">Jugar:</label>
+          <select id="sg-dia-select" style="max-width:100%;"></select>
+        </div>
+        <div class="cg-archivo-nota" id="sg-dia-nota" style="text-align:center; margin-top:6px;"></div>
+      </div>
+
+      <div id="sg-juego" style="display:none;">
+        <div class="sg-barra">
+          <span class="sg-barra-prog">🔎 <b id="sg-progreso">0/0</b></span>
+          <span class="sg-reloj" id="sg-reloj">00:00</span>
+          <button class="auth-btn sg-barra-btn" id="sg-pista-btn" title="Hace titilar la primera letra de una palabra que te falta">💡 Pista (<span id="sg-pistas-quedan">3</span>)</button>
+          <button class="cg-opcion" id="sg-otra-btn">← Otra sopa</button>
+        </div>
+        <div class="sg-layout">
+          <div class="sg-papel" id="sg-papel">
+            <div class="cg-titulo-diario">La Sopa Grillera</div>
+            <div class="cg-subtitulo-diario" id="sg-titulo-sub">…</div>
+            <div class="sg-armando" id="sg-armando">&nbsp;</div>
+            <div class="sg-tablero" id="sg-tablero"></div>
+            <div class="sg-ayuda">Arrastrá de la primera a la última letra, o tocá la primera y después la última.</div>
+          </div>
+          <div class="sg-col">
+            <div class="cg-pistas-col">
+              <div class="gd-pista-titulo" id="sg-lista-titulo">🔎 Palabras para encontrar</div>
+              <ul class="sg-lista" id="sg-lista"></ul>
+            </div>
+            <div class="sg-final" id="sg-final" style="display:none;">
+              <div class="sg-final-titulo" id="sg-final-titulo"></div>
+              <div class="sg-frase-intro">Las letras que sobraron esconden una frase. ¿Te animás a leerla?</div>
+              <div class="sg-frase-letras" id="sg-frase-letras"></div>
+              <button class="auth-btn" id="sg-frase-btn" style="max-width:220px; margin:10px auto 0;">Revelar la frase</button>
+              <div class="sg-frase-revelada" id="sg-frase-revelada" style="display:none;"></div>
+              <button class="cg-opcion" id="sg-otra-btn2" style="margin-top:12px;">Jugar otra sopa</button>
+            </div>
+            <div class="cg-pistas-col">
+              <div class="gd-pista-titulo" id="sg-ranking-titulo">🏆 Ranking</div>
+              <div class="sg-ranking-tabs" id="sg-ranking-tabs">
+                <button class="cg-opcion" data-vista="hoy">Hoy</button>
+                <button class="cg-opcion" data-vista="historico">Mejores de siempre</button>
+              </div>
+              <div id="sg-ranking-lista" style="margin-top:6px;"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -5406,18 +5531,20 @@ const INSIGNIAS_DEF = [
   { id:'cabezon_fierro', icono:'⚽', nombre:'Cabezón de fierro', desc:'victorias en Cabezones', niveles:[5,10,15] },
   { id:'crucigrillero', icono:'📰', nombre:'Crucigrillero', desc:'días de mejor racha en el Crucigrillo', niveles:[7,30,100] },
   { id:'sin_ayuda', icono:'🧩', nombre:'Sin ayuda', desc:'Completó un Crucigrillo Difícil del día sin revelar letras' },
-  { id:'lector_mentes', icono:'🧠', nombre:'Lector de mentes', desc:'partidas de Piedra, papel o tijera ganadas al GrilloBOT en Difícil', niveles:[1,5,15] }
+  { id:'lector_mentes', icono:'🧠', nombre:'Lector de mentes', desc:'partidas de Piedra, papel o tijera ganadas al GrilloBOT en Difícil', niveles:[1,5,15] },
+  { id:'ojo_aguila', icono:'🔎', nombre:'Ojo de águila', desc:'Sopas Grilleras completadas', niveles:[10,50,150] }
 ];
 const INSIGNIA_NIVELES_NOMBRE = ['', 'Bronce', 'Plata', 'Oro'];
 
 // Devuelve un Map id -> { nivel (0 = bloqueada; 1..3 si tiene niveles; 1 si es simple), valor }
 async function calcularInsigniasUsuario(userId){
-  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }, { data: rpsDificil }] = await Promise.all([
+  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }, { data: rpsDificil }, { data: sopas }] = await Promise.all([
     sbClient.from('minijuegos_resultados').select('juego, resultado').eq('usuario_id', userId),
     sbClient.from('cabezones_historial').select('modo, fue_campeon').eq('usuario_id', userId),
     sbClient.from('crucigrillo_racha').select('mejor_racha').eq('usuario_id', userId).maybeSingle(),
     sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId).eq('dificultad', 'dificil').eq('pistas_usadas', 0).limit(1),
-    sbClient.from('rps_historial').select('id').eq('usuario_id', userId).eq('modo', 'bot').eq('dificultad', 'dificil').eq('gano', true)
+    sbClient.from('rps_historial').select('id').eq('usuario_id', userId).eq('modo', 'bot').eq('dificultad', 'dificil').eq('gano', true),
+    sbClient.from('sopa_resultados').select('id').eq('usuario_id', userId)
   ]);
   const r = resultados || [];
   const h = historial || [];
@@ -5431,7 +5558,8 @@ async function calcularInsigniasUsuario(userId){
     cabezon_fierro: r.filter(x => x.juego === 'cabezones' && x.resultado === 'victoria').length,
     crucigrillero: cgRacha ? (cgRacha.mejor_racha || 0) : 0,
     sin_ayuda: (cgLimpios || []).length,
-    lector_mentes: (rpsDificil || []).length
+    lector_mentes: (rpsDificil || []).length,
+    ojo_aguila: (sopas || []).length
   };
   const umbralSimple = { primeros_pasos:1, coleccionista:5, sin_ayuda:1 };
   const estado = new Map();
@@ -15191,6 +15319,1034 @@ document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
   document.getElementById('mini-crucigrillo').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'grid';
 });
+
+
+/* ---------- MINIJUEGO: SOPA GRILLERA ---------- */
+/* Frases escondidas: dichos, refranes y citas de dominio público. a = autor u origen (se muestra al revelarla) */
+const SG_FRASES = {
+  futbol: [
+    { f:'Equipo que gana no se toca', a:'Dicho futbolero' },
+    { f:'Los goles se hacen, no se merecen', a:'Dicho futbolero' },
+    { f:'El que no hace los goles, los sufre', a:'Dicho futbolero' },
+    { f:'Goles son amores', a:'Dicho futbolero' },
+    { f:'La pelota siempre al diez', a:'Dicho futbolero' },
+    { f:'Partido a partido', a:'Dicho futbolero' },
+    { f:'Hay que dejar todo en la cancha', a:'Dicho futbolero' },
+    { f:'La camiseta se transpira', a:'Dicho futbolero' },
+    { f:'Al fútbol se juega con la pelota en el piso', a:'Dicho futbolero' },
+    { f:'Con el corazón en la mano', a:'Dicho futbolero' },
+    { f:'Pelota parada, gol cantado', a:'Dicho futbolero' },
+    { f:'Clásico es clásico', a:'Dicho futbolero' },
+    { f:'La pelota es redonda', a:'Dicho futbolero' },
+    { f:'Se juega como se entrena', a:'Dicho futbolero' },
+    { f:'Nadie se acuerda del segundo', a:'Dicho futbolero' },
+    { f:'Siempre hay revancha', a:'Dicho futbolero' },
+    { f:'Penal bien pateado es gol', a:'Dicho futbolero' },
+    { f:'Los penales son una lotería', a:'Dicho futbolero' },
+    { f:'El empate no le sirve a nadie', a:'Dicho futbolero' },
+    { f:'Defender también es jugar', a:'Dicho futbolero' },
+    { f:'Ganar, gustar y golear', a:'Dicho futbolero' },
+    { f:'Una pared bien tirada vale oro', a:'Dicho futbolero' },
+    { f:'El que pierde paga la cerveza', a:'Ley de la Grillo Liga' },
+    { f:'El tercer tiempo también se juega', a:'Ley de la Grillo Liga' },
+    { f:'Un buen arquero es medio equipo', a:'Dicho futbolero' },
+    { f:'El nueve vive del área', a:'Dicho futbolero' },
+    { f:'Los cracks aparecen en las finales', a:'Dicho futbolero' },
+    { f:'Hasta el último minuto', a:'Dicho futbolero' },
+    { f:'El partido termina cuando pita el árbitro', a:'Dicho futbolero' },
+    { f:'Fútbol, amigos y asado', a:'Ley de la Grillo Liga' },
+    { f:'La Grillo Liga es una sola', a:'Ley de la Grillo Liga' },
+    { f:'En la Grillo Liga nadie se salva del descenso', a:'Ley de la Grillo Liga' },
+    { f:'Los partidos de la Grillo Liga son sagrados', a:'Ley de la Grillo Liga' },
+    { f:'Calentar antes de jugar evita lesiones', a:'Consejo de vestuario' },
+    { f:'El cinco es el equilibrio del equipo', a:'Dicho futbolero' },
+    { f:'Achicar, presionar y recuperar', a:'Pizarrón de técnico' },
+    { f:'Pelota al pie y cabeza levantada', a:'Pizarrón de técnico' },
+    { f:'Hay que jugar cada partido como una final', a:'Dicho futbolero' },
+    { f:'El que avisa no es traidor', a:'Dicho popular' },
+    { f:'Tocar y descargar', a:'Pizarrón de técnico' },
+    { f:'Pase y va', a:'Pizarrón de técnico' },
+    { f:'Ni un paso atrás', a:'Dicho futbolero' },
+    { f:'El fútbol es un estado de ánimo', a:'Dicho futbolero' },
+    { f:'Atrás se defiende con todos', a:'Pizarrón de técnico' },
+    { f:'El que la tiene la pasa', a:'Pizarrón de técnico' },
+    { f:'Juego limpio dentro y fuera de la cancha', a:'Dicho futbolero' },
+    { f:'Gol de visitante vale doble', a:'Vieja regla de copa' },
+    { f:'La mano de Dios', a:'Mundial 1986' },
+    { f:'Barrilete cósmico', a:'Relato del Mundial 1986' },
+    { f:'Muchachos, ahora nos volvimos a ilusionar', a:'Canción de la hinchada, Qatar 2022' },
+    { f:'Tres estrellas en el pecho', a:'Selección Argentina' },
+    { f:'El que no corre, no juega', a:'Pizarrón de técnico' },
+    { f:'La defensa gana campeonatos', a:'Dicho futbolero' },
+    { f:'Ataque gana partidos', a:'Dicho futbolero' },
+    { f:'Botines limpios y cabeza fría', a:'Consejo de vestuario' },
+    { f:'Al arco hay que patear siempre', a:'Pizarrón de técnico' },
+    { f:'Un grillo nunca deja de saltar', a:'Ley de la Grillo Liga' },
+    { f:'Oscuros contra claros, como siempre', a:'Ley de la Grillo Liga' },
+    { f:'La revancha se juega la semana que viene', a:'Ley de la Grillo Liga' },
+    { f:'Ningún partido está perdido antes de jugarlo', a:'Dicho futbolero' }
+  ],
+  general: [
+    { f:'Más vale tarde que nunca', a:'Refrán' },
+    { f:'No por mucho madrugar amanece más temprano', a:'Refrán' },
+    { f:'A caballo regalado no se le miran los dientes', a:'Refrán' },
+    { f:'Camarón que se duerme se lo lleva la corriente', a:'Refrán' },
+    { f:'En boca cerrada no entran moscas', a:'Refrán' },
+    { f:'Más vale pájaro en mano que cien volando', a:'Refrán' },
+    { f:'Perro que ladra no muerde', a:'Refrán' },
+    { f:'El que mucho abarca poco aprieta', a:'Refrán' },
+    { f:'Dime con quién andas y te diré quién eres', a:'Refrán' },
+    { f:'Al mal tiempo, buena cara', a:'Refrán' },
+    { f:'Ojos que no ven, corazón que no siente', a:'Refrán' },
+    { f:'No hay mal que por bien no venga', a:'Refrán' },
+    { f:'Al que madruga Dios lo ayuda', a:'Refrán' },
+    { f:'Del dicho al hecho hay mucho trecho', a:'Refrán' },
+    { f:'Agua que no has de beber, déjala correr', a:'Refrán' },
+    { f:'Cada loco con su tema', a:'Refrán' },
+    { f:'La curiosidad mató al gato', a:'Refrán' },
+    { f:'Zapatero a tus zapatos', a:'Refrán' },
+    { f:'No hay dos sin tres', a:'Refrán' },
+    { f:'Querer es poder', a:'Refrán' },
+    { f:'Mal de muchos, consuelo de tontos', a:'Refrán' },
+    { f:'Hierba mala nunca muere', a:'Refrán' },
+    { f:'El tiempo es oro', a:'Refrán' },
+    { f:'Cuando el río suena, agua trae', a:'Refrán' },
+    { f:'Donde hubo fuego, cenizas quedan', a:'Refrán' },
+    { f:'Barriga llena, corazón contento', a:'Refrán' },
+    { f:'Quien siembra vientos recoge tempestades', a:'Refrán' },
+    { f:'Haz el bien sin mirar a quién', a:'Refrán' },
+    { f:'Más sabe el diablo por viejo que por diablo', a:'Refrán' },
+    { f:'A falta de pan, buenas son tortas', a:'Refrán' },
+    { f:'El hábito no hace al monje', a:'Refrán' },
+    { f:'Las apariencias engañan', a:'Refrán' },
+    { f:'Nunca es tarde si la dicha es buena', a:'Refrán' },
+    { f:'Poco a poco se va lejos', a:'Refrán' },
+    { f:'Quien tiene un amigo tiene un tesoro', a:'Refrán' },
+    { f:'Al pan, pan y al vino, vino', a:'Refrán' },
+    { f:'Dios los cría y ellos se juntan', a:'Refrán' },
+    { f:'El que se fue a Sevilla perdió su silla', a:'Refrán' },
+    { f:'Genio y figura hasta la sepultura', a:'Refrán' },
+    { f:'Una golondrina no hace verano', a:'Refrán' },
+    { f:'Todos los caminos conducen a Roma', a:'Refrán' },
+    { f:'Roma no se hizo en un día', a:'Refrán' },
+    { f:'En casa de herrero, cuchillo de palo', a:'Refrán' },
+    { f:'Hoy por ti, mañana por mí', a:'Refrán' },
+    { f:'El que ríe último ríe mejor', a:'Refrán' },
+    { f:'Más vale prevenir que curar', a:'Refrán' },
+    { f:'No dejes para mañana lo que puedas hacer hoy', a:'Refrán' },
+    { f:'Mientras hay vida hay esperanza', a:'Refrán' },
+    { f:'Pienso, luego existo', a:'René Descartes' },
+    { f:'Solo sé que no sé nada', a:'Sócrates' },
+    { f:'Vine, vi, vencí', a:'Julio César' },
+    { f:'La suerte está echada', a:'Julio César' },
+    { f:'Conócete a ti mismo', a:'Templo de Delfos' },
+    { f:'Caminante, no hay camino, se hace camino al andar', a:'Antonio Machado' },
+    { f:'Gobernar es poblar', a:'Juan Bautista Alberdi' },
+    { f:'Los hermanos sean unidos, porque esa es la ley primera', a:'José Hernández, Martín Fierro' },
+    { f:'Seamos libres, que lo demás no importa nada', a:'José de San Martín' },
+    { f:'Cada cual atiende su juego', a:'Juego infantil' },
+    { f:'El que no llora no mama', a:'Dicho popular' },
+    { f:'Te conozco, mascarita', a:'Dicho porteño' },
+    { f:'Al que nace barrigón es al ñudo que lo fajen', a:'Dicho criollo' },
+    { f:'Ser o no ser, esa es la cuestión', a:'William Shakespeare, Hamlet' },
+    { f:'En un lugar de la Mancha', a:'Miguel de Cervantes, Don Quijote' },
+    { f:'La vida es sueño', a:'Pedro Calderón de la Barca' },
+    { f:'Lo esencial es invisible a los ojos', a:'Antoine de Saint-Exupéry' },
+    { f:'Eureka', a:'Arquímedes' },
+    { f:'Dame un punto de apoyo y moveré el mundo', a:'Arquímedes' },
+    { f:'Y sin embargo se mueve', a:'Atribuida a Galileo Galilei' },
+    { f:'El saber no ocupa lugar', a:'Refrán' },
+    { f:'Mate amargo y charla larga', a:'Costumbre argentina' }
+  ]
+};
+
+/* Palabras extra para la Sopa Grillera (se suman a las del Crucigrillo). c = definición (nivel Experto) */
+const SG_EXTRA = [
+  // ---- FÚTBOL ----
+  {p:'BOMBONERA', c:'Estadio de Boca Juniors', t:'f', n:1},
+  {p:'MONUMENTAL', c:'Estadio de River Plate', t:'f', n:1},
+  {p:'CILINDRO', c:'Apodo del estadio de Racing', t:'f', n:2},
+  {p:'GASOMETRO', c:'Viejo y nuevo apodo del estadio de San Lorenzo', t:'f', n:2},
+  {p:'KEMPES', c:'Goleador argentino del Mundial 1978', t:'f', n:2},
+  {p:'PASSARELLA', c:'Capitán campeón del mundo en 1978', t:'f', n:2},
+  {p:'FILLOL', c:'Arquero campeón del mundo en 1978', t:'f', n:2},
+  {p:'BURRUCHAGA', c:'Autor del gol del triunfo en la final de 1986', t:'f', n:2},
+  {p:'VALDANO', c:'Delantero que hizo un gol en la final de 1986', t:'f', n:2},
+  {p:'PUMPIDO', c:'Arquero campeón del mundo en 1986', t:'f', n:2},
+  {p:'GOYCOCHEA', c:'Arquero ataja-penales del Mundial 1990', t:'f', n:2},
+  {p:'CANIGGIA', c:'Le hizo el gol a Brasil en Italia 90', t:'f', n:2},
+  {p:'BATISTUTA', c:'Batigol, histórico goleador de la Selección', t:'f', n:1},
+  {p:'RIQUELME', c:'Diez de Boca, ídolo de la Copa Libertadores', t:'f', n:1},
+  {p:'FRANCESCOLI', c:'El Príncipe uruguayo de River', t:'f', n:2},
+  {p:'PALERMO', c:'Goleador histórico de Boca, el Loco', t:'f', n:1},
+  {p:'TEVEZ', c:'El Apache, jugador del pueblo', t:'f', n:1},
+  {p:'AGUERO', c:'Kun, goleador del Manchester City', t:'f', n:1},
+  {p:'DIMARIA', c:'Fideo, goleador en finales', t:'f', n:1},
+  {p:'MARTINEZ', c:'Dibu, arquero campeón en Qatar', t:'f', n:1},
+  {p:'ALVAREZ', c:'La Araña, delantero campeón en Qatar', t:'f', n:1},
+  {p:'MACALLISTER', c:'Volante campeón del mundo en 2022, hijo de Carlos', t:'f', n:2},
+  {p:'ENZO', c:'Nombre del volante Fernández, mejor joven de Qatar', t:'f', n:1},
+  {p:'OTAMENDI', c:'Defensor central de la Selección campeona en 2022', t:'f', n:2},
+  {p:'SCALONI', c:'Técnico campeón del mundo en 2022', t:'f', n:1},
+  {p:'BILARDO', c:'El Narigón, técnico campeón en 1986', t:'f', n:1},
+  {p:'MENOTTI', c:'El Flaco, técnico campeón en 1978', t:'f', n:1},
+  {p:'BIELSA', c:'El Loco, técnico rosarino', t:'f', n:1},
+  {p:'GALLARDO', c:'El Muñeco, técnico multicampeón de River', t:'f', n:1},
+  {p:'BIANCHI', c:'El Virrey, técnico multicampeón de Boca', t:'f', n:2},
+  {p:'PELE', c:'Rey del fútbol brasileño, tricampeón del mundo', t:'f', n:1},
+  {p:'CRUYFF', c:'Leyenda holandesa del fútbol total', t:'f', n:2},
+  {p:'ZIDANE', c:'Zizou, figura de Francia en 1998', t:'f', n:1},
+  {p:'RONALDO', c:'Nombre del Fenómeno brasileño y de CR7', t:'f', n:1},
+  {p:'RONALDINHO', c:'Gaúcho brasileño de la sonrisa eterna', t:'f', n:1},
+  {p:'BECKENBAUER', c:'El Káiser alemán', t:'f', n:3},
+  {p:'ZAGALLO', c:'Brasileño campeón del mundo como jugador y técnico', t:'f', n:3},
+  {p:'MBAPPE', c:'Delantero francés autor de tres goles en la final de Qatar', t:'f', n:1},
+  {p:'HAALAND', c:'Goleador noruego', t:'f', n:1},
+  {p:'MODRIC', c:'Volante croata, Balón de Oro 2018', t:'f', n:2},
+  {p:'INIESTA', c:'Hizo el gol de la final de 2010 para España', t:'f', n:2},
+  {p:'XAVI', c:'Cerebro del Barcelona y de España', t:'f', n:2},
+  {p:'BUFFON', c:'Arquero italiano campeón en 2006', t:'f', n:2},
+  {p:'MALDINI', c:'Defensor eterno del Milan', t:'f', n:2},
+  {p:'BAGGIO', c:'Erró el penal decisivo en la final de 1994', t:'f', n:2},
+  {p:'PIRLO', c:'Volante italiano de la pausa', t:'f', n:2},
+  {p:'BOTINES', c:'Calzado con tapones', t:'f', n:1},
+  {p:'CANILLERAS', c:'Protegen las piernas', t:'f', n:1},
+  {p:'BRAZALETE', c:'Lo lleva el capitán', t:'f', n:1},
+  {p:'SILBATO', c:'Lo hace sonar el árbitro', t:'f', n:1},
+  {p:'BANDERIN', c:'Lo agita el juez de línea', t:'f', n:1},
+  {p:'TRAVESANO', c:'Palo horizontal del arco', t:'f', n:1},
+  {p:'PALO', c:'Poste del arco', t:'f', n:1},
+  {p:'RED', c:'Se infla cuando entra la pelota', t:'f', n:1},
+  {p:'TRIBUNA', c:'Donde se ubica la hinchada', t:'f', n:1},
+  {p:'PLATEA', c:'Ubicación con asiento en la cancha', t:'f', n:1},
+  {p:'POPULAR', c:'Tribuna de los hinchas de pie', t:'f', n:1},
+  {p:'VESTUARIO', c:'Donde se cambian los jugadores', t:'f', n:1},
+  {p:'BANCO', c:'Donde esperan los suplentes', t:'f', n:1},
+  {p:'SUPLENTE', c:'Arranca el partido afuera', t:'f', n:1},
+  {p:'TITULAR', c:'Arranca el partido adentro', t:'f', n:1},
+  {p:'CAPITAN', c:'Líder del equipo dentro de la cancha', t:'f', n:1},
+  {p:'GOLEADOR', c:'El que más goles hace', t:'f', n:1},
+  {p:'ZAGUERO', c:'Defensor central', t:'f', n:2},
+  {p:'LATERAL', c:'Defensor por la banda', t:'f', n:1},
+  {p:'VOLANTE', c:'Jugador del mediocampo', t:'f', n:1},
+  {p:'ENGANCHE', c:'El diez clásico argentino', t:'f', n:1},
+  {p:'PUNTERO', c:'Delantero que juega abierto', t:'f', n:1},
+  {p:'LIBERO', c:'Defensor que juega detrás de la línea', t:'f', n:2},
+  {p:'CENTRODELANTERO', c:'El nueve de área', t:'f', n:3},
+  {p:'GAMBETA', c:'Esquivar al rival con la pelota', t:'f', n:1},
+  {p:'CAÑO', c:'Pasar la pelota entre las piernas del rival', t:'f', n:1},
+  {p:'SOMBRERO', c:'Pasar la pelota por arriba de la cabeza del rival', t:'f', n:1},
+  {p:'RABONA', c:'Patear cruzando la pierna por detrás de la otra', t:'f', n:2},
+  {p:'CHILENA', c:'Remate de espaldas en el aire', t:'f', n:1},
+  {p:'TACO', c:'Toque con el talón', t:'f', n:1},
+  {p:'VOLEA', c:'Remate antes de que la pelota pique', t:'f', n:1},
+  {p:'CABEZAZO', c:'Golpe a la pelota con la cabeza', t:'f', n:1},
+  {p:'PARED', c:'Pase y devolución rápida', t:'f', n:1},
+  {p:'CENTRO', c:'Pase elevado al área desde la banda', t:'f', n:1},
+  {p:'CORNER', c:'Tiro de esquina', t:'f', n:1},
+  {p:'LATERAL', c:'Saque con las manos desde la banda', t:'f', n:1},
+  {p:'OFFSIDE', c:'Fuera de juego', t:'f', n:1},
+  {p:'AMARILLA', c:'Tarjeta de amonestación', t:'f', n:1},
+  {p:'ROJA', c:'Tarjeta de expulsión', t:'f', n:1},
+  {p:'EXPULSION', c:'Salida obligada de la cancha', t:'f', n:1},
+  {p:'VAR', c:'Videoarbitraje', t:'f', n:1},
+  {p:'PRORROGA', c:'Tiempo suplementario', t:'f', n:1},
+  {p:'DESCUENTO', c:'Minutos que agrega el árbitro', t:'f', n:1},
+  {p:'GOLEADA', c:'Victoria por muchos goles', t:'f', n:1},
+  {p:'EMPATE', c:'Resultado sin ganador', t:'f', n:1},
+  {p:'CLASICO', c:'Partido entre rivales históricos', t:'f', n:1},
+  {p:'HINCHADA', c:'Conjunto de simpatizantes de un club', t:'f', n:1},
+  {p:'BANDERAS', c:'Se cuelgan en los alambrados', t:'f', n:1},
+  {p:'BOMBO', c:'Instrumento de la hinchada', t:'f', n:1},
+  {p:'PAPELITOS', c:'Lluvia de la tribuna al salir el equipo', t:'f', n:1},
+  {p:'GALLINA', c:'Apodo rival para los de River', t:'f', n:1},
+  {p:'XENEIZE', c:'Apodo de Boca por su origen genovés', t:'f', n:1},
+  {p:'MILLONARIO', c:'Apodo de River Plate', t:'f', n:1},
+  {p:'ACADEMIA', c:'Apodo de Racing Club', t:'f', n:1},
+  {p:'ROJO', c:'Apodo de Independiente', t:'f', n:1},
+  {p:'CICLON', c:'Apodo de San Lorenzo', t:'f', n:1},
+  {p:'GLOBO', c:'Apodo de Huracán', t:'f', n:1},
+  {p:'PINCHA', c:'Apodo de Estudiantes de La Plata', t:'f', n:1},
+  {p:'LOBO', c:'Apodo de Gimnasia de La Plata', t:'f', n:1},
+  {p:'CANALLA', c:'Apodo de Rosario Central', t:'f', n:1},
+  {p:'LEPROSO', c:'Apodo de Newell\'s Old Boys', t:'f', n:1},
+  {p:'BICHO', c:'Apodo de Argentinos Juniors', t:'f', n:1},
+  {p:'FORTIN', c:'Apodo de Vélez Sarsfield', t:'f', n:1},
+  {p:'GRANATE', c:'Apodo de Lanús', t:'f', n:1},
+  {p:'TALLERES', c:'La T de Córdoba', t:'f', n:1},
+  {p:'BELGRANO', c:'El Pirata cordobés', t:'f', n:1},
+  {p:'LIBERTADORES', c:'Máxima copa de clubes de Sudamérica', t:'f', n:1},
+  {p:'SUDAMERICANA', c:'Segunda copa continental de clubes', t:'f', n:2},
+  {p:'INTERCONTINENTAL', c:'Vieja copa entre campeones de Europa y Sudamérica', t:'f', n:3},
+  {p:'MARACANA', c:'Estadio de Río de Janeiro', t:'f', n:1},
+  {p:'WEMBLEY', c:'Estadio de Londres', t:'f', n:2},
+  {p:'AZTECA', c:'Estadio de México donde Argentina ganó en 1986', t:'f', n:1},
+  {p:'LUSAIL', c:'Estadio de la final de Qatar 2022', t:'f', n:2},
+  {p:'QATAR', c:'Sede del Mundial 2022', t:'f', n:1},
+  {p:'MUNDIAL', c:'Copa del Mundo', t:'f', n:1},
+  {p:'ALBICELESTE', c:'La camiseta de la Selección Argentina', t:'f', n:1},
+  {p:'GRILLO', c:'Bicho que le da nombre a nuestra liga', t:'f', n:1},
+  {p:'OSCUROS', c:'Uno de los dos equipos de la Grillo Liga', t:'f', n:1},
+  {p:'CLAROS', c:'El otro equipo de la Grillo Liga', t:'f', n:1},
+  {p:'DESCENSO', c:'Lo que nadie quiere en la tabla de la Grillo Liga', t:'f', n:1},
+  {p:'DUPLA', c:'Pareja de compañeros en el ranking de la Grillo Liga', t:'f', n:1},
+  {p:'FECHA', c:'Cada jornada del torneo', t:'f', n:1},
+  {p:'ASADO', c:'El tercer tiempo ideal', t:'f', n:1},
+  // ---- DE TODO UN POCO ----
+  {p:'MANZANA', c:'Fruta de Newton', t:'g', n:1},
+  {p:'BANANA', c:'Fruta amarilla y curva', t:'g', n:1},
+  {p:'FRUTILLA', c:'Fruta roja con semillas por fuera', t:'g', n:1},
+  {p:'DURAZNO', c:'Fruta de carozo con piel aterciopelada', t:'g', n:1},
+  {p:'SANDIA', c:'Fruta grande, verde por fuera y roja por dentro', t:'g', n:1},
+  {p:'ANANA', c:'Fruta tropical con corona', t:'g', n:1},
+  {p:'MANDARINA', c:'Cítrico fácil de pelar', t:'g', n:1},
+  {p:'POMELO', c:'Cítrico amargo, rosado o amarillo', t:'g', n:1},
+  {p:'CEREZA', c:'Fruta roja de a pares', t:'g', n:1},
+  {p:'KIWI', c:'Fruta verde y peluda', t:'g', n:1},
+  {p:'PALTA', c:'Fruta verde del guacamole', t:'g', n:1},
+  {p:'MEMBRILLO', c:'Fruta del dulce que va con queso', t:'g', n:1},
+  {p:'ZAPALLO', c:'Hortaliza naranja del locro', t:'g', n:1},
+  {p:'BERENJENA', c:'Hortaliza violeta', t:'g', n:1},
+  {p:'ZANAHORIA', c:'Raíz naranja de los conejos', t:'g', n:1},
+  {p:'CEBOLLA', c:'Te hace llorar al cortarla', t:'g', n:1},
+  {p:'MORRON', c:'Pimiento rojo, verde o amarillo', t:'g', n:1},
+  {p:'CHOCLO', c:'Mazorca de maíz', t:'g', n:1},
+  {p:'EMPANADA', c:'Masa rellena, salteña o tucumana', t:'g', n:1},
+  {p:'MILANESA', c:'Carne empanada y frita', t:'g', n:1},
+  {p:'CHORIPAN', c:'Sándwich de la cancha', t:'g', n:1},
+  {p:'ALFAJOR', c:'Golosina de dos tapas con dulce de leche', t:'g', n:1},
+  {p:'MEDIALUNA', c:'Factura con forma de luna', t:'g', n:1},
+  {p:'LOCRO', c:'Guiso patrio del 25 de Mayo', t:'g', n:1},
+  {p:'FAINA', c:'Se come arriba de la pizza', t:'g', n:1},
+  {p:'MATE', c:'Infusión que se comparte', t:'g', n:1},
+  {p:'BOMBILLA', c:'Por donde se toma el mate', t:'g', n:1},
+  {p:'YERBA', c:'Va adentro del mate', t:'g', n:1},
+  {p:'DULCEDELECHE', c:'El untable más argentino', t:'g', n:2},
+  {p:'JIRAFA', c:'Animal de cuello más largo', t:'g', n:1},
+  {p:'ELEFANTE', c:'Mamífero terrestre más grande', t:'g', n:1},
+  {p:'COCODRILO', c:'Reptil de río con grandes mandíbulas', t:'g', n:1},
+  {p:'PINGUINO', c:'Ave que no vuela y vive en el frío', t:'g', n:1},
+  {p:'CARPINCHO', c:'Roedor más grande del mundo', t:'g', n:1},
+  {p:'HORNERO', c:'Ave nacional argentina', t:'g', n:1},
+  {p:'YAGUARETE', c:'Felino más grande de América', t:'g', n:2},
+  {p:'GUANACO', c:'Camélido de la Patagonia', t:'g', n:2},
+  {p:'CONDOR', c:'Gran ave de los Andes', t:'g', n:1},
+  {p:'BALLENA', c:'Mamífero gigante que se ve en Puerto Madryn', t:'g', n:1},
+  {p:'DELFIN', c:'Mamífero marino muy inteligente', t:'g', n:1},
+  {p:'MURCIELAGO', c:'Mamífero que vuela de noche', t:'g', n:1},
+  {p:'MARIPOSA', c:'Antes fue oruga', t:'g', n:1},
+  {p:'HORMIGA', c:'Insecto que trabaja en colonia', t:'g', n:1},
+  {p:'TORTUGA', c:'Lleva la casa encima', t:'g', n:1},
+  {p:'CANGURO', c:'Salta y lleva la cría en la bolsa', t:'g', n:1},
+  {p:'GUITARRA', c:'Instrumento de seis cuerdas', t:'g', n:1},
+  {p:'BANDONEON', c:'Instrumento del tango', t:'g', n:1},
+  {p:'BATERIA', c:'Instrumento de tambores y platillos', t:'g', n:1},
+  {p:'VIOLIN', c:'Instrumento de cuerda que se toca con arco', t:'g', n:1},
+  {p:'PIANO', c:'Instrumento de teclas blancas y negras', t:'g', n:1},
+  {p:'CHARANGO', c:'Pequeño instrumento de cuerdas andino', t:'g', n:2},
+  {p:'TROMPETA', c:'Instrumento de viento de metal', t:'g', n:1},
+  {p:'TANGO', c:'Baile y música del Río de la Plata', t:'g', n:1},
+  {p:'CHACARERA', c:'Danza folclórica argentina', t:'g', n:1},
+  {p:'CUARTETO', c:'Música bailable cordobesa', t:'g', n:1},
+  {p:'CUMBIA', c:'Música bailable de origen colombiano', t:'g', n:1},
+  {p:'MERCURIO', c:'Planeta más cercano al Sol', t:'g', n:1},
+  {p:'VENUS', c:'Planeta más caliente', t:'g', n:1},
+  {p:'MARTE', c:'El planeta rojo', t:'g', n:1},
+  {p:'JUPITER', c:'Planeta más grande del sistema solar', t:'g', n:1},
+  {p:'SATURNO', c:'Planeta de los anillos', t:'g', n:1},
+  {p:'NEPTUNO', c:'Planeta más lejano del Sol', t:'g', n:1},
+  {p:'COMETA', c:'Astro con cola', t:'g', n:1},
+  {p:'GALAXIA', c:'La Vía Láctea es una', t:'g', n:1},
+  {p:'ACONCAGUA', c:'Cerro más alto de América', t:'g', n:1},
+  {p:'IGUAZU', c:'Cataratas de Misiones', t:'g', n:1},
+  {p:'USHUAIA', c:'Ciudad del fin del mundo', t:'g', n:1},
+  {p:'BARILOCHE', c:'Ciudad del chocolate y los lagos', t:'g', n:1},
+  {p:'MENDOZA', c:'Provincia del vino', t:'g', n:1},
+  {p:'SALTA', c:'La linda', t:'g', n:1},
+  {p:'JUJUY', c:'Provincia del Cerro de los Siete Colores', t:'g', n:1},
+  {p:'TUCUMAN', c:'Provincia donde se declaró la Independencia', t:'g', n:1},
+  {p:'CORDOBA', c:'La Docta', t:'g', n:1},
+  {p:'ROSARIO', c:'Ciudad del Monumento a la Bandera', t:'g', n:1},
+  {p:'PATAGONIA', c:'Región sur de la Argentina', t:'g', n:1},
+  {p:'PAMPA', c:'Llanura fértil argentina', t:'g', n:1},
+  {p:'PARANA', c:'Río que da nombre a una capital provincial', t:'g', n:1},
+  {p:'URUGUAY', c:'País y río vecino', t:'g', n:1},
+  {p:'BRASIL', c:'País más grande de Sudamérica', t:'g', n:1},
+  {p:'MEXICO', c:'País del tequila y los mariachis', t:'g', n:1},
+  {p:'JAPON', c:'País del sol naciente', t:'g', n:1},
+  {p:'EGIPTO', c:'País de las pirámides', t:'g', n:1},
+  {p:'ITALIA', c:'País con forma de bota', t:'g', n:1},
+  {p:'FRANCIA', c:'País de la Torre Eiffel', t:'g', n:1},
+  {p:'ALEMANIA', c:'País de Berlín', t:'g', n:1},
+  {p:'AUSTRALIA', c:'País de los canguros', t:'g', n:1},
+  {p:'CANADA', c:'País de la hoja de arce', t:'g', n:1},
+  {p:'LONDRES', c:'Capital del Reino Unido', t:'g', n:1},
+  {p:'PARIS', c:'Capital de Francia', t:'g', n:1},
+  {p:'MADRID', c:'Capital de España', t:'g', n:1},
+  {p:'LIMA', c:'Capital del Perú', t:'g', n:1},
+  {p:'SANTIAGO', c:'Capital de Chile', t:'g', n:1},
+  {p:'MONTEVIDEO', c:'Capital del Uruguay', t:'g', n:1},
+  {p:'ASUNCION', c:'Capital del Paraguay', t:'g', n:1},
+  {p:'BOGOTA', c:'Capital de Colombia', t:'g', n:1},
+  {p:'TOKIO', c:'Capital de Japón', t:'g', n:1},
+  {p:'MARTILLO', c:'Herramienta para clavar', t:'g', n:1},
+  {p:'DESTORNILLADOR', c:'Herramienta para tornillos', t:'g', n:2},
+  {p:'SERRUCHO', c:'Herramienta para cortar madera', t:'g', n:1},
+  {p:'TALADRO', c:'Herramienta para hacer agujeros', t:'g', n:1},
+  {p:'PARAGUAS', c:'Te protege de la lluvia', t:'g', n:1},
+  {p:'ANTEOJOS', c:'Ayudan a ver mejor', t:'g', n:1},
+  {p:'BICICLETA', c:'Vehículo de dos ruedas a pedal', t:'g', n:1},
+  {p:'COLECTIVO', c:'Bondi', t:'g', n:1},
+  {p:'SUBTE', c:'Tren subterráneo porteño', t:'g', n:1},
+  {p:'AVION', c:'Vehículo que vuela', t:'g', n:1},
+  {p:'VELERO', c:'Barco a viento', t:'g', n:1},
+  {p:'HELADERA', c:'Electrodoméstico que enfría', t:'g', n:1},
+  {p:'LAVARROPAS', c:'Electrodoméstico para la ropa', t:'g', n:1},
+  {p:'TELEVISOR', c:'Aparato para ver partidos', t:'g', n:1},
+  {p:'CELULAR', c:'Teléfono que llevás en el bolsillo', t:'g', n:1},
+  {p:'COMPUTADORA', c:'Máquina para trabajar y jugar', t:'g', n:1},
+  {p:'AJEDREZ', c:'Juego de reyes, reinas y peones', t:'g', n:1},
+  {p:'TRUCO', c:'Juego de cartas con envido', t:'g', n:1},
+  {p:'GENERALA', c:'Juego de cinco dados', t:'g', n:1},
+  {p:'BOLITAS', c:'Canicas', t:'g', n:1},
+  {p:'BARRILETE', c:'Cometa que se remonta con el viento', t:'g', n:1},
+  {p:'RAYUELA', c:'Juego de saltar casilleros (y novela de Cortázar)', t:'g', n:1},
+  {p:'BORGES', c:'Autor de El Aleph', t:'g', n:1},
+  {p:'CORTAZAR', c:'Autor de Rayuela', t:'g', n:1},
+  {p:'SABATO', c:'Autor de El túnel', t:'g', n:2},
+  {p:'STORNI', c:'Alfonsina, poeta', t:'g', n:2},
+  {p:'QUINO', c:'Creador de Mafalda', t:'g', n:1},
+  {p:'MAFALDA', c:'Nena que odia la sopa', t:'g', n:1},
+  {p:'GARDEL', c:'El Zorzal Criollo', t:'g', n:1},
+  {p:'PIAZZOLLA', c:'Revolucionó el tango con su bandoneón', t:'g', n:2},
+  {p:'FAVALORO', c:'Cirujano del bypass', t:'g', n:2},
+  {p:'MILSTEIN', c:'Premio Nobel argentino de Medicina en 1984', t:'g', n:3},
+  {p:'SARMIENTO', c:'Padre del aula', t:'g', n:1},
+  {p:'BELGRANO', c:'Creador de la bandera', t:'g', n:1},
+  {p:'SANMARTIN', c:'Cruzó los Andes', t:'g', n:1},
+  {p:'GUEMES', c:'Héroe gaucho de Salta', t:'g', n:2},
+  {p:'CABILDO', c:'Edificio de la Revolución de Mayo', t:'g', n:1},
+  {p:'ESCARAPELA', c:'Distintivo celeste y blanco', t:'g', n:1},
+  {p:'PRIMAVERA', c:'Estación que empieza en septiembre', t:'g', n:1},
+  {p:'OTOÑO', c:'Estación de las hojas caídas', t:'g', n:1},
+  {p:'INVIERNO', c:'Estación más fría', t:'g', n:1},
+  {p:'VERANO', c:'Estación más calurosa', t:'g', n:1},
+  {p:'ARCOIRIS', c:'Aparece después de la lluvia, con siete colores', t:'g', n:1},
+  {p:'TORMENTA', c:'Lluvia con rayos y truenos', t:'g', n:1},
+  {p:'VOLCAN', c:'Montaña que escupe lava', t:'g', n:1},
+  {p:'GLACIAR', c:'Río de hielo, como el Perito Moreno', t:'g', n:1},
+  {p:'DESIERTO', c:'Lugar casi sin lluvias', t:'g', n:1},
+  {p:'OCEANO', c:'Gran masa de agua salada', t:'g', n:1},
+  {p:'ISLA', c:'Tierra rodeada de agua', t:'g', n:1},
+  {p:'BRUJULA', c:'Siempre apunta al norte', t:'g', n:1},
+  {p:'TELESCOPIO', c:'Para mirar las estrellas', t:'g', n:1},
+  {p:'MICROSCOPIO', c:'Para mirar lo diminuto', t:'g', n:1},
+  {p:'OXIGENO', c:'Gas que respiramos', t:'g', n:1},
+  {p:'DINOSAURIO', c:'Reptil gigante extinguido', t:'g', n:1},
+  {p:'PIRAMIDE', c:'Construcción egipcia de base cuadrada', t:'g', n:1},
+  {p:'CASTILLO', c:'Fortaleza de reyes', t:'g', n:1},
+  {p:'BIBLIOTECA', c:'Lugar lleno de libros', t:'g', n:1},
+  {p:'DICCIONARIO', c:'Libro de palabras y significados', t:'g', n:1}
+];
+
+/* ---------- Motor de la Sopa Grillera ---------- */
+const SG_DIRS_TODAS = [[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
+const SG_NIVELES = {
+  facil:   { nombre:'Fácil',   emoji:'😌', tam:10, dirs:SG_DIRS_TODAS.slice(0,2), min:3, max:8,  frase:[14,34], minPal:8,  maxPal:18, desc:'10×10 · solo → y ↓' },
+  medio:   { nombre:'Medio',   emoji:'🙂', tam:12, dirs:SG_DIRS_TODAS.slice(0,4), min:4, max:10, frase:[16,44], minPal:12, maxPal:24, desc:'12×12 · suma diagonales' },
+  dificil: { nombre:'Difícil', emoji:'🔥', tam:14, dirs:SG_DIRS_TODAS,            min:4, max:12, frase:[18,52], minPal:16, maxPal:32, desc:'14×14 · 8 direcciones, también al revés' },
+  experto: { nombre:'Experto', emoji:'🧠', tam:14, dirs:SG_DIRS_TODAS,            min:5, max:12, frase:[18,52], minPal:14, maxPal:30, desc:'14×14 · definiciones en vez de palabras', definiciones:true }
+};
+const SG_ORDEN_NIVELES = ['facil','medio','dificil','experto'];
+
+// deja solo letras A-Z y Ñ (sin tildes)
+function sgLimpiar(s){
+  return String(s).toUpperCase().replace(/Ñ/g, '\u0001').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\u0001/g, 'Ñ').replace(/[^A-ZÑ]/g, '');
+}
+
+// generador pseudoaleatorio con semilla (mismo día = misma sopa para todos)
+function sgRng(seedStr){
+  let h = 1779033703 ^ seedStr.length;
+  for(let i = 0; i < seedStr.length; i++){ h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  let a = h >>> 0;
+  return function(){ // mulberry32
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function sgBarajar(arr, rnd){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+// Busca una frase (o dos encadenadas) con exactamente "n" letras
+function sgBuscarFrase(frases, n, rnd, permitirDos){
+  const lista = sgBarajar(frases, rnd);
+  const solas = lista.filter(f => f.L === n);
+  if(solas.length) return [solas[0]];
+  if(!permitirDos) return null;
+  for(const a of lista){
+    if(a.L >= n) continue;
+    const b = lista.find(x => x !== a && x.L === n - a.L);
+    if(b) return [a, b];
+  }
+  return null;
+}
+
+function sgRellenar(grid, puestas, frase, nv, nivelId){
+  const N = grid.length;
+  const letras = frase.map(f => f.letras).join('');
+  const g = grid.map(fila => fila.slice());
+  let k = 0;
+  const libresCeldas = [];
+  for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){
+    if(g[r][c] === null){ g[r][c] = letras[k++]; libresCeldas.push([r, c]); }
+  }
+  // que ninguna palabra aparezca dos veces por casualidad con las letras de la frase
+  if(sgPalabraDuplicada(g, puestas)) return null;
+  return { tam:N, grid:g, palabras:puestas, frase, libresCeldas, nivel:nivelId };
+}
+
+/* Arma la sopa: ubica palabras hasta que las casillas libres coinciden justo con las letras de una frase,
+   y rellena esas casillas (en orden de lectura) con la frase escondida. */
+function sgGenerar(pool, nivelId, frasesBase, seedStr, prioridad){
+  const nv = SG_NIVELES[nivelId];
+  const N = nv.tam;
+  const rnd = sgRng(seedStr);
+  const frases = frasesBase.map(f => ({ ...f, letras: sgLimpiar(f.f), L: sgLimpiar(f.f).length }));
+  const candidatas = pool.filter(w => w.p.length >= nv.min && w.p.length <= Math.min(nv.max, N));
+  for(let intento = 0; intento < 80; intento++){
+    const grid = Array.from({ length:N }, () => Array(N).fill(null));
+    let libres = N * N;
+    const puestas = [];
+    const primero = (prioridad || []).filter(w => w.p.length >= 3 && w.p.length <= Math.min(nv.max, N) && !candidatas.some(x => x.p === w.p));
+    for(const w of [...primero, ...sgBarajar(candidatas, rnd)]){
+      if(puestas.length >= nv.maxPal) break;
+      const palabra = w.p;
+      if(puestas.some(x => x.p.includes(palabra) || palabra.includes(x.p))) continue;
+      // todas las posiciones posibles, priorizando las que cruzan otras palabras
+      const opciones = [];
+      for(const [dr, dc] of nv.dirs){
+        for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){
+          const rf = r + dr * (palabra.length - 1), cf = c + dc * (palabra.length - 1);
+          if(rf < 0 || rf >= N || cf < 0 || cf >= N) continue;
+          let cruces = 0, ok = true;
+          for(let i = 0; i < palabra.length; i++){
+            const v = grid[r + dr*i][c + dc*i];
+            if(v === null) continue;
+            if(v !== palabra[i]){ ok = false; break; }
+            cruces++;
+          }
+          if(!ok || cruces === palabra.length) continue;
+          const nuevas = palabra.length - cruces;
+          if(libres - nuevas < nv.frase[0]) continue;
+          opciones.push({ r, c, dr, dc, cruces, nuevas });
+        }
+      }
+      if(!opciones.length) continue;
+      const conCruce = opciones.filter(o => o.cruces > 0);
+      const elegirDe = conCruce.length && rnd() < 0.7 ? conCruce : opciones;
+      const o = elegirDe[Math.floor(rnd() * elegirDe.length)];
+      const celdas = [];
+      for(let i = 0; i < palabra.length; i++){
+        const rr = o.r + o.dr*i, cc = o.c + o.dc*i;
+        grid[rr][cc] = palabra[i];
+        celdas.push([rr, cc]);
+      }
+      libres -= o.nuevas;
+      puestas.push({ ...w, celdas, dr:o.dr, dc:o.dc });
+      if(libres <= nv.frase[1] && puestas.length >= nv.minPal){
+        const frase = sgBuscarFrase(frases, libres, rnd, false);
+        if(frase){ const res = sgRellenar(grid, puestas, frase, nv, nivelId); if(res) return res; break; }
+      }
+    }
+    // si no apareció una frase sola, se aceptan dos dichos encadenados
+    if(libres >= nv.frase[0] && libres <= nv.frase[1] && puestas.length >= nv.minPal){
+      const frase = sgBuscarFrase(frases, libres, rnd, true);
+      if(frase){ const res = sgRellenar(grid, puestas, frase, nv, nivelId); if(res) return res; }
+    }
+  }
+  return null;
+}
+function sgPalabraDuplicada(grid, puestas){
+  const N = grid.length;
+  for(const w of puestas){
+    let veces = 0;
+    for(const [dr, dc] of SG_DIRS_TODAS){
+      for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){
+        let i = 0;
+        while(i < w.p.length){
+          const rr = r + dr*i, cc = c + dc*i;
+          if(rr < 0 || rr >= N || cc < 0 || cc >= N || grid[rr][cc] !== w.p[i]) break;
+          i++;
+        }
+        if(i === w.p.length) veces++;
+      }
+    }
+    // palíndromos aparecen 2 veces (ida y vuelta) en la misma posición
+    const pal = w.p === [...w.p].reverse().join('');
+    if(veces > (pal ? 2 : 1)) return true;
+  }
+  return false;
+}
+
+
+/* ---------- Sopa Grillera: juego ---------- */
+const SG_COLORES = ['rgba(179,59,34,.32)','rgba(74,107,67,.36)','rgba(66,133,244,.30)','rgba(212,175,55,.42)','rgba(142,68,173,.28)','rgba(230,126,34,.34)','rgba(22,160,133,.32)','rgba(192,57,43,.22)'];
+const SG_PISTAS_POR_SOPA = 3;
+const sg = {
+  modo: 'futbol', nivel: 'facil', fechaArchivo: '', // '' = hoy, 'libre' = al azar, 'AAAA-MM-DD' = archivo
+  datos: null, tipo: 'diaria', fecha: null, semilla: '',
+  encontradas: new Set(), segundos: 0, timer: null, pistas: 0, pistaIdx: null, terminado: false, guardado: false,
+  sel: null, // selección en curso { r0, c0, r1, c1, arrastrando, movio }
+  inicioToque: null, rankingVista: 'hoy'
+};
+try{
+  const m = localStorage.getItem('grilloliga-sg-modo'); if(m === 'futbol' || m === 'general') sg.modo = m;
+  const n = localStorage.getItem('grilloliga-sg-nivel'); if(SG_NIVELES[n]) sg.nivel = n;
+}catch(_){}
+
+let SG_POOL_CACHE = null;
+function sgPools(){
+  if(SG_POOL_CACHE) return SG_POOL_CACHE;
+  const armar = (t) => {
+    const m = new Map();
+    [...(typeof CG_BANCO !== 'undefined' ? CG_BANCO : []), ...SG_EXTRA].filter(x => x.t === t).forEach(x => {
+      const p = sgLimpiar(x.p);
+      if(p.length >= 3 && !m.has(p)) m.set(p, { p, c:x.c, n:x.n });
+    });
+    return [...m.values()];
+  };
+  SG_POOL_CACHE = { futbol: armar('f'), general: armar('g') };
+  return SG_POOL_CACHE;
+}
+// Jugadores de la Grillo Liga que se cuelan en las sopas de fútbol (iguales para todos ese día)
+function sgJugadoresDelDia(semilla, cantidad){
+  const rnd = sgRng('jug-' + semilla);
+  const jugadores = sgBarajar((DATA.estadisticas || []).filter(r => (r.PJ || 0) >= 3), rnd);
+  const res = [];
+  for(const r of jugadores){
+    const p = sgLimpiar(r.Jugador);
+    if(p.length < 3 || p.length > 12 || res.some(x => x.p === p)) continue;
+    const pistas = [`Jugador de la Grillo Liga con ${r.PJ} partidos jugados`];
+    if(r.Goles) pistas.push(`Lleva ${r.Goles} gol${r.Goles === 1 ? '' : 'es'} en la Grillo Liga`);
+    if(r.Ast) pistas.push(`Dio ${r.Ast} asistencia${r.Ast === 1 ? '' : 's'} en la Grillo Liga`);
+    res.push({ p, c: pistas[Math.floor(rnd() * pistas.length)] + ' 🦗', grillo:true });
+    if(res.length >= cantidad) break;
+  }
+  return res;
+}
+
+function sgFechaHoy(){ return cgFechaHoy(); }
+function sgFormatear(seg){ return cgFormatearTiempo(seg); }
+function sgClaveProgreso(){ return `grilloliga-sg-prog-${sg.tipo}-${sg.fecha}-${sg.modo}-${sg.nivel}`; }
+
+/* --- Selección de modo / nivel / día --- */
+function sgMostrar(cual){
+  document.getElementById('sg-seleccion').style.display = cual === 'seleccion' ? 'block' : 'none';
+  document.getElementById('sg-juego').style.display = cual === 'juego' ? 'block' : 'none';
+}
+function sgArmarSelectorDia(){
+  const sel = document.getElementById('sg-dia-select');
+  const ops = ['<option value="">⭐ Hoy: la sopa del día</option>',
+               '<option value="libre">🎲 Libre: una nueva al azar</option>'];
+  for(let i = 1; i <= 14; i++){
+    const d = new Date(Date.now() - i * 86400000);
+    const f = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    ops.push(`<option value="${f}">📅 ${d.toLocaleDateString('es-AR', { weekday:'long' })} ${f.slice(8)}/${f.slice(5,7)}</option>`);
+  }
+  sel.innerHTML = ops.join('');
+  sel.value = sg.fechaArchivo;
+}
+async function sgRenderSeleccion(){
+  document.querySelectorAll('#sg-modo-row [data-modo]').forEach(b => b.classList.toggle('activo', b.dataset.modo === sg.modo));
+  sgArmarSelectorDia();
+  const nota = { '':'La sopa del día cuenta para la racha y el ranking.', libre:'Las libres no cuentan para racha ni ranking.' }[sg.fechaArchivo];
+  document.getElementById('sg-dia-nota').textContent = nota !== undefined ? nota : 'Las del archivo no cuentan para racha ni ranking.';
+  SG_ORDEN_NIVELES.forEach(n => { document.querySelector(`#sg-niveles [data-estado="${n}"]`).textContent = sg.fechaArchivo ? (sg.fechaArchivo === 'libre' ? 'Al azar' : 'Archivo') : 'Sin jugar hoy'; });
+  const { data: { user } } = await sbClient.auth.getUser();
+  if(!user) return;
+  const { data } = await sbClient.from('sopa_resultados').select('fecha, modo, dificultad, segundos').eq('usuario_id', user.id).eq('tipo', 'diaria');
+  const filas = data || [];
+  const racha = sgCalcularRacha(filas.map(f => f.fecha));
+  document.getElementById('sg-racha-actual').textContent = racha.actual;
+  document.getElementById('sg-racha-mejor').textContent = racha.mejor;
+  if(!sg.fechaArchivo){
+    const hoy = sgFechaHoy();
+    SG_ORDEN_NIVELES.forEach(n => {
+      const hecho = filas.find(f => f.fecha === hoy && f.modo === sg.modo && f.dificultad === n);
+      if(hecho) document.querySelector(`#sg-niveles [data-estado="${n}"]`).textContent = `✅ ${sgFormatear(hecho.segundos)}`;
+    });
+  }
+}
+function sgCalcularRacha(fechas){
+  const dias = [...new Set(fechas)].sort();
+  const aNum = f => Math.round(new Date(f + 'T12:00:00').getTime() / 86400000);
+  let mejor = 0, corrida = 0, prev = null;
+  dias.forEach(f => { const n = aNum(f); corrida = (prev !== null && n === prev + 1) ? corrida + 1 : 1; mejor = Math.max(mejor, corrida); prev = n; });
+  const hoy = aNum(sgFechaHoy());
+  const actual = (prev === hoy || prev === hoy - 1) ? corrida : 0;
+  return { actual, mejor };
+}
+
+/* --- Arrancar una sopa --- */
+function sgEmpezar(nivel){
+  sg.nivel = nivel;
+  try{ localStorage.setItem('grilloliga-sg-nivel', nivel); localStorage.setItem('grilloliga-sg-modo', sg.modo); }catch(_){}
+  if(sg.fechaArchivo === 'libre'){ sg.tipo = 'libre'; sg.fecha = sgFechaHoy(); sg.semilla = 'libre-' + Date.now() + '-' + Math.random(); }
+  else if(sg.fechaArchivo){ sg.tipo = 'archivo'; sg.fecha = sg.fechaArchivo; sg.semilla = `sopa-${sg.fecha}-${sg.modo}-${nivel}`; }
+  else { sg.tipo = 'diaria'; sg.fecha = sgFechaHoy(); sg.semilla = `sopa-${sg.fecha}-${sg.modo}-${nivel}`; }
+  const pool = sgPools()[sg.modo];
+  const prioridad = sg.modo === 'futbol' ? sgJugadoresDelDia(sg.semilla, nivel === 'facil' ? 2 : 3) : [];
+  sg.datos = sgGenerar(pool, nivel, SG_FRASES[sg.modo], sg.semilla, prioridad);
+  if(!sg.datos){ glToast('No se pudo armar la sopa. Probá de nuevo.'); return; }
+  // las palabras se muestran ordenadas alfabéticamente (o por número en Experto)
+  sg.datos.palabras.sort((a, b) => a.p.localeCompare(b.p));
+  sg.encontradas = new Set(); sg.segundos = 0; sg.pistas = 0; sg.pistaIdx = null; sg.terminado = false; sg.guardado = false;
+  sg.sel = null; sg.inicioToque = null;
+  if(sg.tipo !== 'libre'){
+    try{
+      const prog = JSON.parse(localStorage.getItem(sgClaveProgreso()) || 'null');
+      if(prog){
+        (prog.e || []).forEach(i => { if(sg.datos.palabras[i]) sg.encontradas.add(i); });
+        sg.segundos = prog.s || 0; sg.pistas = prog.p || 0; sg.guardado = !!prog.g;
+      }
+    }catch(_){}
+  }
+  sgMostrar('juego');
+  sgRenderTablero();
+  sgRenderLista();
+  sgActualizarBarra();
+  sgCargarRanking();
+  document.getElementById('sg-final').style.display = 'none';
+  if(sg.encontradas.size === sg.datos.palabras.length){ sgTerminar(true); return; }
+  sgArrancarReloj();
+}
+function sgGuardarProgreso(){
+  if(!sg.datos || sg.tipo === 'libre') return;
+  try{ localStorage.setItem(sgClaveProgreso(), JSON.stringify({ e:[...sg.encontradas], s:sg.segundos, p:sg.pistas, g:sg.guardado })); }catch(_){}
+}
+function sgArrancarReloj(){
+  clearInterval(sg.timer);
+  sg.timer = setInterval(()=>{
+    if(document.hidden || sg.terminado) return;
+    sg.segundos++;
+    document.getElementById('sg-reloj').textContent = sgFormatear(sg.segundos);
+    if(sg.segundos % 5 === 0) sgGuardarProgreso();
+  }, 1000);
+}
+function sgFrenarReloj(){ clearInterval(sg.timer); sg.timer = null; }
+
+/* --- Dibujo --- */
+function sgTamCelda(){
+  const papel = document.getElementById('sg-papel');
+  const cs = getComputedStyle(papel);
+  const disp = papel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 4;
+  return Math.max(20, Math.min(40, Math.floor(disp / sg.datos.tam)));
+}
+function sgRenderTablero(){
+  const d = sg.datos, N = d.tam;
+  const nv = SG_NIVELES[d.nivel];
+  document.getElementById('sg-titulo-sub').textContent =
+    `${sg.modo === 'futbol' ? 'Edición Fútbol' : 'De todo un poco'} · ${nv.nombre} · ` +
+    (sg.tipo === 'libre' ? 'Libre' : new Date(sg.fecha + 'T12:00:00').toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'numeric' }));
+  const tab = document.getElementById('sg-tablero');
+  const t = sgTamCelda();
+  tab.style.setProperty('--sg-celda', t + 'px');
+  tab.style.width = (t * N) + 'px'; tab.style.height = (t * N) + 'px';
+  let html = `<svg class="sg-trazos" id="sg-trazos" viewBox="0 0 ${N*10} ${N*10}" preserveAspectRatio="none"></svg><div class="sg-letras" style="grid-template-columns:repeat(${N}, 1fr);">`;
+  for(let r = 0; r < N; r++) for(let c = 0; c < N; c++) html += `<div class="sg-letra" data-r="${r}" data-c="${c}">${d.grid[r][c]}</div>`;
+  html += `</div><svg class="sg-trazos sg-trazos-tmp" id="sg-trazo-tmp" viewBox="0 0 ${N*10} ${N*10}" preserveAspectRatio="none"></svg>`;
+  tab.innerHTML = html;
+  sgDibujarEncontradas();
+  sgMarcarPista();
+}
+function sgLinea(r0, c0, r1, c1, color, extra){
+  return `<line x1="${c0*10+5}" y1="${r0*10+5}" x2="${c1*10+5}" y2="${r1*10+5}" stroke="${color}" stroke-width="7.6" stroke-linecap="round" ${extra || ''}/>`;
+}
+function sgDibujarEncontradas(nuevaIdx){
+  const svg = document.getElementById('sg-trazos');
+  if(!svg) return;
+  svg.innerHTML = [...sg.encontradas].map(i => {
+    const w = sg.datos.palabras[i];
+    const [r0, c0] = w.celdas[0], [r1, c1] = w.celdas[w.celdas.length - 1];
+    return sgLinea(r0, c0, r1, c1, SG_COLORES[i % SG_COLORES.length], i === nuevaIdx ? 'class="sg-trazo-nuevo"' : '');
+  }).join('');
+}
+function sgRenderLista(){
+  const d = sg.datos;
+  const cont = document.getElementById('sg-lista');
+  const exp = SG_NIVELES[d.nivel].definiciones;
+  document.getElementById('sg-lista-titulo').textContent = exp ? '🧠 Definiciones (adiviná qué buscar)' : '🔎 Palabras para encontrar';
+  cont.classList.toggle('sg-lista-def', !!exp);
+  cont.innerHTML = d.palabras.map((w, i) => {
+    const hecha = sg.encontradas.has(i);
+    const color = SG_COLORES[i % SG_COLORES.length];
+    const marca = `<span class="sg-punto" style="background:${hecha ? color : 'transparent'}"></span>`;
+    if(exp){
+      const pista = sg.pistaIdx === i && !hecha ? ` · empieza con <b>${w.p[0]}</b>` : '';
+      return `<li class="${hecha ? 'sg-hecha' : ''}" data-i="${i}">${marca}<span><span class="sg-def">${comEsc(w.c || '')}</span> <small>(${w.p.length}${pista})</small>${hecha ? ` → <b class="sg-def-palabra">${w.p}</b>` : ''}</span></li>`;
+    }
+    return `<li class="${hecha ? 'sg-hecha' : ''}${w.grillo ? ' sg-grillo' : ''}" data-i="${i}" title="${w.grillo ? 'Jugador de la Grillo Liga' : ''}">${marca}${w.p}${w.grillo ? ' 🦗' : ''}</li>`;
+  }).join('');
+}
+function sgActualizarBarra(){
+  document.getElementById('sg-progreso').textContent = `${sg.encontradas.size}/${sg.datos.palabras.length}`;
+  document.getElementById('sg-reloj').textContent = sgFormatear(sg.segundos);
+  const quedan = SG_PISTAS_POR_SOPA - sg.pistas;
+  document.getElementById('sg-pistas-quedan').textContent = quedan;
+  document.getElementById('sg-pista-btn').disabled = quedan <= 0 || sg.terminado;
+}
+
+/* --- Seleccionar con el dedo o el mouse: arrastrando, o tocando primera y última letra --- */
+function sgCeldaDesdePunto(x, y){
+  const tab = document.getElementById('sg-tablero');
+  const rect = tab.getBoundingClientRect();
+  const N = sg.datos.tam, t = rect.width / N;
+  const c = Math.floor((x - rect.left) / t), r = Math.floor((y - rect.top) / t);
+  return { r: Math.max(0, Math.min(N - 1, r)), c: Math.max(0, Math.min(N - 1, c)), dentro: x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom };
+}
+// lleva el final de la selección a la línea recta más cercana (horizontal, vertical o diagonal)
+function sgAjustarFinal(r0, c0, r1, c1){
+  const N = sg.datos.tam;
+  let dr = r1 - r0, dc = c1 - c0;
+  if(dr === 0 && dc === 0) return { r1:r0, c1:c0 };
+  const ang = Math.atan2(dr, dc);
+  const paso = Math.round(ang / (Math.PI / 4));
+  const ur = Math.round(Math.sin(paso * Math.PI / 4)), uc = Math.round(Math.cos(paso * Math.PI / 4));
+  let largo = Math.max(Math.abs(dr), Math.abs(dc));
+  while(largo > 0){
+    const rr = r0 + ur * largo, cc = c0 + uc * largo;
+    if(rr >= 0 && rr < N && cc >= 0 && cc < N) return { r1:rr, c1:cc };
+    largo--;
+  }
+  return { r1:r0, c1:c0 };
+}
+function sgCeldasEntre(r0, c0, r1, c1){
+  const dr = Math.sign(r1 - r0), dc = Math.sign(c1 - c0);
+  const n = Math.max(Math.abs(r1 - r0), Math.abs(c1 - c0));
+  const res = [];
+  for(let i = 0; i <= n; i++) res.push([r0 + dr*i, c0 + dc*i]);
+  return res;
+}
+function sgDibujarSeleccion(){
+  const svg = document.getElementById('sg-trazo-tmp');
+  const burbuja = document.getElementById('sg-armando');
+  document.querySelectorAll('#sg-tablero .sg-letra.sg-inicio').forEach(e => e.classList.remove('sg-inicio'));
+  if(sg.inicioToque && !sg.sel){
+    const el = document.querySelector(`#sg-tablero .sg-letra[data-r="${sg.inicioToque.r}"][data-c="${sg.inicioToque.c}"]`);
+    if(el) el.classList.add('sg-inicio');
+  }
+  if(!sg.sel){ svg.innerHTML = ''; burbuja.textContent = sg.inicioToque ? 'Ahora tocá la última letra' : ' '; burbuja.classList.remove('activa'); return; }
+  const { r0, c0, r1, c1 } = sg.sel;
+  svg.innerHTML = sgLinea(r0, c0, r1, c1, 'rgba(26,26,26,.18)') + sgLinea(r0, c0, r1, c1, 'none', 'stroke="rgba(179,59,34,.8)" stroke-width="7.6" fill="none" class="sg-borde"');
+  burbuja.textContent = sgCeldasEntre(r0, c0, r1, c1).map(([r, c]) => sg.datos.grid[r][c]).join('');
+  burbuja.classList.add('activa');
+}
+function sgConfirmarSeleccion(r0, c0, r1, c1){
+  const d = sg.datos;
+  let idx = -1;
+  d.palabras.forEach((w, i) => {
+    if(idx !== -1 || sg.encontradas.has(i)) return;
+    const [a0, b0] = w.celdas[0], [a1, b1] = w.celdas[w.celdas.length - 1];
+    if((a0 === r0 && b0 === c0 && a1 === r1 && b1 === c1) || (a0 === r1 && b0 === c1 && a1 === r0 && b1 === c0)) idx = i;
+  });
+  const letras = sgCeldasEntre(r0, c0, r1, c1).map(([r, c]) => d.grid[r][c]).join('');
+  if(idx === -1){
+    if(letras.length >= 3){
+      const tab = document.getElementById('sg-tablero');
+      tab.classList.remove('sg-error'); void tab.offsetWidth; tab.classList.add('sg-error');
+      // si ya la habías encontrado, avisá
+      const ya = d.palabras.findIndex((w, i) => sg.encontradas.has(i) && (w.p === letras || w.p === [...letras].reverse().join('')));
+      document.getElementById('sg-armando').textContent = ya !== -1 ? `${d.palabras[ya].p}: ya la encontraste` : `${letras}: no está en la lista`;
+    }
+    return false;
+  }
+  sg.encontradas.add(idx);
+  if(sg.pistaIdx === idx) sg.pistaIdx = null;
+  glVibrar(25);
+  sgDibujarEncontradas(idx);
+  sgRenderLista();
+  sgMarcarPista();
+  sgActualizarBarra();
+  sgGuardarProgreso();
+  const li = document.querySelector(`#sg-lista li[data-i="${idx}"]`);
+  if(li){ li.classList.add('sg-recien'); }
+  document.getElementById('sg-armando').textContent = `✔ ${d.palabras[idx].p}`;
+  if(sg.encontradas.size === d.palabras.length) setTimeout(()=> sgTerminar(false), 350);
+  return true;
+}
+function sgInstalarPuntero(){
+  const tab = document.getElementById('sg-tablero');
+  tab.addEventListener('pointerdown', (e)=>{
+    if(!sg.datos || sg.terminado) return;
+    e.preventDefault();
+    try{ tab.setPointerCapture(e.pointerId); }catch(_){}
+    const { r, c } = sgCeldaDesdePunto(e.clientX, e.clientY);
+    sg.sel = { r0:r, c0:c, r1:r, c1:c, arrastrando:true, movio:false, x:e.clientX, y:e.clientY };
+    sgDibujarSeleccion();
+  });
+  tab.addEventListener('pointermove', (e)=>{
+    if(!sg.sel || !sg.sel.arrastrando) return;
+    e.preventDefault();
+    const { r, c } = sgCeldaDesdePunto(e.clientX, e.clientY);
+    if(Math.hypot(e.clientX - sg.sel.x, e.clientY - sg.sel.y) > 6) sg.sel.movio = true;
+    const f = sgAjustarFinal(sg.sel.r0, sg.sel.c0, r, c);
+    if(f.r1 !== sg.sel.r1 || f.c1 !== sg.sel.c1){ sg.sel.r1 = f.r1; sg.sel.c1 = f.c1; sgDibujarSeleccion(); }
+  });
+  const soltar = (e)=>{
+    if(!sg.sel) return;
+    const s = sg.sel;
+    sg.sel = null;
+    const largo = Math.max(Math.abs(s.r1 - s.r0), Math.abs(s.c1 - s.c0));
+    if(s.movio && largo > 0){
+      sg.inicioToque = null;
+      sgConfirmarSeleccion(s.r0, s.c0, s.r1, s.c1);
+      sgDibujarSeleccion();
+      return;
+    }
+    // toque sin arrastrar: primera letra / última letra
+    if(!sg.inicioToque || (sg.inicioToque.r === s.r0 && sg.inicioToque.c === s.c0)){
+      sg.inicioToque = sg.inicioToque ? null : { r:s.r0, c:s.c0 };
+      sgDibujarSeleccion();
+      return;
+    }
+    const ini = sg.inicioToque;
+    sg.inicioToque = null;
+    const f = sgAjustarFinal(ini.r, ini.c, s.r0, s.c0);
+    const recta = f.r1 === s.r0 && f.c1 === s.c0;
+    if(recta) sgConfirmarSeleccion(ini.r, ini.c, s.r0, s.c0);
+    else { sg.inicioToque = { r:s.r0, c:s.c0 }; }
+    sgDibujarSeleccion();
+  };
+  tab.addEventListener('pointerup', soltar);
+  tab.addEventListener('pointercancel', ()=>{ sg.sel = null; sgDibujarSeleccion(); });
+}
+
+/* --- Pistas --- */
+function sgPedirPista(){
+  if(sg.terminado || sg.pistas >= SG_PISTAS_POR_SOPA) return;
+  const faltan = sg.datos.palabras.map((w, i) => i).filter(i => !sg.encontradas.has(i) && i !== sg.pistaIdx);
+  if(!faltan.length) return;
+  sg.pistaIdx = faltan[Math.floor(Math.random() * faltan.length)];
+  sg.pistas++;
+  sgMarcarPista();
+  sgRenderLista();
+  sgActualizarBarra();
+  sgGuardarProgreso();
+}
+function sgMarcarPista(){
+  document.querySelectorAll('#sg-tablero .sg-letra.sg-pista').forEach(e => e.classList.remove('sg-pista'));
+  if(sg.pistaIdx === null || sg.encontradas.has(sg.pistaIdx)) return;
+  const [r, c] = sg.datos.palabras[sg.pistaIdx].celdas[0];
+  const el = document.querySelector(`#sg-tablero .sg-letra[data-r="${r}"][data-c="${c}"]`);
+  if(el) el.classList.add('sg-pista');
+}
+
+/* --- Final y frase escondida --- */
+async function sgTerminar(yaEstaba){
+  sg.terminado = true;
+  sgFrenarReloj();
+  sgActualizarBarra();
+  sgGuardarProgreso();
+  const d = sg.datos;
+  // las letras sobrantes se iluminan en orden de lectura
+  d.libresCeldas.forEach(([r, c], k) => {
+    const el = document.querySelector(`#sg-tablero .sg-letra[data-r="${r}"][data-c="${c}"]`);
+    if(el){ el.style.animationDelay = (yaEstaba ? 0 : k * 45) + 'ms'; el.classList.add('sg-sobra'); }
+  });
+  const fin = document.getElementById('sg-final');
+  fin.style.display = 'block';
+  const sinPistas = sg.pistas === 0 ? ' ¡Y sin pistas! 🦅' : '';
+  document.getElementById('sg-final-titulo').textContent = `🎉 ¡Sopa completa en ${sgFormatear(sg.segundos)}!${sinPistas}`;
+  document.getElementById('sg-frase-letras').textContent = d.libresCeldas.map(([r, c]) => d.grid[r][c]).join('');
+  document.getElementById('sg-frase-revelada').style.display = 'none';
+  document.getElementById('sg-frase-btn').style.display = '';
+  if(!yaEstaba) glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+  if(sg.guardado) return;
+  sg.guardado = true;
+  sgGuardarProgreso();
+  try{
+    const { data: { user } } = await sbClient.auth.getUser();
+    if(!user) return;
+    await sbClient.from('sopa_resultados').insert({
+      usuario_id:user.id, fecha:sg.fecha, tipo:sg.tipo, modo:sg.modo, dificultad:sg.nivel, segundos:sg.segundos, pistas_usadas:sg.pistas
+    }).then(()=>{}, ()=>{});
+    sgCargarRanking();
+    const cont = document.getElementById('umm-insignias');
+    if(cont) calcularInsigniasUsuario(user.id).then(est => renderizarInsignias(cont, est, true));
+  }catch(_){}
+}
+function sgRevelarFrase(){
+  const d = sg.datos;
+  document.getElementById('sg-frase-btn').style.display = 'none';
+  const box = document.getElementById('sg-frase-revelada');
+  box.style.display = 'block';
+  box.innerHTML = d.frase.map(f => `<div class="sg-frase-texto">“${comEsc(f.f)}”</div><div class="sg-frase-autor">— ${comEsc(f.a || '')}</div>`).join('');
+}
+
+/* --- Ranking (solo sopas del día) --- */
+async function sgCargarRanking(){
+  const cont = document.getElementById('sg-ranking-lista');
+  const titulo = document.getElementById('sg-ranking-titulo');
+  const nv = SG_NIVELES[sg.nivel];
+  titulo.textContent = `🏆 ${sg.modo === 'futbol' ? 'Fútbol' : 'De todo un poco'} · ${nv.nombre}`;
+  document.querySelectorAll('#sg-ranking-tabs [data-vista]').forEach(b => b.classList.toggle('activo', b.dataset.vista === sg.rankingVista));
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  let q = sbClient.from('sopa_resultados').select('usuario_id, segundos, pistas_usadas, fecha').eq('tipo', 'diaria').eq('modo', sg.modo).eq('dificultad', sg.nivel);
+  if(sg.rankingVista === 'hoy') q = q.eq('fecha', sgFechaHoy());
+  const [{ data: filas }, { data: perfiles }] = await Promise.all([ q, sbClient.from('perfiles_usuario').select('id, username, marco') ]);
+  glRegistrarMarcos(perfiles);
+  const nombre = {};
+  (perfiles || []).forEach(p => { nombre[p.id] = p.username; });
+  const mejor = new Map();
+  (filas || []).forEach(f => {
+    const prev = mejor.get(f.usuario_id);
+    if(!prev || f.segundos < prev.segundos || (f.segundos === prev.segundos && f.pistas_usadas < prev.pistas_usadas)) mejor.set(f.usuario_id, f);
+  });
+  const lista = [...mejor.values()].sort((a, b) => a.segundos - b.segundos || a.pistas_usadas - b.pistas_usadas).slice(0, 10);
+  cont.innerHTML = lista.length
+    ? lista.map((f, i) => `<div class="pm-ranking-fila"><span>${['🥇','🥈','🥉'][i] || (i+1) + '.'} ${glNombreConMarco(nombre[f.usuario_id] || '???')}</span><b>${sgFormatear(f.segundos)}${f.pistas_usadas ? ` <small title="pistas usadas">💡${f.pistas_usadas}</small>` : ''}</b></div>`).join('')
+    : `<div class="cz-online-esperando gl-vacio">${sg.rankingVista === 'hoy' ? 'Nadie completó esta sopa hoy. ¡Arrancá vos!' : 'Todavía no hay tiempos.'}</div>`;
+}
+
+/* --- Eventos --- */
+document.querySelectorAll('#sg-modo-row [data-modo]').forEach(b => b.addEventListener('click', ()=>{
+  sg.modo = b.dataset.modo;
+  try{ localStorage.setItem('grilloliga-sg-modo', sg.modo); }catch(_){}
+  sgRenderSeleccion();
+}));
+document.querySelectorAll('#sg-niveles [data-nivel]').forEach(b => b.addEventListener('click', ()=> sgEmpezar(b.dataset.nivel)));
+document.getElementById('sg-dia-select').addEventListener('change', (e)=>{ sg.fechaArchivo = e.target.value; sgRenderSeleccion(); });
+document.getElementById('sg-pista-btn').addEventListener('click', sgPedirPista);
+document.getElementById('sg-frase-btn').addEventListener('click', sgRevelarFrase);
+document.getElementById('sg-otra-btn').addEventListener('click', ()=>{ sgFrenarReloj(); sgGuardarProgreso(); sgMostrar('seleccion'); sgRenderSeleccion(); });
+document.getElementById('sg-otra-btn2').addEventListener('click', ()=>{ sgMostrar('seleccion'); sgRenderSeleccion(); });
+document.querySelectorAll('#sg-ranking-tabs [data-vista]').forEach(b => b.addEventListener('click', ()=>{ sg.rankingVista = b.dataset.vista; sgCargarRanking(); }));
+document.getElementById('mini-card-sopa').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-sopa').style.display = 'block';
+  sgMostrar('seleccion');
+  sgRenderSeleccion();
+});
+document.getElementById('sopa-volver').addEventListener('click', ()=>{
+  sgFrenarReloj(); sgGuardarProgreso();
+  document.getElementById('mini-sopa').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'grid';
+});
+let sgAnchoPrevio = window.innerWidth;
+window.addEventListener('resize', ()=>{
+  if(window.innerWidth === sgAnchoPrevio) return; // en el celu cambia el alto al esconder la barra del navegador
+  sgAnchoPrevio = window.innerWidth;
+  if(sg.datos && document.getElementById('sg-juego').style.display !== 'none'){
+    sgRenderTablero();
+    if(sg.terminado) sg.datos.libresCeldas.forEach(([r, c]) => { const el = document.querySelector(`#sg-tablero .sg-letra[data-r="${r}"][data-c="${c}"]`); if(el) el.classList.add('sg-sobra'); });
+  }
+});
+sgInstalarPuntero();
 
 
 /* ---------- COMUNICADOS OFICIALES (solo "grillo" publica, edita y borra; la base lo controla también) ---------- */
