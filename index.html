@@ -1904,6 +1904,97 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
 .cg-tema span{ font-size:24px; line-height:1; }
 .cg-tema small{ font-weight:400; font-size:11px; color:var(--text-dim); text-align:center; }
 .cg-tema.activo{ border:2px solid var(--red); background:color-mix(in srgb, var(--red) 8%, var(--card)); }
+.gl-compartir-btn{ border-color:#25D366 !important; color:#128C7E !important; font-weight:700; }
+.cg-acciones + .cg-resultado + .gl-compartir-btn, #cg-compartir-btn{ margin-top:8px; }
+/* ---------- DESAFÍO DEL DÍA ---------- */
+.dd-caja{ grid-column:1 / -1; background:linear-gradient(135deg, color-mix(in srgb, var(--red) 9%, var(--card)), var(--card)); border:1.5px solid color-mix(in srgb, var(--red) 45%, var(--line)); border-radius:14px; padding:12px 14px; box-shadow:var(--card-sombra); }
+.dd-caja.dd-completo{ border-color:#D4AF37; background:linear-gradient(135deg, rgba(212,175,55,.18), var(--card)); }
+.dd-cabecera{ display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.dd-titulo{ font-family:var(--font-num); font-weight:800; font-size:19px; text-transform:uppercase; letter-spacing:.4px; }
+.dd-racha{ font-size:13px; color:var(--text-dim); }
+.dd-racha b{ color:var(--red); font-size:15px; }
+.dd-items{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.dd-item{ display:flex; align-items:center; gap:10px; text-align:left; padding:9px 10px; border-radius:10px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); cursor:pointer; font-family:'Alegreya Sans',sans-serif; transition:border-color .15s, transform .12s; }
+.dd-item:hover{ border-color:var(--red); transform:translateY(-1px); }
+.dd-item b{ display:block; font-size:14px; }
+.dd-item small{ display:block; font-size:11px; color:var(--text-dim); }
+.dd-check{ flex:0 0 26px; height:26px; border-radius:50%; border:2px dashed var(--line-strong); display:flex; align-items:center; justify-content:center; font-size:15px; }
+.dd-item.hecho .dd-check{ border:none; background:#4A6B43; color:#fff; }
+.dd-item.hecho .dd-check::after{ content:'✔'; }
+.dd-premio{ font-size:12px; color:var(--text-dim); margin-top:8px; }
+.dd-aviso{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px; }
+.dd-aviso .cg-opcion.activo{ border-color:#4A6B43; color:#4A6B43; font-weight:700; }
+.dd-aviso-nota{ font-size:11.5px; color:var(--text-dim); }
+@media (max-width:420px){ .dd-items{ grid-template-columns:1fr; } }
+/* ---------- MEMOTEST ---------- */
+.mm-niveles{ grid-template-columns:repeat(3, 1fr) !important; }
+.mm-tablero{ display:grid; gap:8px; max-width:620px; margin:0 auto; }
+.mm-carta{ aspect-ratio:3/4; perspective:700px; cursor:pointer; border:none; background:none; padding:0; }
+.mm-cara{ position:relative; width:100%; height:100%; transition:transform .45s cubic-bezier(.2,.8,.2,1); transform-style:preserve-3d; }
+.mm-carta.vuelta .mm-cara, .mm-carta.par .mm-cara{ transform:rotateY(180deg); }
+.mm-frente, .mm-dorso{ position:absolute; inset:0; border-radius:10px; backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.18); }
+.mm-dorso{ background:repeating-linear-gradient(45deg, #3f5d39 0 8px, #4A6B43 8px 16px); border:3px solid #F0E7D2; display:flex; align-items:center; justify-content:center; font-size:clamp(20px, 6vw, 34px); }
+.mm-frente{ transform:rotateY(180deg); background:#F7F4EC; border:3px solid #F0E7D2; display:flex; flex-direction:column; }
+.mm-frente img{ width:100%; flex:1; min-height:0; object-fit:cover; display:block; }
+.mm-frente span{ font-family:'Alegreya Sans',sans-serif; font-weight:800; font-size:clamp(9px, 2.6vw, 12.5px); text-transform:uppercase; text-align:center; color:#1a1a1a; padding:3px 2px; background:#F0E7D2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mm-carta.par .mm-frente{ border-color:#D4AF37; box-shadow:0 0 0 2px #D4AF37, 0 2px 8px rgba(212,175,55,.5); }
+.mm-carta.par{ animation:sg-pop .4s ease-out; cursor:default; }
+.mm-carta.error .mm-cara{ animation:mm-error .35s; }
+@keyframes mm-error{ 25%{ transform:rotateY(180deg) translateX(-4px); } 75%{ transform:rotateY(180deg) translateX(4px); } }
+/* ---------- PANEL DE PARTIDOS (grillo) ---------- */
+.pa-admin{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:8px 10px; border:1px dashed var(--line-strong); border-radius:10px; background:var(--card2); }
+.pa-admin-tag{ font-size:12px; font-weight:700; color:var(--text-dim); margin-right:auto; }
+.pa-modal{ position:fixed; inset:0; z-index:250; background:rgba(0,0,0,.55); overflow-y:auto; padding:16px 10px 40px; }
+.pa-caja{ max-width:860px; margin:0 auto; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:0 10px 40px rgba(0,0,0,.3); }
+.pa-cabecera{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+.pa-titulo{ font-family:var(--font-num); font-weight:800; font-size:24px; text-transform:uppercase; }
+.pa-grid-datos{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pa-grid-datos label{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; color:var(--text-dim); }
+.pa-grid-datos label small{ font-weight:400; }
+.pa-grid-datos input, .pa-fila input, .pa-marcador input{ padding:8px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card2); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:15px; min-width:0; }
+.pa-ancho{ grid-column:1 / -1; }
+.pa-preview{ font-size:13px; color:var(--red); font-weight:700; min-height:18px; }
+.pa-equipos{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+.pa-equipo{ border:1px solid var(--line-strong); border-radius:10px; padding:10px; background:var(--card2); }
+.pa-eq-titulo{ font-weight:800; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.pa-eq-goles{ font-family:var(--font-num); font-size:28px; color:var(--red); }
+.pa-cols, .pa-fila{ display:grid; grid-template-columns:minmax(0,1fr) 46px 46px 46px 28px; gap:4px; align-items:center; }
+.pa-cols{ font-size:11px; font-weight:700; color:var(--text-dim); text-align:center; }
+.pa-cols span:first-child{ text-align:left; }
+.pa-fila{ margin-bottom:5px; }
+.pa-fila input[type=number]{ text-align:center; padding:8px 2px; }
+.pa-fila .pa-quitar{ background:none; border:none; color:var(--text-dim); font-size:18px; cursor:pointer; }
+.pa-fila.pa-dup input[list]{ border-color:#B33B22; }
+.pa-marcador{ margin-top:12px; font-size:13.5px; }
+.pa-marcador #pa-manual-wrap{ margin-top:6px; }
+.pa-marcador #pa-manual-wrap input{ width:64px; text-align:center; }
+.pa-nuevo-jugador{ margin-top:10px; }
+.pa-error{ color:#B33B22; font-weight:700; font-size:13.5px; margin-top:10px; min-height:18px; white-space:pre-line; }
+@media (max-width:700px){ .pa-equipos, .pa-grid-datos{ grid-template-columns:1fr; } }
+/* ---------- GRILLO WRAPPED ---------- */
+.wr-btn{ background:linear-gradient(135deg, #D4AF37, #B33B22) !important; color:#fff !important; border:none !important; }
+.wr-modal{ position:fixed; inset:0; z-index:300; background:radial-gradient(circle at 30% 20%, #2a4a35, #0F2018 70%); color:#F0E7D2; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; }
+.wr-barras{ position:absolute; top:calc(10px + env(safe-area-inset-top)); left:12px; right:52px; display:flex; gap:4px; z-index:3; }
+.wr-barras span{ flex:1; height:3px; border-radius:2px; background:rgba(240,231,210,.25); overflow:hidden; }
+.wr-barras span.llena{ background:#F0E7D2; }
+.wr-cerrar{ position:absolute; top:calc(2px + env(safe-area-inset-top)); right:8px; z-index:4; background:none; border:none; color:#F0E7D2; font-size:24px; padding:8px; cursor:pointer; }
+.wr-nav-izq, .wr-nav-der{ position:absolute; top:0; bottom:0; z-index:2; cursor:pointer; }
+.wr-nav-izq{ left:0; width:30%; } .wr-nav-der{ right:0; width:70%; }
+.wr-slide{ position:relative; z-index:3; width:min(440px, 92vw); text-align:center; padding:20px; animation:wr-entra .45s ease-out; pointer-events:none; }
+.wr-slide button{ pointer-events:auto; position:relative; z-index:5; }
+@keyframes wr-entra{ from{ opacity:0; transform:translateY(18px) scale(.97); } to{ opacity:1; transform:none; } }
+.wr-chico{ font-family:'Alegreya Sans',sans-serif; font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#D4AF37; font-weight:800; }
+.wr-gigante{ font-family:var(--font-num); font-weight:900; font-size:clamp(70px, 24vw, 120px); line-height:.95; color:#F0E7D2; margin:10px 0 4px; }
+.wr-titulo{ font-family:var(--font-num); font-weight:800; font-size:clamp(26px, 8vw, 38px); text-transform:uppercase; line-height:1.05; margin:8px 0; }
+.wr-texto{ font-family:'Alegreya Sans',sans-serif; font-size:17px; line-height:1.4; color:rgba(240,231,210,.85); margin-top:8px; }
+.wr-foto{ width:130px; height:130px; border-radius:50%; object-fit:cover; border:4px solid #D4AF37; margin:10px auto; display:block; box-shadow:0 0 30px rgba(212,175,55,.35); }
+.wr-fila{ display:flex; justify-content:center; gap:22px; margin-top:16px; }
+.wr-fila div b{ display:block; font-family:var(--font-num); font-size:42px; font-weight:900; color:#F0E7D2; }
+.wr-fila div span{ font-size:12px; letter-spacing:1px; text-transform:uppercase; color:#D4AF37; }
+.wr-tarjeta{ background:rgba(240,231,210,.08); border:1px solid rgba(240,231,210,.2); border-radius:16px; padding:14px; margin-top:12px; }
+.wr-acciones{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
+.wr-acciones button{ background:#F0E7D2; color:#0F2018; border:none; border-radius:999px; padding:10px 18px; font-weight:800; font-family:'Alegreya Sans',sans-serif; font-size:15px; cursor:pointer; }
+.wr-acciones button.secundario{ background:transparent; color:#F0E7D2; border:1.5px solid rgba(240,231,210,.5); }
 /* ---------- SOPA GRILLERA ---------- */
 .sg-niveles{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; max-width:640px; margin:0 auto; }
 .sg-nivel{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 6px; border-radius:12px; cursor:pointer;
@@ -2265,6 +2356,52 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
   <div class="stitch-line"></div>
 </header>
 
+<div class="pa-modal" id="pa-modal" style="display:none;" role="dialog" aria-label="Cargar partido">
+  <div class="pa-caja">
+    <div class="pa-cabecera">
+      <div class="pa-titulo" id="pa-titulo">Cargar partido nuevo</div>
+      <button class="cg-opcion" id="pa-cerrar">✕ Cerrar</button>
+    </div>
+    <div class="pa-grid-datos">
+      <label>N° de partido<input type="number" id="pa-numero" min="1"></label>
+      <label>Fecha<input type="date" id="pa-fecha"></label>
+      <label class="pa-ancho">Título <small>(se le agrega la fecha adelante, como siempre)</small><input type="text" id="pa-titulo-txt" placeholder="CIRO IS BACK // CAMBIAR LA PELOTA POR UN GLOBO SALE MAL"></label>
+      <div class="pa-ancho pa-preview" id="pa-preview"></div>
+      <label class="pa-ancho">Link de YouTube <small>(opcional)</small><input type="url" id="pa-youtube" placeholder="https://www.youtube.com/watch?v=…"></label>
+      <label class="pa-ancho">Nota para Históricos <small>(opcional: si la completás, el partido aparece en Históricos)</small><input type="text" id="pa-nota"></label>
+    </div>
+    <div class="pa-equipos">
+      <div class="pa-equipo" data-eq="oscuro">
+        <div class="pa-eq-titulo">⚫ OSCURO <b class="pa-eq-goles" id="pa-goles-oscuro">0</b></div>
+        <div class="pa-cols"><span>Jugador</span><span>⚽</span><span>🧠</span><span title="Goles en contra (en su propio arco)">GC</span><span></span></div>
+        <div class="pa-filas" id="pa-filas-oscuro"></div>
+        <button class="cg-opcion" data-agregar="oscuro">+ Agregar jugador</button>
+      </div>
+      <div class="pa-equipo" data-eq="claro">
+        <div class="pa-eq-titulo">⚪ CLARO <b class="pa-eq-goles" id="pa-goles-claro">0</b></div>
+        <div class="pa-cols"><span>Jugador</span><span>⚽</span><span>🧠</span><span title="Goles en contra (en su propio arco)">GC</span><span></span></div>
+        <div class="pa-filas" id="pa-filas-claro"></div>
+        <button class="cg-opcion" data-agregar="claro">+ Agregar jugador</button>
+      </div>
+    </div>
+    <div class="pa-marcador">
+      <label><input type="checkbox" id="pa-manual"> Corregir el marcador a mano <small>(por ejemplo, si hubo goles sin autor)</small></label>
+      <div id="pa-manual-wrap" style="display:none;">Oscuro <input type="number" id="pa-man-oscuro" min="0"> - <input type="number" id="pa-man-claro" min="0"> Claro</div>
+    </div>
+    <div class="pa-nuevo-jugador">
+      <button class="cg-opcion" id="pa-jugador-nuevo-btn">🆕 Dar de alta un jugador nuevo</button>
+    </div>
+    <div class="pa-error" id="pa-error"></div>
+    <button class="auth-btn" id="pa-guardar-btn" style="max-width:280px; margin:10px auto 0;">💾 Guardar partido</button>
+  </div>
+  <datalist id="pa-jugadores-lista"></datalist>
+</div>
+<div class="wr-modal" id="wr-modal" style="display:none;" role="dialog" aria-label="Grillo Wrapped">
+  <div class="wr-barras" id="wr-barras"></div>
+  <button class="wr-cerrar" id="wr-cerrar" aria-label="Cerrar">✕</button>
+  <div class="wr-slide" id="wr-slide"></div>
+  <div class="wr-nav-izq" id="wr-nav-izq"></div><div class="wr-nav-der" id="wr-nav-der"></div>
+</div>
 <div id="perfil-publico-overlay" style="display:none;"></div>
 <div id="perfil-publico-modal" style="display:none;">
   <div class="auth-card" style="max-width:300px;">
@@ -2444,6 +2581,11 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
       <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m12 7.5 3.8 2.8-1.4 4.5H9.6L8.2 10.3z"/><path d="M12 7.5V3.2M15.8 10.3l4-1.4M14.4 14.8l2.5 3.6M9.6 14.8l-2.5 3.6M8.2 10.3l-4-1.4"/></svg><span>Partidos</span></h2>
       <span class="pill-count" id="match-count"></span>
     </div>
+    <div class="pa-admin" id="pa-admin" style="display:none;">
+      <span class="pa-admin-tag">⚙️ Solo grillo</span>
+      <button class="cg-opcion" id="pa-nuevo-btn">➕ Cargar partido nuevo</button>
+      <button class="cg-opcion" id="pa-editar-btn">✏️ Editar este partido</button>
+    </div>
     <div class="match-select-row" id="match-chips"></div>
     <div id="scoreboard-container"></div>
     <div class="foro-partido-titulo">💬 Comentarios de este partido</div>
@@ -2524,6 +2666,22 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
     </div>
 
     <div class="mini-juegos-lista" id="mini-lista">
+      <div class="dd-caja" id="dd-caja">
+        <div class="dd-cabecera">
+          <div class="dd-titulo">📅 Desafío del día</div>
+          <div class="dd-racha" id="dd-racha">🔥 Racha: <b>0</b> días</div>
+        </div>
+        <div class="dd-items">
+          <button class="dd-item" data-dd="crucigrillo"><span class="dd-check" id="dd-check-cg"></span><span><b>Crucigrillo</b><small id="dd-det-cg">cualquier tema y dificultad</small></span></button>
+          <button class="dd-item" data-dd="sopa"><span class="dd-check" id="dd-check-sg"></span><span><b>Sopa Grillera</b><small id="dd-det-sg">cualquier modo y dificultad</small></span></button>
+        </div>
+        <div class="dd-premio" id="dd-premio">Completá los dos en el día. Con 7 días seguidos ganás el marco <b>📅 Constante</b>.</div>
+        <div class="dd-aviso">
+          <button class="cg-opcion" id="dd-aviso-btn" style="display:none;">🔔 Avisarme a las 23:00 si estoy por perder la racha</button>
+          <button class="cg-opcion" id="dd-aviso-prueba" style="display:none;">📨 Enviarme un aviso de prueba</button>
+          <span class="dd-aviso-nota" id="dd-aviso-nota"></span>
+        </div>
+      </div>
       <div class="mini-juego-card" id="mini-card-rps">
         <h3>✊✋✌️ Piedra, papel o tijera</h3>
         <p>Al mejor de 3, 5 o 7 contra el GrilloBOT (que aprende tus mañas) o contra otro usuario online.</p>
@@ -2551,6 +2709,10 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
       <div class="mini-juego-card" id="mini-card-sopa">
         <h3>🔎 Sopa Grillera</h3>
         <p>Encontrá las palabras escondidas: Fútbol o De todo un poco, en 4 dificultades. Una nueva cada día.</p>
+      </div>
+      <div class="mini-juego-card" id="mini-card-memo">
+        <h3>🃏 Memotest Grillero</h3>
+        <p>Encontrá los pares con las caras de los jugadores, contra reloj.</p>
       </div>
       <div class="mini-juego-card" id="mini-card-pacman">
         <h3>🦗 GrilloMan</h3>
@@ -2666,6 +2828,9 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
         <div class="cz-elegir-fila" style="margin-top:16px;">
           <button class="auth-btn" id="rps-revancha-btn">🔁 Revancha</button>
           <button class="auth-btn" id="rps-cambiar-btn" style="background:transparent; color:var(--red); border-color:var(--red);">Cambiar modo</button>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <button class="cg-opcion gl-compartir-btn" id="rps-compartir-btn">📤 Compartir resultado</button>
         </div>
       </div>
     </div>
@@ -2997,6 +3162,7 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
             <button class="auth-btn" id="cg-nuevo-btn" style="max-width:160px; background:transparent; color:var(--text-dim); border-color:var(--line-strong);">← Elegir otra dificultad</button>
           </div>
           <div id="cg-resultado" class="cg-resultado"></div>
+          <button class="cg-opcion gl-compartir-btn" id="cg-compartir-btn" style="display:none;">📤 Compartir resultado</button>
           <div class="cg-teclado" id="cg-teclado" aria-label="Teclado del Crucigrillo"></div>
           <div class="cg-pistas-col" id="cg-ranking-caja" style="margin-top:16px;">
             <div class="gd-pista-titulo">🏆 Mejores tiempos</div>
@@ -3067,7 +3233,10 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
               <div class="sg-frase-letras" id="sg-frase-letras"></div>
               <button class="auth-btn" id="sg-frase-btn" style="max-width:220px; margin:10px auto 0;">Revelar la frase</button>
               <div class="sg-frase-revelada" id="sg-frase-revelada" style="display:none;"></div>
-              <button class="cg-opcion" id="sg-otra-btn2" style="margin-top:12px;">Jugar otra sopa</button>
+              <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
+                <button class="cg-opcion gl-compartir-btn" id="sg-compartir-btn">📤 Compartir resultado</button>
+                <button class="cg-opcion" id="sg-otra-btn2">Jugar otra sopa</button>
+              </div>
             </div>
             <div class="cg-pistas-col">
               <div class="gd-pista-titulo" id="sg-ranking-titulo">🏆 Ranking</div>
@@ -3079,6 +3248,44 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="mini-memo" style="display:none;">
+      <span class="rps-volver" id="memo-volver">← Volver a Minijuegos</span>
+      <div id="mm-menu">
+        <div class="rps-titulo">Memotest Grillero</div>
+        <div class="gd-intro">Dá vuelta dos cartas por turno y encontrá todos los pares de jugadores. Gana el que lo termina más rápido.</div>
+        <div class="sg-niveles mm-niveles">
+          <button class="sg-nivel" data-mm="facil"><b>😌 Fácil</b><small>6 pares</small><span class="cg-seleccion-estado" data-mm-mejor="facil"></span></button>
+          <button class="sg-nivel" data-mm="medio"><b>🙂 Medio</b><small>8 pares</small><span class="cg-seleccion-estado" data-mm-mejor="medio"></span></button>
+          <button class="sg-nivel" data-mm="dificil"><b>🔥 Difícil</b><small>12 pares</small><span class="cg-seleccion-estado" data-mm-mejor="dificil"></span></button>
+        </div>
+      </div>
+      <div id="mm-juego" style="display:none;">
+        <div class="sg-barra">
+          <span class="sg-barra-prog">🃏 <b id="mm-pares">0/0</b> pares · <b id="mm-movs">0</b> movidas</span>
+          <span class="sg-reloj" id="mm-reloj">00:00</span>
+          <button class="cg-opcion" id="mm-otra-btn">← Otra dificultad</button>
+        </div>
+        <div class="mm-tablero" id="mm-tablero"></div>
+        <div class="sg-final" id="mm-final" style="display:none; margin-top:14px;">
+          <div class="sg-final-titulo" id="mm-final-titulo"></div>
+          <div class="sg-frase-intro" id="mm-final-sub"></div>
+          <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
+            <button class="cg-opcion gl-compartir-btn" id="mm-compartir-btn">📤 Compartir resultado</button>
+            <button class="cg-opcion" id="mm-revancha-btn">🔁 Jugar de nuevo</button>
+          </div>
+        </div>
+      </div>
+      <div class="cg-pistas-col" style="margin-top:16px;">
+        <div class="gd-pista-titulo" id="mm-ranking-titulo">🏆 Mejores tiempos</div>
+        <div class="sg-ranking-tabs" id="mm-ranking-tabs">
+          <button class="cg-opcion" data-mmr="facil">Fácil</button>
+          <button class="cg-opcion" data-mmr="medio">Medio</button>
+          <button class="cg-opcion" data-mmr="dificil">Difícil</button>
+        </div>
+        <div id="mm-ranking-lista" style="margin-top:6px;"></div>
       </div>
     </div>
 
@@ -3894,7 +4101,7 @@ async function cargarDatosDesdeSupabase(){
   };
 
   const partidos = partR.data.map(p => ({
-    numero: p.numero, titulo: p.titulo, nota: p.nota, youtube_url: p.youtube_url,
+    numero: p.numero, titulo: p.titulo, nota: p.nota, youtube_url: p.youtube_url, fecha: p.fecha || null, id: p.id,
     oscuro: { nombre:'OSCURO', goles: p.oscuro.goles, jugadores: p.oscuro.jugadores },
     claro: { nombre:'CLARO', goles: p.claro.goles, jugadores: p.claro.jugadores }
   }));
@@ -5053,16 +5260,22 @@ function glConfetti(colores){
   requestAnimationFrame(frame);
 }
 
+// Texto para mandar al grupo, estilo Wordle (lo comparte o lo copia)
+function glCompartirResultado(lineas){
+  glCompartir('Grilloliga', lineas.filter(Boolean).join('\n') + '\n🦗 ' + PLACA_LINK);
+}
+const GL_DIF_NOMBRE = { facil:'Fácil', medio:'Medio', dificil:'Difícil', experto:'Experto' };
+
 async function glCompartir(titulo, texto){
-  const url = location.href;
+  const url = titulo === 'Grilloliga' ? '' : location.href;
   if(navigator.share){
-    try{ await navigator.share({ title:titulo, text:texto, url }); }
+    try{ await navigator.share(url ? { title:titulo, text:texto, url } : { text:texto }); }
     catch(e){ /* el usuario canceló el share, no hacer nada */ }
     return;
   }
   try{
-    await navigator.clipboard.writeText(texto + '\n' + url);
-    glToast('📋 Copiado al portapapeles');
+    await navigator.clipboard.writeText(url ? texto + '\n' + url : texto);
+    glToast('📋 Copiado: pegalo en el grupo de WhatsApp');
   }catch(e){
     glToast('No se pudo copiar el link');
   }
@@ -5471,6 +5684,359 @@ async function placaGenerarYCompartir(match, formato, boton){
   }
 }
 
+/* ---------- PANEL DE PARTIDOS: solo grillo carga y edita (la base también lo controla) ---------- */
+const PA_MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const pa = { jugadores:[], editando:null, existentes:[] };
+async function paInit(){
+  const u = GL_USERNAME || await glCargarUsernameActual();
+  if(u !== 'grillo') return;
+  document.getElementById('pa-admin').style.display = 'flex';
+}
+async function paCargarJugadores(){
+  const { data, error } = await sbClient.from('jugadores').select('id, nombre').order('nombre');
+  if(error) throw error;
+  pa.jugadores = data || [];
+  document.getElementById('pa-jugadores-lista').innerHTML = pa.jugadores.map(j => `<option value="${glEsc(j.nombre)}">`).join('');
+}
+function paIdDe(nombre){
+  const n = (nombre || '').trim().toLowerCase();
+  const j = pa.jugadores.find(x => x.nombre.toLowerCase() === n);
+  return j ? j.id : null;
+}
+function paFilaHtml(f){
+  f = f || {};
+  return `<div class="pa-fila">
+    <input list="pa-jugadores-lista" class="pa-j" placeholder="Nombre" value="${glEsc(f.nombre || '')}">
+    <input type="number" class="pa-g" min="0" value="${f.goles || 0}" inputmode="numeric">
+    <input type="number" class="pa-a" min="0" value="${f.ast || 0}" inputmode="numeric">
+    <input type="number" class="pa-gc" min="0" value="${f.gc || 0}" inputmode="numeric">
+    <button class="pa-quitar" title="Quitar">✕</button></div>`;
+}
+function paAgregarFila(eq, f){
+  const cont = document.getElementById('pa-filas-' + eq);
+  cont.insertAdjacentHTML('beforeend', paFilaHtml(f));
+  const fila = cont.lastElementChild;
+  fila.querySelector('.pa-quitar').addEventListener('click', ()=>{ fila.remove(); paRecalcular(); });
+  fila.querySelectorAll('input').forEach(i => i.addEventListener('input', paRecalcular));
+  fila.querySelectorAll('input[type=number]').forEach(i => i.addEventListener('focus', ()=> i.select()));
+  return fila;
+}
+function paLeerEquipo(eq){
+  return [...document.querySelectorAll('#pa-filas-' + eq + ' .pa-fila')].map(f => ({
+    fila:f, nombre:f.querySelector('.pa-j').value.trim(),
+    goles:Math.max(0, parseInt(f.querySelector('.pa-g').value) || 0),
+    ast:Math.max(0, parseInt(f.querySelector('.pa-a').value) || 0),
+    gc:Math.max(0, parseInt(f.querySelector('.pa-gc').value) || 0)
+  })).filter(x => x.nombre || x.goles || x.ast || x.gc);
+}
+function paMarcadorAuto(){
+  const o = paLeerEquipo('oscuro'), c = paLeerEquipo('claro');
+  const sum = (arr, k) => arr.reduce((a, x) => a + x[k], 0);
+  return { oscuro: sum(o, 'goles') + sum(c, 'gc'), claro: sum(c, 'goles') + sum(o, 'gc') };
+}
+function paRecalcular(){
+  const m = paMarcadorAuto();
+  const manual = document.getElementById('pa-manual').checked;
+  document.getElementById('pa-goles-oscuro').textContent = manual ? (document.getElementById('pa-man-oscuro').value || 0) : m.oscuro;
+  document.getElementById('pa-goles-claro').textContent = manual ? (document.getElementById('pa-man-claro').value || 0) : m.claro;
+  // marca jugadores repetidos
+  const vistos = {};
+  document.querySelectorAll('.pa-fila').forEach(f => {
+    const n = f.querySelector('.pa-j').value.trim().toLowerCase();
+    f.classList.toggle('pa-dup', !!n && !!vistos[n]);
+    if(n) vistos[n] = true;
+  });
+  const fecha = document.getElementById('pa-fecha').value, txt = document.getElementById('pa-titulo-txt').value.trim();
+  document.getElementById('pa-preview').textContent = fecha && txt ? 'Va a quedar: ' + paTituloCompleto(fecha, txt) : '';
+}
+function paTituloCompleto(fecha, txt){
+  const [y, m, d] = fecha.split('-').map(Number);
+  return `${d} de ${PA_MESES[m - 1]} - ${txt}`;
+}
+function paSepararTitulo(titulo){
+  const m = /^\s*\d{1,2}\s+de\s+[a-záéíóú]+\s*-\s*(.*)$/i.exec(titulo || '');
+  return m ? m[1] : (titulo || '');
+}
+async function paAbrir(partido){
+  document.getElementById('pa-error').textContent = '';
+  try{ await paCargarJugadores(); }catch(e){ glToast('No se pudieron leer los jugadores.'); return; }
+  pa.editando = partido || null; pa.existentes = [];
+  ['oscuro','claro'].forEach(eq => document.getElementById('pa-filas-' + eq).innerHTML = '');
+  document.getElementById('pa-manual').checked = false;
+  document.getElementById('pa-manual-wrap').style.display = 'none';
+  if(partido){
+    document.getElementById('pa-titulo').textContent = `Editar partido #${partido.numero}`;
+    document.getElementById('pa-numero').value = partido.numero;
+    document.getElementById('pa-fecha').value = partido.fecha || '';
+    document.getElementById('pa-titulo-txt').value = paSepararTitulo(partido.titulo);
+    document.getElementById('pa-youtube').value = partido.youtube_url || '';
+    document.getElementById('pa-nota').value = partido.nota || '';
+    const { data } = await sbClient.from('participaciones').select('id, jugador_id, equipo, goles, asistencias, goles_en_contra_propios').eq('partido_id', partido.id);
+    pa.existentes = data || [];
+    pa.existentes.forEach(x => {
+      const j = pa.jugadores.find(y => y.id === x.jugador_id);
+      paAgregarFila(x.equipo, { nombre: j ? j.nombre : '', goles:x.goles, ast:x.asistencias, gc:x.goles_en_contra_propios });
+    });
+    const auto = paMarcadorAuto();
+    if(auto.oscuro !== partido.oscuro.goles || auto.claro !== partido.claro.goles){
+      document.getElementById('pa-manual').checked = true;
+      document.getElementById('pa-manual-wrap').style.display = '';
+      document.getElementById('pa-man-oscuro').value = partido.oscuro.goles;
+      document.getElementById('pa-man-claro').value = partido.claro.goles;
+    }
+  } else {
+    document.getElementById('pa-titulo').textContent = 'Cargar partido nuevo';
+    document.getElementById('pa-numero').value = Math.max(0, ...DATA.partidos.map(p => p.numero)) + 1;
+    document.getElementById('pa-fecha').value = cgFechaHoy();
+    ['pa-titulo-txt','pa-youtube','pa-nota'].forEach(id => document.getElementById(id).value = '');
+    for(let i = 0; i < 6; i++){ paAgregarFila('oscuro'); paAgregarFila('claro'); }
+  }
+  ['oscuro','claro'].forEach(eq => { if(!document.querySelector('#pa-filas-' + eq + ' .pa-fila')) paAgregarFila(eq); });
+  paRecalcular();
+  document.getElementById('pa-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function paCerrar(){ document.getElementById('pa-modal').style.display = 'none'; document.body.style.overflow = ''; }
+async function paGuardar(){
+  const err = document.getElementById('pa-error');
+  const btn = document.getElementById('pa-guardar-btn');
+  const numero = parseInt(document.getElementById('pa-numero').value);
+  const fecha = document.getElementById('pa-fecha').value;
+  const txt = document.getElementById('pa-titulo-txt').value.trim();
+  const o = paLeerEquipo('oscuro'), c = paLeerEquipo('claro');
+  const problemas = [];
+  if(!numero || numero < 1) problemas.push('Falta el número de partido.');
+  if(!pa.editando && DATA.partidos.some(p => p.numero === numero)) problemas.push(`Ya existe el partido #${numero}.`);
+  if(pa.editando && numero !== pa.editando.numero && DATA.partidos.some(p => p.numero === numero)) problemas.push(`Ya existe el partido #${numero}.`);
+  if(!fecha) problemas.push('Falta la fecha.');
+  if(!txt) problemas.push('Falta el título.');
+  if(!o.length || !c.length) problemas.push('Cada equipo tiene que tener al menos un jugador.');
+  const todos = [...o.map(x => ({ ...x, eq:'oscuro' })), ...c.map(x => ({ ...x, eq:'claro' }))];
+  const desconocidos = todos.filter(x => !paIdDe(x.nombre)).map(x => x.nombre || '(sin nombre)');
+  if(desconocidos.length) problemas.push(`No encuentro a: ${[...new Set(desconocidos)].join(', ')}. Elegilos de la lista o dalos de alta como jugador nuevo.`);
+  const ids = todos.map(x => paIdDe(x.nombre)).filter(Boolean);
+  if(new Set(ids).size !== ids.length) problemas.push('Hay un jugador repetido.');
+  if(problemas.length){ err.textContent = problemas.join('\n'); return; }
+  const manual = document.getElementById('pa-manual').checked;
+  const auto = paMarcadorAuto();
+  const gO = manual ? parseInt(document.getElementById('pa-man-oscuro').value) || 0 : auto.oscuro;
+  const gC = manual ? parseInt(document.getElementById('pa-man-claro').value) || 0 : auto.claro;
+  if(!confirm(`¿Guardar el partido #${numero}: Oscuro ${gO} - ${gC} Claro, con ${todos.length} jugadores?`)) return;
+  err.textContent = '';
+  btn.disabled = true; btn.textContent = '⏳ Guardando…';
+  const datosPartido = { numero, titulo: paTituloCompleto(fecha, txt), fecha, nota: document.getElementById('pa-nota').value.trim() || null,
+    goles_oscuro: gO, goles_claro: gC, youtube_url: document.getElementById('pa-youtube').value.trim() || null };
+  const filas = todos.map(x => ({ jugador_id: paIdDe(x.nombre), equipo: x.eq, goles: x.goles, asistencias: x.ast, goles_en_contra_propios: x.gc }));
+  try{
+    let pid;
+    if(pa.editando){
+      pid = pa.editando.id;
+      const { error } = await sbClient.from('partidos').update(datosPartido).eq('id', pid);
+      if(error) throw error;
+      // primero actualiza/agrega y recién al final borra a los que se sacaron
+      for(const f of filas){
+        const ya = pa.existentes.find(x => x.jugador_id === f.jugador_id);
+        const r = ya ? await sbClient.from('participaciones').update(f).eq('id', ya.id) : await sbClient.from('participaciones').insert({ ...f, partido_id: pid });
+        if(r.error) throw r.error;
+      }
+      const sacados = pa.existentes.filter(x => !filas.some(f => f.jugador_id === x.jugador_id)).map(x => x.id);
+      if(sacados.length){ const r = await sbClient.from('participaciones').delete().in('id', sacados); if(r.error) throw r.error; }
+    } else {
+      const { data, error } = await sbClient.from('partidos').insert(datosPartido).select('id').single();
+      if(error) throw error;
+      pid = data.id;
+      const r = await sbClient.from('participaciones').insert(filas.map(f => ({ ...f, partido_id: pid })));
+      if(r.error) throw r.error;
+    }
+    glToast('✅ Partido guardado. Actualizando la página…');
+    glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+    setTimeout(()=> location.reload(), 1400);
+  }catch(e){
+    err.textContent = 'No se pudo guardar: ' + (e.message || e);
+    btn.disabled = false; btn.textContent = '💾 Guardar partido';
+  }
+}
+async function paJugadorNuevo(){
+  const nombre = (prompt('Nombre del jugador nuevo (como querés que aparezca en la web):') || '').trim();
+  if(!nombre) return;
+  if(paIdDe(nombre)){ glToast('Ese jugador ya existe.'); return; }
+  const fecha = document.getElementById('pa-fecha').value || cgFechaHoy();
+  const { error } = await sbClient.from('jugadores').insert({ nombre, debut: fecha });
+  if(error){ glToast('No se pudo crear: ' + error.message); return; }
+  await paCargarJugadores();
+  glToast(`🆕 ${nombre} dado de alta. Ya lo podés elegir en la lista.`);
+}
+document.getElementById('pa-nuevo-btn').addEventListener('click', ()=> paAbrir(null));
+document.getElementById('pa-editar-btn').addEventListener('click', ()=>{
+  const p = DATA.partidos.find(x => x.numero === activeMatch);
+  if(!p){ glToast('Elegí un partido primero.'); return; }
+  paAbrir(p);
+});
+document.getElementById('pa-cerrar').addEventListener('click', ()=>{ if(confirm('¿Cerrar sin guardar?')) paCerrar(); });
+document.querySelectorAll('[data-agregar]').forEach(b => b.addEventListener('click', ()=> paAgregarFila(b.dataset.agregar).querySelector('.pa-j').focus()));
+document.getElementById('pa-manual').addEventListener('change', (e)=>{
+  document.getElementById('pa-manual-wrap').style.display = e.target.checked ? '' : 'none';
+  if(e.target.checked){ const m = paMarcadorAuto(); document.getElementById('pa-man-oscuro').value = m.oscuro; document.getElementById('pa-man-claro').value = m.claro; }
+  paRecalcular();
+});
+['pa-man-oscuro','pa-man-claro','pa-fecha','pa-titulo-txt'].forEach(id => document.getElementById(id).addEventListener('input', paRecalcular));
+document.getElementById('pa-guardar-btn').addEventListener('click', paGuardar);
+document.getElementById('pa-jugador-nuevo-btn').addEventListener('click', paJugadorNuevo);
+paInit();
+if(location.hash === '#minijuegos'){
+  setTimeout(()=>{ const t = document.querySelector('.tab-btn[data-tab="minijuegos"]'); if(t) t.click(); history.replaceState(null, '', location.pathname); }, 400);
+}
+
+/* ---------- GRILLO WRAPPED: el año de cada jugador, en diciembre (grillo lo puede ver antes) ---------- */
+function wrAnio(){ return new Date().getFullYear(); }
+function wrDisponible(){ return new Date().getMonth() === 11 || GL_USERNAME === 'grillo'; }
+function wrPartidosDelAnio(nombre, anio){
+  return (DATA.partidos || []).filter(p => p.fecha && String(p.fecha).startsWith(String(anio)))
+    .map(p => {
+      const enO = p.oscuro.jugadores.find(j => j.jugador === nombre), enC = p.claro.jugadores.find(j => j.jugador === nombre);
+      const j = enO || enC;
+      if(!j) return null;
+      const eq = enO ? 'oscuro' : 'claro', otro = enO ? 'claro' : 'oscuro';
+      const gf = p[eq].goles, gc = p[otro].goles;
+      return { p, eq, otro, goles:j.goles || 0, ast:j.asistencias || 0, res: gf > gc ? 'G' : gf < gc ? 'P' : 'E' };
+    }).filter(Boolean).sort((a, b) => a.p.numero - b.p.numero);
+}
+function wrCalcular(nombre, anio){
+  const ms = wrPartidosDelAnio(nombre, anio);
+  const pj = ms.length, pg = ms.filter(m => m.res === 'G').length, pe = ms.filter(m => m.res === 'E').length, pp = pj - pg - pe;
+  const goles = ms.reduce((a, m) => a + m.goles, 0), ast = ms.reduce((a, m) => a + m.ast, 0);
+  const hattricks = ms.filter(m => m.goles >= 3).length;
+  let mejor = null;
+  ms.forEach(m => { if(!mejor || (m.goles + m.ast) >= (mejor.goles + mejor.ast)) mejor = m; });
+  let racha = 0, mejorRacha = 0;
+  ms.forEach(m => { racha = m.res === 'G' ? racha + 1 : 0; mejorRacha = Math.max(mejorRacha, racha); });
+  const juntos = {}, contra = {};
+  ms.forEach(m => {
+    m.p[m.eq].jugadores.forEach(j => { if(j.jugador === nombre) return; const c = juntos[j.jugador] || (juntos[j.jugador] = { pj:0, pg:0 }); c.pj++; if(m.res === 'G') c.pg++; });
+    m.p[m.otro].jugadores.forEach(j => { const c = contra[j.jugador] || (contra[j.jugador] = { pj:0, pp:0 }); c.pj++; if(m.res === 'P') c.pp++; });
+  });
+  const companero = Object.entries(juntos).filter(([, c]) => c.pj >= 3).sort((a, b) => b[1].pg - a[1].pg || b[1].pj - a[1].pj)[0] || null;
+  const bestia = Object.entries(contra).filter(([, c]) => c.pp >= 2).sort((a, b) => b[1].pp - a[1].pp || b[1].pj - a[1].pj)[0] || null;
+  // posiciones contra el resto de la liga en el año
+  const todos = {};
+  (DATA.partidos || []).filter(p => p.fecha && String(p.fecha).startsWith(String(anio))).forEach(p => {
+    ['oscuro','claro'].forEach(eq => p[eq].jugadores.forEach(j => {
+      const t = todos[j.jugador] || (todos[j.jugador] = { pj:0, goles:0, ast:0 });
+      t.pj++; t.goles += j.goles || 0; t.ast += j.asistencias || 0;
+    }));
+  });
+  const lista = Object.values(todos);
+  const posGoles = 1 + lista.filter(t => t.goles > goles).length;
+  const posAst = 1 + lista.filter(t => t.ast > ast).length;
+  const pctPj = lista.length > 1 ? Math.round(100 * lista.filter(t => t.pj < pj).length / (lista.length - 1)) : 100;
+  const oscuro = ms.filter(m => m.eq === 'oscuro').length;
+  return { nombre, anio, pj, pg, pe, pp, goles, ast, hattricks, mejor, mejorRacha, companero, bestia, posGoles, posAst, pctPj, oscuro, claro: pj - oscuro, totalJugadores: lista.length };
+}
+const wr = { datos:null, i:0, slides:[] };
+function wrFotoHtml(nombre){
+  const foto = (FOTOS_JUGADORES_REMOTAS || {})[nombre];
+  return foto ? `<img class="wr-foto" src="${foto}" alt="">` : `<div class="wr-foto" style="display:flex;align-items:center;justify-content:center;font-size:56px;background:#1C3526;">🦗</div>`;
+}
+function wrArmarSlides(d){
+  const pct = d.pj ? Math.round(d.pg * 100 / d.pj) : 0;
+  const slides = [
+    `<div class="wr-chico">Grillo Wrapped ${d.anio}</div>${wrFotoHtml(d.nombre)}<div class="wr-titulo">${glEsc(d.nombre)}</div><div class="wr-texto">Este es tu año en la Grillo Liga. Tocá para avanzar 👉</div>`,
+    `<div class="wr-chico">Partidos jugados</div><div class="wr-gigante">${d.pj}</div><div class="wr-texto">Jugaste más partidos que el <b>${d.pctPj}%</b> de la liga.<br>${d.oscuro >= d.claro ? `Te tocó más veces de <b>Oscuro</b> (${d.oscuro})` : `Te tocó más veces de <b>Claro</b> (${d.claro})`}.</div>`,
+    `<div class="wr-chico">Resultados</div><div class="wr-fila"><div><b>${d.pg}</b><span>Ganados</span></div><div><b>${d.pe}</b><span>Empates</span></div><div><b>${d.pp}</b><span>Perdidos</span></div></div><div class="wr-texto" style="margin-top:18px;">Ganaste el <b>${pct}%</b> de tus partidos.${d.mejorRacha >= 2 ? `<br>Tu mejor racha: <b>${d.mejorRacha} victorias seguidas</b> 🔥` : ''}</div>`,
+    `<div class="wr-chico">Goles y asistencias</div><div class="wr-fila"><div><b>${d.goles}</b><span>Goles</span></div><div><b>${d.ast}</b><span>Asistencias</span></div></div><div class="wr-texto" style="margin-top:18px;">Fuiste el <b>#${d.posGoles}</b> en goles y el <b>#${d.posAst}</b> en asistencias de ${d.totalJugadores} jugadores.${d.hattricks ? `<br>Y metiste <b>${d.hattricks} hat-trick${d.hattricks === 1 ? '' : 's'}</b> 🎩` : ''}</div>`
+  ];
+  if(d.mejor && (d.mejor.goles + d.mejor.ast) > 0){
+    slides.push(`<div class="wr-chico">Tu partido del año</div><div class="wr-titulo">#${d.mejor.p.numero}</div><div class="wr-tarjeta"><div class="wr-texto" style="margin:0;">“${glEsc(d.mejor.p.titulo || '')}”</div><div class="wr-fila"><div><b>${d.mejor.goles}</b><span>Goles</span></div><div><b>${d.mejor.ast}</b><span>Asist.</span></div><div><b>${d.mejor.p.oscuro.goles}-${d.mejor.p.claro.goles}</b><span>Resultado</span></div></div></div>`);
+  }
+  if(d.companero || d.bestia){
+    slides.push(`<div class="wr-chico">Socios y verdugos</div>${d.companero ? `<div class="wr-tarjeta">🤝 Tu compañero ideal<div class="wr-titulo">${glEsc(d.companero[0])}</div><div class="wr-texto" style="margin:0;">${d.companero[1].pg} victorias juntos en ${d.companero[1].pj} partidos</div></div>` : ''}${d.bestia ? `<div class="wr-tarjeta">😈 Tu bestia negra<div class="wr-titulo">${glEsc(d.bestia[0])}</div><div class="wr-texto" style="margin:0;">Te ganó ${d.bestia[1].pp} veces jugando en contra</div></div>` : ''}`);
+  }
+  slides.push(`<div class="wr-chico">Tu ${d.anio} en una imagen</div>${wrFotoHtml(d.nombre)}<div class="wr-titulo">${glEsc(d.nombre)}</div><div class="wr-fila"><div><b>${d.pj}</b><span>PJ</span></div><div><b>${d.goles}</b><span>Goles</span></div><div><b>${d.ast}</b><span>Asist.</span></div><div><b>${pct}%</b><span>Victorias</span></div></div><div class="wr-acciones"><button id="wr-compartir">📤 Compartir imagen</button><button class="secundario" id="wr-otra-vez">↺ Ver de nuevo</button></div>`);
+  return slides;
+}
+function wrMostrar(){
+  document.getElementById('wr-barras').innerHTML = wr.slides.map((_, k) => `<span class="${k <= wr.i ? 'llena' : ''}"></span>`).join('');
+  const el = document.getElementById('wr-slide');
+  el.innerHTML = wr.slides[wr.i];
+  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  const c = document.getElementById('wr-compartir');
+  if(c) c.addEventListener('click', (e)=>{ e.stopPropagation(); wrCompartirImagen(c); });
+  const o = document.getElementById('wr-otra-vez');
+  if(o) o.addEventListener('click', (e)=>{ e.stopPropagation(); wr.i = 0; wrMostrar(); });
+  if(wr.i === wr.slides.length - 1) glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+}
+function wrAbrir(nombre){
+  wr.datos = wrCalcular(nombre, wrAnio());
+  if(!wr.datos.pj){ glToast('No hay partidos de este año para este jugador.'); return; }
+  wr.slides = wrArmarSlides(wr.datos); wr.i = 0;
+  document.getElementById('wr-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  wrMostrar();
+}
+function wrCerrar(){ document.getElementById('wr-modal').style.display = 'none'; document.body.style.overflow = ''; }
+document.getElementById('wr-cerrar').addEventListener('click', wrCerrar);
+document.getElementById('wr-nav-der').addEventListener('click', ()=>{ if(wr.i < wr.slides.length - 1){ wr.i++; wrMostrar(); } });
+document.getElementById('wr-nav-izq').addEventListener('click', ()=>{ if(wr.i > 0){ wr.i--; wrMostrar(); } });
+document.addEventListener('keydown', (e)=>{
+  if(document.getElementById('wr-modal').style.display === 'none') return;
+  if(e.key === 'Escape') wrCerrar();
+  if(e.key === 'ArrowRight' && wr.i < wr.slides.length - 1){ wr.i++; wrMostrar(); }
+  if(e.key === 'ArrowLeft' && wr.i > 0){ wr.i--; wrMostrar(); }
+});
+async function wrDibujar(d){
+  const W = 1080, H = 1920;
+  const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  try{ await Promise.all([document.fonts.load("400 60px 'Special Elite'"), document.fonts.load("700 40px 'Alegreya Sans'")]); }catch(e){}
+  const C = { crema:'#F0E7D2', crema2:'rgba(240,231,210,0.72)', rojo:'#B33B22', oro:'#D4AF37' };
+  const g = ctx.createRadialGradient(W*0.3, H*0.2, 50, W*0.5, H*0.5, H*0.8);
+  g.addColorStop(0, '#2a4a35'); g.addColorStop(1, '#0F2018');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(240,231,210,0.08)'; ctx.lineWidth = 4; ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.fillStyle = C.rojo; ctx.fillRect(40, 40, W - 80, 12);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = C.oro; ctx.font = "700 46px 'Alegreya Sans', sans-serif"; ctx.fillText(`GRILLO WRAPPED ${d.anio}`, W/2, 190);
+  ctx.fillStyle = C.crema; ctx.font = "400 52px 'Special Elite', monospace"; ctx.fillText('GRILLOLIGA ARGENTINA', W/2, 260);
+  const img = await placaCargarImagen((FOTOS_JUGADORES_REMOTAS || {})[d.nombre]);
+  placaCirculoFoto(ctx, img, d.nombre, W/2, 520, 190, C.oro);
+  ctx.fillStyle = C.crema; ctx.font = "800 110px 'Alegreya Sans', sans-serif";
+  ctx.fillText(placaRecortarTexto(ctx, d.nombre.toUpperCase(), W - 160), W/2, 860);
+  const pct = d.pj ? Math.round(d.pg * 100 / d.pj) : 0;
+  const datos = [[d.pj, 'PARTIDOS'], [d.goles, 'GOLES'], [d.ast, 'ASISTENCIAS'], [pct + '%', 'VICTORIAS']];
+  datos.forEach(([v, l], k) => {
+    const x = 150 + (k % 2) * 390 + 195, y = 1030 + Math.floor(k / 2) * 250;
+    ctx.fillStyle = 'rgba(240,231,210,0.08)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 180, y - 120, 360, 220, 28) : ctx.rect(x - 180, y - 120, 360, 220); ctx.fill();
+    ctx.fillStyle = C.crema; ctx.font = "900 120px 'Alegreya Sans', sans-serif"; ctx.fillText(String(v), x, y + 20);
+    ctx.fillStyle = C.oro; ctx.font = "700 34px 'Alegreya Sans', sans-serif"; ctx.fillText(l, x, y + 75);
+  });
+  let y = 1560;
+  ctx.font = "700 40px 'Alegreya Sans', sans-serif"; ctx.fillStyle = C.crema2;
+  if(d.companero){ ctx.fillText(placaRecortarTexto(ctx, `🤝 Compañero ideal: ${d.companero[0]}`, W - 160), W/2, y); y += 62; }
+  if(d.mejorRacha >= 2){ ctx.fillText(`🔥 Mejor racha: ${d.mejorRacha} victorias seguidas`, W/2, y); y += 62; }
+  if(d.hattricks){ ctx.fillText(`🎩 ${d.hattricks} hat-trick${d.hattricks === 1 ? '' : 's'}`, W/2, y); }
+  ctx.fillStyle = C.rojo; ctx.fillRect(40, H - 150, W - 80, 4);
+  ctx.fillStyle = C.oro; ctx.font = "400 32px 'Special Elite', monospace"; ctx.fillText(PLACA_LINK, W/2, H - 80);
+  return canvas;
+}
+async function wrCompartirImagen(boton){
+  const txt = boton.textContent; boton.disabled = true; boton.textContent = '⏳ Armando…';
+  try{
+    const canvas = await wrDibujar(wr.datos);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    const nombre = `grillo-wrapped-${wr.datos.anio}-${wr.datos.nombre.replace(/\s+/g, '-')}.png`;
+    const archivo = new File([blob], nombre, { type:'image/png' });
+    if(navigator.canShare && navigator.canShare({ files:[archivo] })){
+      try{ await navigator.share({ files:[archivo], text:`🎁 Mi Grillo Wrapped ${wr.datos.anio} · https://${PLACA_LINK}/` }); }catch(e){}
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 4000);
+      glToast('🖼️ Imagen descargada');
+    }
+  }catch(e){ glToast('No se pudo armar la imagen.'); }
+  finally{ boton.disabled = false; boton.textContent = txt; }
+}
+
 /* ---------- MVP DE LA FECHA (votado por los usuarios) ---------- */
 async function cargarYRenderizarMvp(match){
   const candidatos = [...match.oscuro.jugadores, ...match.claro.jugadores].map(j => j.jugador);
@@ -5532,19 +6098,21 @@ const INSIGNIAS_DEF = [
   { id:'crucigrillero', icono:'📰', nombre:'Crucigrillero', desc:'días de mejor racha en el Crucigrillo', niveles:[7,30,100] },
   { id:'sin_ayuda', icono:'🧩', nombre:'Sin ayuda', desc:'Completó un Crucigrillo Difícil del día sin revelar letras' },
   { id:'lector_mentes', icono:'🧠', nombre:'Lector de mentes', desc:'partidas de Piedra, papel o tijera ganadas al GrilloBOT en Difícil', niveles:[1,5,15] },
-  { id:'ojo_aguila', icono:'🔎', nombre:'Ojo de águila', desc:'Sopas Grilleras completadas', niveles:[10,50,150] }
+  { id:'ojo_aguila', icono:'🔎', nombre:'Ojo de águila', desc:'Sopas Grilleras completadas', niveles:[10,50,150] },
+  { id:'constante', icono:'📅', nombre:'Constante', desc:'Completó el Desafío del día 7 días seguidos' }
 ];
 const INSIGNIA_NIVELES_NOMBRE = ['', 'Bronce', 'Plata', 'Oro'];
 
 // Devuelve un Map id -> { nivel (0 = bloqueada; 1..3 si tiene niveles; 1 si es simple), valor }
 async function calcularInsigniasUsuario(userId){
-  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }, { data: rpsDificil }, { data: sopas }] = await Promise.all([
+  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }, { data: rpsDificil }, { data: sopas }, { data: cgFechas }] = await Promise.all([
     sbClient.from('minijuegos_resultados').select('juego, resultado').eq('usuario_id', userId),
     sbClient.from('cabezones_historial').select('modo, fue_campeon').eq('usuario_id', userId),
     sbClient.from('crucigrillo_racha').select('mejor_racha').eq('usuario_id', userId).maybeSingle(),
     sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId).eq('dificultad', 'dificil').eq('pistas_usadas', 0).limit(1),
     sbClient.from('rps_historial').select('id').eq('usuario_id', userId).eq('modo', 'bot').eq('dificultad', 'dificil').eq('gano', true),
-    sbClient.from('sopa_resultados').select('id').eq('usuario_id', userId)
+    sbClient.from('sopa_resultados').select('id, fecha, tipo').eq('usuario_id', userId),
+    sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId)
   ]);
   const r = resultados || [];
   const h = historial || [];
@@ -5559,9 +6127,10 @@ async function calcularInsigniasUsuario(userId){
     crucigrillero: cgRacha ? (cgRacha.mejor_racha || 0) : 0,
     sin_ayuda: (cgLimpios || []).length,
     lector_mentes: (rpsDificil || []).length,
-    ojo_aguila: (sopas || []).length
+    ojo_aguila: (sopas || []).length,
+    constante: ddRachaCombinada((cgFechas || []).map(x => x.fecha), (sopas || []).filter(x => x.tipo === 'diaria').map(x => x.fecha)).mejor
   };
-  const umbralSimple = { primeros_pasos:1, coleccionista:5, sin_ayuda:1 };
+  const umbralSimple = { primeros_pasos:1, coleccionista:5, sin_ayuda:1, constante:7 };
   const estado = new Map();
   INSIGNIAS_DEF.forEach(ins => {
     const v = valores[ins.id] || 0;
@@ -6951,6 +7520,15 @@ document.getElementById('rps-revancha-btn').addEventListener('click', ()=>{
   else rpsEmpezarPartida('VOS', 'GrilloBOT');
 });
 document.getElementById('rps-cambiar-btn').addEventListener('click', ()=>{ rpsSalirOnline(); rpsIrAlMenu(); });
+document.getElementById('rps-compartir-btn').addEventListener('click', ()=>{
+  const gane = rps.ptsYo > rps.ptsRival;
+  const rival = rps.modo === 'online' ? rps.nombreRival : `el GrilloBOT (${GL_DIF_NOMBRE[rps.dificultad]})`;
+  glCompartirResultado([
+    `✊✋✌️ ${gane ? 'Le gané' : 'Perdí'} ${Math.max(rps.ptsYo, rps.ptsRival)} a ${Math.min(rps.ptsYo, rps.ptsRival)} contra ${rival}`,
+    rps.rondas.map(r => r.res === 'yo' ? '🟩' : r.res === 'rival' ? '🟥' : '⬜').join(''),
+    rpsStats.racha >= 2 ? `🔥 Racha de ${rpsStats.racha} partidas` : ''
+  ]);
+});
 document.getElementById('rps-abandonar-btn').addEventListener('click', ()=>{
   if(rps.modo === 'online' && !confirm('¿Abandonar la partida? No cuenta para nadie.')) return;
   rpsSalirOnline();
@@ -7677,7 +8255,13 @@ function gdAdivinar(){
   if(intento.Jugador === gdJugadorMisterio.Jugador){
     gdGanado = true;
     const msg = document.getElementById('gd-mensaje-ganaste');
-    msg.textContent = `🎉 ¡Adivinaste! Era ${gdJugadorMisterio.Jugador}.`;
+    const intentosGd = document.querySelectorAll('#gd-tabla-body tr').length;
+    msg.innerHTML = `🎉 ¡Adivinaste! Era ${gdJugadorMisterio.Jugador}. <button class="cg-opcion gl-compartir-btn" id="gd-compartir-btn" style="margin-left:6px;">📤 Compartir</button>`;
+    document.getElementById('gd-compartir-btn').addEventListener('click', ()=> glCompartirResultado([
+      `🔤 Grillodle · lo saqué en ${intentosGd} intento${intentosGd === 1 ? '' : 's'}`,
+      '🟩'.repeat(1) + '⬜'.repeat(Math.max(0, Math.min(9, intentosGd - 1))),
+      '¿Me ganás?'
+    ]));
     msg.style.display = 'block';
     input.disabled = true;
     document.getElementById('gd-adivinar').disabled = true;
@@ -15235,6 +15819,8 @@ function cgCorregir(){
       clearInterval(cgIntervaloCronometro);
       glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
       if(cgPistasUsadas === 0) document.getElementById('cg-resultado').textContent += ' ¡Y sin usar letras! 🧩';
+      document.getElementById('cg-compartir-btn').style.display = '';
+      if(!cgFechaJuego && typeof ddActualizar === 'function') ddActualizar();
       if(!cgFechaJuego) cgGuardarMejorTiempo();
     }
   } else {
@@ -15246,6 +15832,7 @@ function cgIniciarCrucigrama(dificultad){
   cgDificultadActual = dificultad;
   cgPistasRestantes = CG_LETRAS_POR_PARTIDA;
   cgPistasUsadas = 0;
+  document.getElementById('cg-compartir-btn').style.display = 'none';
   cgActualizarBotonesPista();
   document.getElementById('cg-resultado').textContent = '';
   document.getElementById('cg-seleccion-wrap').style.display = 'none';
@@ -15274,6 +15861,14 @@ function cgIniciarCrucigrama(dificultad){
 
 document.getElementById('cg-corregir-btn').addEventListener('click', cgCorregir);
 document.getElementById('cg-pista-btn').addEventListener('click', cgPista);
+document.getElementById('cg-compartir-btn').addEventListener('click', ()=>{
+  const dia = cgFechaJuego ? cgFechaJuego.split('-').reverse().slice(0,2).join('/') : cgFechaHoy().split('-').reverse().slice(0,2).join('/');
+  glCompartirResultado([
+    `📰 Crucigrillo ${cgTemaActual === 'futbol' ? 'Futbolero' : 'General'} · ${GL_DIF_NOMBRE[cgDificultadActual] || ''} · ${dia}`,
+    `⏱ ${cgFormatearTiempo(cgSegundos)} · ${cgPistasUsadas ? '💡 ' + cgPistasUsadas + ' letra' + (cgPistasUsadas === 1 ? '' : 's') : '🧩 sin ayuda'}`,
+    '¿Me ganás?'
+  ]);
+});
 document.getElementById('cg-nuevo-btn').addEventListener('click', ()=>{
   if(cgIntervaloCronometro) clearInterval(cgIntervaloCronometro);
   document.getElementById('cg-juego-wrap').style.display = 'none';
@@ -15320,6 +15915,261 @@ document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
   document.getElementById('mini-lista').style.display = 'grid';
 });
 
+
+/* ---------- MINIJUEGO: MEMOTEST GRILLERO ---------- */
+const MM_NIVELES = { facil:{ pares:6, cols:4 }, medio:{ pares:8, cols:4 }, dificil:{ pares:12, cols:6 } };
+const mm = { nivel:'facil', cartas:[], abiertas:[], pares:0, movs:0, seg:0, timer:null, bloqueado:false, terminado:false, arranco:false, rankingNivel:'facil' };
+function mmMostrar(cual){
+  document.getElementById('mm-menu').style.display = cual === 'menu' ? 'block' : 'none';
+  document.getElementById('mm-juego').style.display = cual === 'juego' ? 'block' : 'none';
+}
+function mmJugadoresConFoto(){
+  const fotos = (typeof FOTOS_JUGADORES_REMOTAS !== 'undefined' && FOTOS_JUGADORES_REMOTAS) || {};
+  return Object.keys(fotos).filter(n => fotos[n]).map(n => ({ nombre:n, foto:fotos[n] }));
+}
+function mmEmpezar(nivel){
+  mm.nivel = nivel;
+  const cfg = MM_NIVELES[nivel];
+  const jugadores = sgBarajar(mmJugadoresConFoto(), Math.random).slice(0, cfg.pares);
+  if(jugadores.length < cfg.pares){ glToast('No hay suficientes fotos de jugadores cargadas.'); return; }
+  mm.cartas = sgBarajar(jugadores.flatMap((j, k) => [{ ...j, k }, { ...j, k }]), Math.random);
+  mm.abiertas = []; mm.pares = 0; mm.movs = 0; mm.seg = 0; mm.bloqueado = false; mm.terminado = false; mm.arranco = false;
+  clearInterval(mm.timer);
+  const tab = document.getElementById('mm-tablero');
+  const cols = window.innerWidth < 480 && cfg.cols > 4 ? 4 : cfg.cols;
+  tab.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  tab.style.maxWidth = (cols * 110) + 'px';
+  tab.innerHTML = mm.cartas.map((c, i) => `<button class="mm-carta" data-i="${i}" aria-label="Carta ${i + 1}">
+      <div class="mm-cara"><div class="mm-dorso">🦗</div><div class="mm-frente"><img src="${c.foto}" alt="" loading="eager"><span>${glEsc(c.nombre)}</span></div></div></button>`).join('');
+  tab.querySelectorAll('.mm-carta').forEach(b => b.addEventListener('click', ()=> mmTocar(+b.dataset.i, b)));
+  document.getElementById('mm-final').style.display = 'none';
+  mmActualizarBarra();
+  mmMostrar('juego');
+  mm.rankingNivel = nivel;
+  mmCargarRanking();
+}
+function mmActualizarBarra(){
+  document.getElementById('mm-pares').textContent = `${mm.pares}/${MM_NIVELES[mm.nivel].pares}`;
+  document.getElementById('mm-movs').textContent = mm.movs;
+  document.getElementById('mm-reloj').textContent = cgFormatearTiempo(mm.seg);
+}
+function mmTocar(i, el){
+  if(mm.bloqueado || mm.terminado || el.classList.contains('vuelta') || el.classList.contains('par')) return;
+  if(!mm.arranco){
+    mm.arranco = true;
+    mm.timer = setInterval(()=>{ if(!document.hidden){ mm.seg++; mmActualizarBarra(); } }, 1000);
+  }
+  el.classList.add('vuelta');
+  mm.abiertas.push({ i, el });
+  if(mm.abiertas.length < 2) return;
+  mm.movs++;
+  const [a, b] = mm.abiertas;
+  mm.abiertas = [];
+  if(mm.cartas[a.i].k === mm.cartas[b.i].k){
+    a.el.classList.add('par'); b.el.classList.add('par');
+    mm.pares++;
+    glVibrar(20);
+    mmActualizarBarra();
+    if(mm.pares === MM_NIVELES[mm.nivel].pares) setTimeout(mmTerminar, 450);
+  } else {
+    mm.bloqueado = true;
+    mmActualizarBarra();
+    setTimeout(()=>{ a.el.classList.add('error'); b.el.classList.add('error'); }, 450);
+    setTimeout(()=>{
+      [a, b].forEach(x => x.el.classList.remove('vuelta', 'error'));
+      mm.bloqueado = false;
+    }, 950);
+  }
+}
+async function mmTerminar(){
+  mm.terminado = true;
+  clearInterval(mm.timer);
+  const cfg = MM_NIVELES[mm.nivel];
+  const perfecto = mm.movs === cfg.pares;
+  document.getElementById('mm-final-titulo').textContent = `🎉 ¡Completo en ${cgFormatearTiempo(mm.seg)}!`;
+  document.getElementById('mm-final-sub').textContent = `${mm.movs} movidas para ${cfg.pares} pares${perfecto ? ' · ¡memoria perfecta! 🧠' : ''}`;
+  document.getElementById('mm-final').style.display = 'block';
+  glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+  try{
+    const { data: { user } } = await sbClient.auth.getUser();
+    if(user){
+      await sbClient.from('memotest_resultados').insert({ usuario_id:user.id, dificultad:mm.nivel, segundos:mm.seg, movimientos:mm.movs }).then(()=>{}, ()=>{});
+      mmCargarRanking();
+    }
+  }catch(_){}
+}
+async function mmCargarRanking(){
+  const cont = document.getElementById('mm-ranking-lista');
+  document.querySelectorAll('#mm-ranking-tabs [data-mmr]').forEach(b => b.classList.toggle('activo', b.dataset.mmr === mm.rankingNivel));
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: filas }, { data: perfiles }, { data: { user } }] = await Promise.all([
+    sbClient.from('memotest_resultados').select('usuario_id, segundos, movimientos').eq('dificultad', mm.rankingNivel),
+    sbClient.from('perfiles_usuario').select('id, username, marco'),
+    sbClient.auth.getUser()
+  ]);
+  glRegistrarMarcos(perfiles);
+  const nombre = {};
+  (perfiles || []).forEach(p => { nombre[p.id] = p.username; });
+  const mejor = new Map();
+  (filas || []).forEach(f => {
+    const prev = mejor.get(f.usuario_id);
+    if(!prev || f.segundos < prev.segundos || (f.segundos === prev.segundos && f.movimientos < prev.movimientos)) mejor.set(f.usuario_id, f);
+  });
+  const lista = [...mejor.values()].sort((a, b) => a.segundos - b.segundos || a.movimientos - b.movimientos).slice(0, 10);
+  cont.innerHTML = lista.length
+    ? lista.map((f, i) => `<div class="pm-ranking-fila"><span>${['🥇','🥈','🥉'][i] || (i + 1) + '.'} ${glNombreConMarco(nombre[f.usuario_id] || '???')}</span><b>${cgFormatearTiempo(f.segundos)} <small>· ${f.movimientos} mov.</small></b></div>`).join('')
+    : '<div class="cz-online-esperando gl-vacio">Todavía no hay tiempos. ¡Arrancá vos!</div>';
+  // tus mejores tiempos en el menú
+  if(user){
+    const mios = (filas || []).filter(f => f.usuario_id === user.id);
+    const el = document.querySelector(`[data-mm-mejor="${mm.rankingNivel}"]`);
+    if(el && mios.length) el.textContent = '🏆 ' + cgFormatearTiempo(Math.min(...mios.map(f => f.segundos)));
+  }
+}
+document.querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', ()=> mmEmpezar(b.dataset.mm)));
+document.querySelectorAll('#mm-ranking-tabs [data-mmr]').forEach(b => b.addEventListener('click', ()=>{ mm.rankingNivel = b.dataset.mmr; mmCargarRanking(); }));
+document.getElementById('mm-otra-btn').addEventListener('click', ()=>{ clearInterval(mm.timer); mmMostrar('menu'); });
+document.getElementById('mm-revancha-btn').addEventListener('click', ()=> mmEmpezar(mm.nivel));
+document.getElementById('mm-compartir-btn').addEventListener('click', ()=>{
+  const cfg = MM_NIVELES[mm.nivel];
+  glCompartirResultado([
+    `🃏 Memotest Grillero · ${GL_DIF_NOMBRE[mm.nivel]}`,
+    `⏱ ${cgFormatearTiempo(mm.seg)} · ${mm.movs} movidas para ${cfg.pares} pares${mm.movs === cfg.pares ? ' 🧠' : ''}`,
+    '¿Me ganás?'
+  ]);
+});
+document.getElementById('mini-card-memo').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-memo').style.display = 'block';
+  mmMostrar('menu');
+  ['facil','medio','dificil'].forEach(n => { const e = document.querySelector(`[data-mm-mejor="${n}"]`); if(e) e.textContent = ''; });
+  (async ()=>{ for(const n of ['dificil','medio','facil']){ mm.rankingNivel = n; await mmCargarRanking(); } })();
+});
+document.getElementById('memo-volver').addEventListener('click', ()=>{
+  clearInterval(mm.timer);
+  document.getElementById('mini-memo').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'grid';
+});
+
+/* ---------- DESAFÍO DEL DÍA (Crucigrillo + Sopa Grillera del día) ---------- */
+// racha de días seguidos en los que se completaron los dos diarios
+function ddRachaCombinada(fechasCg, fechasSg){
+  const sgSet = new Set(fechasSg);
+  const ambos = [...new Set(fechasCg)].filter(f => sgSet.has(f));
+  return sgCalcularRacha(ambos);
+}
+async function ddActualizar(){
+  const caja = document.getElementById('dd-caja');
+  if(!caja) return;
+  let user = null;
+  try{ ({ data: { user } } = await sbClient.auth.getUser()); }catch(_){}
+  if(!user){ caja.style.display = 'none'; return; }
+  caja.style.display = '';
+  ddRenderAviso();
+  const hoy = cgFechaHoy();
+  const [{ data: cg }, { data: so }] = await Promise.all([
+    sbClient.from('crucigrillo_progreso_diario').select('fecha, tiempo_segundos, dificultad, tema').eq('usuario_id', user.id),
+    sbClient.from('sopa_resultados').select('fecha, segundos, dificultad, modo').eq('usuario_id', user.id).eq('tipo', 'diaria')
+  ]);
+  const cgHoy = (cg || []).filter(x => x.fecha === hoy);
+  const sgHoy = (so || []).filter(x => x.fecha === hoy);
+  const itemCg = caja.querySelector('[data-dd="crucigrillo"]'), itemSg = caja.querySelector('[data-dd="sopa"]');
+  itemCg.classList.toggle('hecho', cgHoy.length > 0);
+  itemSg.classList.toggle('hecho', sgHoy.length > 0);
+  document.getElementById('dd-det-cg').textContent = cgHoy.length ? `✅ ${cgHoy.length} hecho${cgHoy.length === 1 ? '' : 's'} hoy` : 'cualquier tema y dificultad';
+  document.getElementById('dd-det-sg').textContent = sgHoy.length ? `✅ ${sgHoy.length} hecha${sgHoy.length === 1 ? '' : 's'} hoy` : 'cualquier modo y dificultad';
+  const racha = ddRachaCombinada((cg || []).map(x => x.fecha), (so || []).map(x => x.fecha));
+  document.getElementById('dd-racha').innerHTML = `🔥 Racha: <b>${racha.actual}</b> día${racha.actual === 1 ? '' : 's'} · mejor: ${racha.mejor}`;
+  const completo = cgHoy.length > 0 && sgHoy.length > 0;
+  caja.classList.toggle('dd-completo', completo);
+  const premio = document.getElementById('dd-premio');
+  if(completo){
+    premio.innerHTML = racha.mejor >= 7 ? '🏆 ¡Desafío de hoy completo! Ya tenés el marco <b>📅 Constante</b>: elegilo en tu perfil.' : `🏆 ¡Desafío de hoy completo! Te faltan ${Math.max(0, 7 - racha.actual)} día(s) seguidos para el marco <b>📅 Constante</b>.`;
+    let festejado = null;
+    try{ festejado = localStorage.getItem('grilloliga-dd-festejo'); }catch(_){}
+    if(festejado !== hoy){
+      try{ localStorage.setItem('grilloliga-dd-festejo', hoy); }catch(_){}
+      glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+      glToast(`📅 ¡Desafío del día completo! Racha: ${racha.actual} día${racha.actual === 1 ? '' : 's'}`);
+      const cont = document.getElementById('umm-insignias');
+      if(cont) calcularInsigniasUsuario(user.id).then(est => renderizarInsignias(cont, est, true));
+    }
+  } else {
+    premio.innerHTML = 'Completá los dos en el día. Con 7 días seguidos ganás el marco <b>📅 Constante</b>.';
+  }
+}
+document.querySelectorAll('#dd-caja [data-dd]').forEach(b => b.addEventListener('click', ()=>{
+  if(b.dataset.dd === 'crucigrillo') document.getElementById('mini-card-crucigrillo').click();
+  else { sg.fechaArchivo = ''; document.getElementById('mini-card-sopa').click(); }
+}));
+/* --- Recordatorio de racha (push a las 23:00, lo manda Supabase) --- */
+const GL_VAPID_PUBLICA = 'BJavY_i0_jLmj9-W-umr_5JMOJhvT9eYArDo9q5Shd_r2LEh-NbzZ4NMKOboj8m8GhhaVhIXuGMNutXnNxWvGZY';
+function ddPushSoportado(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function ddB64aBytes(b64){
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const bin = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(bin, c => c.charCodeAt(0));
+}
+async function ddSuscripcionActual(){
+  if(!ddPushSoportado()) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+async function ddRenderAviso(){
+  const btn = document.getElementById('dd-aviso-btn'), nota = document.getElementById('dd-aviso-nota');
+  if(!ddPushSoportado()){
+    btn.style.display = 'none';
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    nota.textContent = ios ? '🔔 Para recibir el aviso de racha en iPhone: Compartir → "Agregar a inicio" y abrí la app desde ahí.' : '';
+    return;
+  }
+  btn.style.display = '';
+  const sub = await ddSuscripcionActual();
+  const activo = !!sub && Notification.permission === 'granted';
+  btn.classList.toggle('activo', activo);
+  btn.textContent = activo ? '🔔 Aviso de racha activado (tocá para desactivar)' : '🔔 Avisarme a las 23:00 si estoy por perder la racha';
+  nota.textContent = Notification.permission === 'denied' ? 'Bloqueaste las notificaciones: habilitalas desde la configuración del navegador.' : '';
+  document.getElementById('dd-aviso-prueba').style.display = activo && GL_USERNAME === 'grillo' ? '' : 'none';
+}
+async function ddToggleAviso(){
+  const btn = document.getElementById('dd-aviso-btn');
+  btn.disabled = true;
+  try{
+    const { data: { user } } = await sbClient.auth.getUser();
+    if(!user){ glToast('Entrá con tu usuario para activar el aviso.'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const actual = await reg.pushManager.getSubscription();
+    if(actual && Notification.permission === 'granted'){
+      await sbClient.from('push_suscripciones').delete().eq('endpoint', actual.endpoint);
+      await actual.unsubscribe();
+      glToast('🔕 Aviso de racha desactivado');
+      return;
+    }
+    const permiso = await Notification.requestPermission();
+    if(permiso !== 'granted'){ glToast('Sin permiso no te puedo avisar 😕'); return; }
+    const sub = actual || await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: ddB64aBytes(GL_VAPID_PUBLICA) });
+    const j = sub.toJSON();
+    await sbClient.from('push_suscripciones').delete().eq('endpoint', j.endpoint);
+    const { error } = await sbClient.from('push_suscripciones').insert({ usuario_id:user.id, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth });
+    if(error) throw error;
+    glToast('🔔 ¡Listo! Si a las 23:00 todavía no hiciste el diario, te aviso.');
+  }catch(e){
+    glToast('No se pudo activar el aviso: ' + (e.message || e));
+  }finally{
+    btn.disabled = false;
+    ddRenderAviso();
+  }
+}
+document.getElementById('dd-aviso-btn').addEventListener('click', ddToggleAviso);
+document.getElementById('dd-aviso-prueba').addEventListener('click', async ()=>{
+  const { data, error } = await sbClient.functions.invoke('recordatorio-racha', { body:{ prueba:true } });
+  glToast(error ? 'Falló la prueba: ' + error.message : `📨 Aviso de prueba enviado a ${data && data.enviados || 0} dispositivo(s)`);
+});
+
+// se refresca cada vez que se vuelve a la lista de minijuegos
+new MutationObserver(()=>{ if(document.getElementById('mini-lista').style.display !== 'none') ddActualizar(); })
+  .observe(document.getElementById('mini-lista'), { attributes:true, attributeFilter:['style'] });
+document.querySelectorAll('[data-tab="minijuegos"]').forEach(b => b.addEventListener('click', ()=> setTimeout(ddActualizar, 50)));
 
 /* ---------- MINIJUEGO: SOPA GRILLERA ---------- */
 /* Frases escondidas: dichos, refranes y citas de dominio público. a = autor u origen (se muestra al revelarla) */
@@ -16267,6 +17117,7 @@ async function sgTerminar(yaEstaba){
   document.getElementById('sg-frase-btn').style.display = '';
   if(!yaEstaba) glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
   if(sg.guardado) return;
+  if(sg.tipo === 'diaria') setTimeout(()=>{ if(typeof ddActualizar === 'function') ddActualizar(); }, 1500);
   sg.guardado = true;
   sgGuardarProgreso();
   try{
@@ -16323,6 +17174,15 @@ document.querySelectorAll('#sg-niveles [data-nivel]').forEach(b => b.addEventLis
 document.getElementById('sg-dia-select').addEventListener('change', (e)=>{ sg.fechaArchivo = e.target.value; sgRenderSeleccion(); });
 document.getElementById('sg-pista-btn').addEventListener('click', sgPedirPista);
 document.getElementById('sg-frase-btn').addEventListener('click', sgRevelarFrase);
+document.getElementById('sg-compartir-btn').addEventListener('click', ()=>{
+  const d = sg.datos;
+  const cuando = sg.tipo === 'libre' ? 'Libre' : sg.fecha.split('-').reverse().slice(0,2).join('/');
+  glCompartirResultado([
+    `🔎 Sopa Grillera ${sg.modo === 'futbol' ? 'Fútbol' : 'De todo un poco'} · ${GL_DIF_NOMBRE[sg.nivel]} · ${cuando}`,
+    `⏱ ${sgFormatear(sg.segundos)} · ${d.palabras.length} palabras · ${sg.pistas ? '💡 ' + sg.pistas + ' pista' + (sg.pistas === 1 ? '' : 's') : '🦅 sin pistas'}`,
+    '¿Me ganás?'
+  ]);
+});
 document.getElementById('sg-otra-btn').addEventListener('click', ()=>{ sgFrenarReloj(); sgGuardarProgreso(); sgMostrar('seleccion'); sgRenderSeleccion(); });
 document.getElementById('sg-otra-btn2').addEventListener('click', ()=>{ sgMostrar('seleccion'); sgRenderSeleccion(); });
 document.querySelectorAll('#sg-ranking-tabs [data-vista]').forEach(b => b.addEventListener('click', ()=>{ sg.rankingVista = b.dataset.vista; sgCargarRanking(); }));
@@ -16347,6 +17207,7 @@ window.addEventListener('resize', ()=>{
   }
 });
 sgInstalarPuntero();
+setTimeout(ddActualizar, 2500);
 
 
 /* ---------- COMUNICADOS OFICIALES (solo "grillo" publica, edita y borra; la base lo controla también) ---------- */
@@ -16974,7 +17835,10 @@ function renderJugadorProfile(){
           <div class="jp-badges">${badges.map(b=>'<span class="jp-badge">'+b+'</span>').join('')}</div>
         </div>
       </div>
-      <button class="gl-share-btn" id="jp-share-btn">📤 Compartir</button>
+      <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+        <button class="gl-share-btn" id="jp-share-btn">📤 Compartir</button>
+        ${wrDisponible() && wrPartidosDelAnio(activeJugador, wrAnio()).length ? `<button class="gl-share-btn wr-btn" id="jp-wrapped-btn">🎁 Wrapped ${wrAnio()}${new Date().getMonth() !== 11 ? ' (vista previa)' : ''}</button>` : ''}
+      </div>
     </div>
     <div class="jp-stat-grid">
       ${statKeys.map(k => `<div class="jp-stat"><div class="jv">${r[k]}</div><div class="jl">${NOMBRES_COMPLETOS_STAT[k] || k}</div></div>`).join('')}
@@ -17013,6 +17877,8 @@ function renderJugadorProfile(){
   glAnimarEntrada(container);
   activarFallbackFotos(container);
   glAnimarValoresGrid(container, '.jp-stat .jv', 750);
+  const wrBtn = document.getElementById('jp-wrapped-btn');
+  if(wrBtn) wrBtn.addEventListener('click', ()=> wrAbrir(activeJugador));
   // festejo al abrir el perfil de alguien que lidera un ranking (una vez por jugador elegido)
   if(esLiderDeAlgo && jpUltimoFestejado !== activeJugador){
     jpUltimoFestejado = activeJugador;
