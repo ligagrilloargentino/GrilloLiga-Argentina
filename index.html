@@ -580,7 +580,8 @@ body.cz-pantalla-completa #nav-inferior{ display:none !important; }
   .cz-elegir-fila{ grid-template-columns:1fr; }
 }
 /* ---------- MINIJUEGO: CRUCIGRILLO (estética tipo diario) ---------- */
-.cg-layout{ display:grid; grid-template-columns:1fr 280px; gap:20px; align-items:start; }
+.cg-layout{ display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:20px; align-items:start; }
+.cg-grilla-wrap{ min-width:0; }
 .cg-grilla-wrap{
   display:flex; flex-direction:column; align-items:center;
   background:#F7F4EC; border:1px solid #cfc9b8; padding:16px 14px 10px; border-radius:2px;
@@ -594,21 +595,21 @@ body.cz-pantalla-completa #nav-inferior{ display:none !important; }
   font-family:Georgia,serif; font-style:italic; font-size:10px; color:#555; text-align:center;
   border-top:2px solid #1a1a1a; border-bottom:1px solid #1a1a1a; padding:3px 0; margin-bottom:14px;
 }
-#cg-grilla{ display:inline-grid; gap:1px; background:#1a1a1a; padding:1px; border:2px solid #1a1a1a; }
+#cg-grilla{ display:inline-grid; gap:1px; background:#1a1a1a; padding:1px; border:2px solid #1a1a1a; --cg-celda:28px; }
 .cg-celda{
-  position:relative; width:28px; height:28px; background:#fff;
+  position:relative; width:var(--cg-celda); height:var(--cg-celda); background:#fff;
 }
 .cg-celda.cg-vacia{ background:#1a1a1a; }
 .cg-celda input{
   width:100%; height:100%; border:none; background:transparent; text-align:center;
-  font-family:Georgia,'Times New Roman',serif; font-size:15px; font-weight:700; color:#1a1a1a;
-  text-transform:uppercase; padding:0;
+  font-family:Georgia,'Times New Roman',serif; font-size:calc(var(--cg-celda) * .56); font-weight:700; color:#1a1a1a;
+  text-transform:uppercase; padding:0; caret-color:transparent; border-radius:0;
 }
 .cg-celda input:focus{ outline:2px solid #B33B22; outline-offset:-2px; background:#fdf6e8; }
 .cg-celda.cg-ok input{ background:#e3ecdd; }
 .cg-celda.cg-mal input{ background:#f3dcd4; }
 .cg-numero{
-  position:absolute; top:0px; left:1px; font-size:7.5px; color:#333;
+  position:absolute; top:0px; left:1px; font-size:max(6.5px, calc(var(--cg-celda) * .27)); line-height:1.05; color:#333;
   font-family:Georgia,serif; pointer-events:none;
 }
 .cg-acciones{ display:flex; gap:8px; margin-top:14px; }
@@ -633,9 +634,14 @@ body.cz-pantalla-completa #nav-inferior{ display:none !important; }
 .cg-pistas-col li b{ color:var(--text); font-family:Georgia,serif; }
 .cg-pistas-col li.cg-completa{ text-decoration:line-through; opacity:0.55; }
 @media (max-width:700px){
-  .cg-layout{ grid-template-columns:1fr; }
-  .cg-celda{ width:22px; height:22px; }
-  .cg-celda input{ font-size:11px; }
+  .cg-layout{ grid-template-columns:minmax(0,1fr); }
+  .cg-grilla-wrap{ padding:12px 6px 10px; }
+  /* con el teclado del celular: la referencia queda fija arriba */
+  body:not(.cg-teclado-on) #cg-juego-wrap .cg-actual-barra{ position:sticky; top:var(--cg-sticky-top, 0px); z-index:40; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+  #cg-juego-wrap .cg-actual-barra{ padding:8px 10px; gap:6px 8px; justify-content:flex-start; }
+  #cg-juego-wrap .cg-actual-texto{ flex:1 1 100%; font-size:14px; }
+  #cg-juego-wrap .cg-actual-barra .auth-btn{ width:auto; padding:7px 12px; font-size:13px; min-height:0; height:auto; }
+  #cg-juego-wrap .cg-actual-barra #cg-cronometro{ margin-right:auto; }
 }
 /* ---------- CABEZONES: CONTROLES TÁCTILES Y RESPONSIVE ---------- */
 .cz-rotar-aviso{
@@ -1865,14 +1871,26 @@ body.tema-oscuro .leader-card .lc-val{ color:#9CC08F; }
 .cg-pistas-col li.cg-li-tocable{ cursor:pointer; border-radius:6px; transition:background .12s; }
 .cg-pistas-col li.cg-li-tocable:hover{ background:var(--card2); }
 .cg-teclado{ position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--card2); border-top:1px solid var(--line-strong);
-  padding:6px 4px calc(6px + env(safe-area-inset-bottom)); box-shadow:0 -4px 16px rgba(0,0,0,.12); user-select:none; touch-action:manipulation; }
-.cg-tec-fila{ display:flex; justify-content:center; gap:4px; margin:4px 0; }
-.cg-tec{ flex:1 1 0; max-width:42px; height:46px; border:none; border-radius:7px; background:var(--card); color:var(--text);
-  font-family:'Alegreya Sans',sans-serif; font-weight:800; font-size:17px; box-shadow:0 1px 0 rgba(0,0,0,.25); cursor:pointer; padding:0; }
+  padding:0 3px calc(5px + env(safe-area-inset-bottom)); box-shadow:0 -4px 16px rgba(0,0,0,.14); user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+.cg-tec-interior{ max-width:560px; margin:0 auto; }
+.cg-tec-pista{ display:flex; align-items:stretch; gap:4px; margin:0 -3px 4px; background:var(--red); color:#fff; min-height:52px; }
+.cg-tec-flecha{ flex:0 0 40px; border:none; background:rgba(0,0,0,.12); color:#fff; font-size:26px; font-weight:700; line-height:1; cursor:pointer; padding:0; }
+.cg-tec-flecha:active{ background:rgba(0,0,0,.3); }
+.cg-tec-pista-texto{ flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:8px; padding:6px 4px; cursor:pointer;
+  font-family:'Alegreya Sans',sans-serif; font-size:14.5px; line-height:1.25; }
+.cg-tec-pista-texto .cg-tec-num{ flex:0 0 auto; font-family:var(--font-num); font-weight:800; font-size:15px; background:rgba(255,255,255,.18); border-radius:6px; padding:2px 6px; white-space:nowrap; }
+.cg-tec-pista-texto .cg-tec-def{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.cg-tec-fila{ display:flex; justify-content:center; gap:4px; margin:5px 0; }
+.cg-tec{ flex:1 1 0; min-width:0; height:42px; border:none; border-radius:6px; background:var(--card); color:var(--text);
+  font-family:'Alegreya Sans',sans-serif; font-weight:800; font-size:18px; box-shadow:0 1px 0 rgba(0,0,0,.28); cursor:pointer; padding:0; }
 .cg-tec:active{ background:var(--red); color:#fff; transform:scale(.95); }
-.cg-tec-borrar{ max-width:62px; flex:1.5 1 0; background:var(--line-strong); color:var(--text); }
+.cg-tec-borrar{ flex:1.6 1 0; background:var(--line-strong); color:var(--text); font-size:20px; }
+.cg-tec-espacio{ flex:.5 1 0; }
+.cg-tec-acc{ height:36px; font-size:13.5px; font-weight:700; background:transparent; border:1.5px solid var(--line-strong); box-shadow:none; }
+.cg-tec-acc:disabled{ opacity:.45; }
 body.cg-teclado-on #nav-inferior{ display:none !important; }
-body.cg-teclado-on{ padding-bottom:180px !important; }
+body.cg-teclado-on{ padding-bottom:var(--cg-teclado-alto, 260px) !important; }
+body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:none; }
 /* Crucigrillo: archivo y letras reveladas */
 .cg-archivo-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:12px; font-size:13px; color:var(--text-dim); }
 .cg-archivo-row select{ padding:6px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; }
@@ -14710,6 +14728,9 @@ function cgActivarPalabraObj(palabra, celdaFoco){
     document.getElementById('cg-actual-dir').textContent = '';
     document.getElementById('cg-actual-pista').textContent = 'Completaste todas las palabras. ¡Tocá "Corregir"!';
     document.getElementById('cg-saltar-btn').disabled = true;
+    const tp = document.getElementById('cg-tec-pista-texto');
+    if(tp) tp.innerHTML = '<span class="cg-tec-num">✅</span><span class="cg-tec-def">Completaste todas las palabras.</span>';
+    const ts = document.getElementById('cg-tec-saltar'); if(ts) ts.disabled = true;
     return;
   }
 
@@ -14717,6 +14738,12 @@ function cgActivarPalabraObj(palabra, celdaFoco){
   document.getElementById('cg-actual-dir').textContent = palabra.dir === 'H' ? '➡ Horizontal' : '⬇ Vertical';
   document.getElementById('cg-actual-pista').textContent = palabra.c;
   document.getElementById('cg-saltar-btn').disabled = false;
+  const tp = document.getElementById('cg-tec-pista-texto');
+  if(tp){
+    tp.innerHTML = `<span class="cg-tec-num">${palabra.numero} ${palabra.dir === 'H' ? '➡' : '⬇'}</span><span class="cg-tec-def"></span>`;
+    tp.querySelector('.cg-tec-def').textContent = palabra.c;
+  }
+  const ts = document.getElementById('cg-tec-saltar'); if(ts) ts.disabled = false;
 
   palabra.celdas.forEach(({row,col})=>{
     const inp = cgInputDe(row,col);
@@ -14732,7 +14759,8 @@ function cgActivarPalabraObj(palabra, celdaFoco){
     const primeraVacia = palabra.celdas.find(({row,col}) => { const inp = cgInputDe(row,col); return inp && !inp.value; }) || palabra.celdas[0];
     inputEnfocar = cgInputDe(primeraVacia.row, primeraVacia.col);
   }
-  if(inputEnfocar && document.activeElement !== inputEnfocar) inputEnfocar.focus();
+  if(inputEnfocar && document.activeElement !== inputEnfocar) inputEnfocar.focus({ preventScroll: cgTecladoPropio });
+  cgAsegurarVisible(inputEnfocar);
 }
 
 // Compatibilidad con el flujo anterior por índice (saltar, avance automático al completar)
@@ -14768,6 +14796,7 @@ function cgSeleccionarCelda(row, col){
 function cgRenderizar(resultado){
   const { grid, placed, alto, ancho, numerosPorCelda } = resultado;
   const cont = document.getElementById('cg-grilla');
+  cont.dataset.ancho = ancho; cont.dataset.alto = alto;
   cont.style.gridTemplateColumns = `repeat(${ancho}, 28px)`;
   cont.style.gridTemplateRows = `repeat(${alto}, 28px)`;
   cont.innerHTML = '';
@@ -14812,7 +14841,8 @@ function cgRenderizar(resultado){
     inp.addEventListener('click', ()=> cgSeleccionarCelda(row, col));
 
     inp.addEventListener('input', ()=>{
-      inp.value = inp.value.toUpperCase().slice(-1).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z]/g,'');
+      const ultima = inp.value.toUpperCase().slice(-1);
+      inp.value = ultima === 'Ñ' ? 'Ñ' : ultima.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z]/g,'');
       cgActualizarEstadoPalabras();
       if(!inp.value) return;
       let palabra = cgPalabraActual;
@@ -14863,6 +14893,8 @@ function cgRenderizar(resultado){
 
   document.getElementById('cg-resultado').textContent = '';
   cgAplicarModoTeclado();
+  cgAjustarTamanoGrilla();
+  requestAnimationFrame(cgAjustarTamanoGrilla);
   cgActivarPalabraObj(cgCola[0]);
 }
 
@@ -14874,8 +14906,10 @@ let cgAutoVerificar = cgPref('grilloliga-cg-auto', true);
 let cgTecladoPropio = CG_ES_TACTIL && cgPref('grilloliga-cg-teclado', true);
 let cgUltimoInput = null;
 
+// la Ñ vale como N (las palabras del banco se guardan sin tildes ni Ñ)
+function cgLetraBien(inp){ return !!inp && !!inp.value && inp.value.replace('Ñ','N') === inp.dataset.letra; }
 function cgPalabraCorrecta(palabra){
-  return palabra.celdas.every(({row,col}) => { const inp = cgInputDe(row,col); return inp && inp.value === inp.dataset.letra; });
+  return palabra.celdas.every(({row,col}) => cgLetraBien(cgInputDe(row,col)));
 }
 function cgLiDe(palabra){
   return document.querySelector(`#cg-pistas-${palabra.dir === 'H' ? 'horizontales' : 'verticales'} li[data-row="${palabra.row}"][data-col="${palabra.col}"]`);
@@ -14895,7 +14929,7 @@ function cgActualizarEstadoPalabras(){
       const inp = cgInputDe(row,col);
       if(!inp) return;
       if(correcta) inp.parentElement.classList.add('cg-ok');
-      else if(inp.value !== inp.dataset.letra) inp.parentElement.classList.add('cg-mal');
+      else if(!cgLetraBien(inp)) inp.parentElement.classList.add('cg-mal');
     });
   });
   if(cgAutoVerificar && todasBien && !cgTerminado) cgCorregir();
@@ -14923,14 +14957,89 @@ function cgBorrarLetra(){
 }
 function cgArmarTeclado(){
   const cont = document.getElementById('cg-teclado');
-  const filas = ['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
-  cont.innerHTML = filas.map((f,i) => `<div class="cg-tec-fila">${f.split('').map(l => `<button type="button" class="cg-tec" data-letra="${l}">${l}</button>`).join('')}${i === 2 ? '<button type="button" class="cg-tec cg-tec-borrar" data-borrar="1" aria-label="Borrar">⌫</button>' : ''}</div>`).join('');
+  const filas = ['QWERTYUIOP','ASDFGHJKLÑ','ZXCVBNM'];
+  const tecla = l => `<button type="button" class="cg-tec" data-letra="${l}">${l}</button>`;
+  cont.innerHTML = `<div class="cg-tec-pista">
+      <button type="button" class="cg-tec-flecha" data-nav="-1" aria-label="Palabra anterior">‹</button>
+      <div class="cg-tec-pista-texto" id="cg-tec-pista-texto" title="Tocá para cambiar entre horizontal y vertical"></div>
+      <button type="button" class="cg-tec-flecha" data-nav="1" aria-label="Palabra siguiente">›</button>
+    </div>
+    <div class="cg-tec-interior">
+      <div class="cg-tec-fila">${filas[0].split('').map(tecla).join('')}</div>
+      <div class="cg-tec-fila">${filas[1].split('').map(tecla).join('')}</div>
+      <div class="cg-tec-fila"><span class="cg-tec-espacio"></span>${filas[2].split('').map(tecla).join('')}<button type="button" class="cg-tec cg-tec-borrar" data-borrar="1" aria-label="Borrar">⌫</button></div>
+      <div class="cg-tec-fila">
+        <button type="button" class="cg-tec cg-tec-acc" id="cg-tec-letra" data-acc="letra">💡 Letra (<span id="cg-tec-pistas-restantes">${CG_LETRAS_POR_PARTIDA}</span>)</button>
+        <button type="button" class="cg-tec cg-tec-acc" id="cg-tec-saltar" data-acc="saltar">⏭ Saltar</button>
+      </div>
+    </div>`;
   // pointerdown + preventDefault: el foco no se va de la celda, así sigue resaltada la palabra
-  cont.querySelectorAll('.cg-tec').forEach(b => b.addEventListener('pointerdown', (e)=>{
-    e.preventDefault();
-    glVibrar(8);
-    if(b.dataset.borrar) cgBorrarLetra(); else cgEscribirLetra(b.dataset.letra);
-  }));
+  const sinPerderFoco = (el, fn) => el.addEventListener('pointerdown', (e)=>{ e.preventDefault(); if(el.disabled) return; glVibrar(8); fn(); });
+  cont.querySelectorAll('.cg-tec[data-letra]').forEach(b => sinPerderFoco(b, ()=> cgEscribirLetra(b.dataset.letra)));
+  sinPerderFoco(cont.querySelector('[data-borrar]'), cgBorrarLetra);
+  sinPerderFoco(cont.querySelector('#cg-tec-letra'), cgPista);
+  sinPerderFoco(cont.querySelector('#cg-tec-saltar'), ()=> cgActivarPalabra(cgIndiceActual + 1));
+  cont.querySelectorAll('[data-nav]').forEach(b => sinPerderFoco(b, ()=> cgNavegarPalabra(+b.dataset.nav)));
+  sinPerderFoco(cont.querySelector('#cg-tec-pista-texto'), cgCambiarDireccion);
+}
+// ‹ › recorren las palabras en el orden de la lista (incluidas las ya hechas)
+function cgNavegarPalabra(delta){
+  if(!cgCola.length || cgTerminado) return;
+  const i = cgPalabraActual ? cgCola.indexOf(cgPalabraActual) : -1;
+  const sig = cgCola[(i + delta + cgCola.length) % cgCola.length];
+  cgActivarPalabraObj(sig);
+}
+// tocar la referencia en un cruce cambia entre horizontal y vertical
+function cgCambiarDireccion(){
+  const inp = cgUltimoInput;
+  if(!inp || !cgPalabraActual) return;
+  const row = +inp.dataset.row, col = +inp.dataset.col;
+  const op = cgMapaCeldasCache[row + ',' + col];
+  if(!op || !op.H || !op.V){ glToast('Esta casilla no es un cruce.'); return; }
+  cgActivarPalabraObj(cgPalabraActual === op.H ? op.V : op.H, { row, col });
+}
+function cgActualizarBotonesPista(){
+  const quedan = cgPistasRestantes;
+  document.getElementById('cg-pistas-restantes').textContent = quedan;
+  document.getElementById('cg-pista-btn').disabled = quedan <= 0;
+  const t = document.getElementById('cg-tec-pistas-restantes');
+  if(t) t.textContent = quedan;
+  const b = document.getElementById('cg-tec-letra');
+  if(b) b.disabled = quedan <= 0;
+}
+// mantiene la casilla activa a la vista (que no quede tapada por el teclado)
+function cgAsegurarVisible(inp){
+  if(!inp || !cgTecladoPropio) return;
+  const tec = document.getElementById('cg-teclado');
+  const altoTec = tec && tec.style.display !== 'none' ? tec.offsetHeight : 0;
+  const header = document.querySelector('header.top');
+  const arriba = header ? header.getBoundingClientRect().bottom : 0;
+  const r = inp.getBoundingClientRect();
+  const limiteAbajo = window.innerHeight - altoTec - 10;
+  if(r.bottom > limiteAbajo || r.top < arriba + 6){
+    window.scrollBy({ top: r.top - (arriba + (limiteAbajo - arriba) / 2), behavior:'smooth' });
+  }
+}
+// ajusta el tamaño de las casillas para que la grilla entre entera en el ancho disponible
+function cgAjustarTamanoGrilla(){
+  const cont = document.getElementById('cg-grilla');
+  const ancho = +cont.dataset.ancho || 0;
+  if(!ancho) return;
+  const wrap = cont.parentElement;
+  const cs = getComputedStyle(wrap);
+  const disponible = wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 6;
+  if(disponible <= 0) return;
+  const tam = Math.max(14, Math.min(30, Math.floor((disponible - (ancho - 1)) / ancho)));
+  cont.style.setProperty('--cg-celda', tam + 'px');
+  cont.style.gridTemplateColumns = `repeat(${ancho}, ${tam}px)`;
+  cont.style.gridTemplateRows = `repeat(${+cont.dataset.alto}, ${tam}px)`;
+}
+window.addEventListener('resize', ()=>{ if(document.getElementById('cg-juego-wrap').style.display !== 'none'){ cgAjustarTamanoGrilla(); cgAplicarAltoTeclado(); } });
+function cgAplicarAltoTeclado(){
+  const tec = document.getElementById('cg-teclado');
+  if(tec && tec.style.display !== 'none') document.body.style.setProperty('--cg-teclado-alto', (tec.offsetHeight + 12) + 'px');
+  const header = document.querySelector('header.top');
+  document.body.style.setProperty('--cg-sticky-top', (header ? header.offsetHeight : 0) + 'px');
 }
 function cgAplicarModoTeclado(){
   const enJuego = document.getElementById('cg-juego-wrap').style.display !== 'none';
@@ -14939,6 +15048,7 @@ function cgAplicarModoTeclado(){
   document.getElementById('cg-auto-btn').classList.toggle('activo', cgAutoVerificar);
   document.getElementById('cg-teclado').style.display = (cgTecladoPropio && enJuego) ? '' : 'none';
   document.body.classList.toggle('cg-teclado-on', cgTecladoPropio && enJuego);
+  cgAplicarAltoTeclado();
   document.querySelectorAll('#cg-grilla input').forEach(inp=>{
     // inputmode="none": el celular no abre su teclado, pero la celda se puede seguir tocando y resaltando
     if(cgTecladoPropio) inp.setAttribute('inputmode','none'); else inp.removeAttribute('inputmode');
@@ -14962,7 +15072,7 @@ cgArmarTeclado();
 function cgPista(){
   if(cgPistasRestantes <= 0 || cgTerminado) return;
   // revela UNA letra de la palabra activa: la primera vacía o mal puesta; si no hay palabra activa, cualquier vacía
-  const malOVacia = inp => inp && inp.value !== inp.dataset.letra;
+  const malOVacia = inp => inp && !cgLetraBien(inp);
   let elegida = null;
   if(cgPalabraActual){
     const celda = cgPalabraActual.celdas.find(({row,col}) => malOVacia(cgInputDe(row,col)));
@@ -14978,8 +15088,7 @@ function cgPista(){
   cgPistasRestantes--;
   cgActualizarEstadoPalabras();
   if(cgPalabraActual && cgPalabraCompleta(cgPalabraActual)) cgActivarPalabra(cgIndiceActual + 1);
-  document.getElementById('cg-pistas-restantes').textContent = cgPistasRestantes;
-  document.getElementById('cg-pista-btn').disabled = cgPistasRestantes <= 0;
+  cgActualizarBotonesPista();
 }
 
 function cgCorregir(){
@@ -14988,7 +15097,7 @@ function cgCorregir(){
     total++;
     const celda = inp.parentElement;
     celda.classList.remove('cg-ok','cg-mal');
-    if(inp.value && inp.value === inp.dataset.letra){ celda.classList.add('cg-ok'); correctas++; }
+    if(cgLetraBien(inp)){ celda.classList.add('cg-ok'); correctas++; }
     else if(inp.value){ celda.classList.add('cg-mal'); }
   });
   if(correctas === total){
@@ -15009,8 +15118,7 @@ function cgIniciarCrucigrama(dificultad){
   cgDificultadActual = dificultad;
   cgPistasRestantes = CG_LETRAS_POR_PARTIDA;
   cgPistasUsadas = 0;
-  document.getElementById('cg-pistas-restantes').textContent = CG_LETRAS_POR_PARTIDA;
-  document.getElementById('cg-pista-btn').disabled = false;
+  cgActualizarBotonesPista();
   document.getElementById('cg-resultado').textContent = '';
   document.getElementById('cg-seleccion-wrap').style.display = 'none';
   document.getElementById('cg-juego-wrap').style.display = 'block';
