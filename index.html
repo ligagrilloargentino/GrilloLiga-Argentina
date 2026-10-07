@@ -1926,6 +1926,47 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
 .dd-aviso .cg-opcion.activo{ border-color:#4A6B43; color:#4A6B43; font-weight:700; }
 .dd-aviso-nota{ font-size:11.5px; color:var(--text-dim); }
 @media (max-width:420px){ .dd-items{ grid-template-columns:1fr; } }
+/* ---------- BANDEROKU ---------- */
+.bk-estado{ text-align:center; font-size:13.5px; color:var(--text-dim); margin-top:10px; }
+.bk-subtitulo{ text-align:center; font-family:var(--font-num); font-weight:800; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+.bk-tablero{ display:grid; grid-template-columns:minmax(64px, .8fr) repeat(3, minmax(0, 1fr)); gap:6px; max-width:560px; margin:0 auto; }
+.bk-esquina{ display:flex; align-items:baseline; justify-content:center; gap:2px; align-self:center; font-family:var(--font-num); }
+.bk-esquina b{ font-size:34px; color:var(--red); } .bk-esquina span{ color:var(--text-dim); font-size:16px; }
+.bk-cab{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-align:center; padding:6px 4px; border-radius:10px; background:var(--card2); border:1px solid var(--line); font-size:12px; font-weight:700; line-height:1.15; min-height:56px; }
+.bk-cab-ico{ font-size:20px; line-height:1; }
+.bk-celda{ position:relative; aspect-ratio:1; border-radius:12px; border:2px dashed var(--line-strong); background:var(--card); cursor:pointer; padding:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:var(--text); transition:border-color .15s, transform .12s; overflow:hidden; }
+.bk-celda:not([disabled]):hover{ border-color:var(--red); transform:translateY(-2px); }
+.bk-mas{ font-size:30px; color:var(--text-dim); line-height:1; }
+.bk-puntos{ display:flex; gap:4px; }
+.bk-puntos i{ width:7px; height:7px; border-radius:50%; background:var(--line-strong); }
+.bk-puntos i.usado{ background:#B33B22; }
+.bk-celda.ok{ border:2px solid #4A6B43; background:color-mix(in srgb, #4A6B43 10%, var(--card)); cursor:default; }
+.bk-celda.ok img{ width:84%; max-height:58%; object-fit:contain; border-radius:3px; box-shadow:0 1px 4px rgba(0,0,0,.25); }
+.bk-nombre{ font-size:11px; font-weight:700; text-align:center; line-height:1.1; max-width:100%; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.bk-rareza{ position:absolute; top:4px; right:4px; font-size:10.5px; font-weight:800; background:#D4AF37; color:#1a1a1a; border-radius:999px; padding:1px 5px; }
+.bk-celda.fallo{ border:2px solid #B33B22; background:color-mix(in srgb, #B33B22 8%, var(--card)); cursor:default; }
+.bk-x{ font-size:28px; color:#B33B22; font-weight:900; }
+.bk-marcador{ text-align:center; margin:12px 0 8px; font-size:14px; }
+.bk-buscador{ position:fixed; inset:0; z-index:260; background:rgba(0,0,0,.55); align-items:flex-start; justify-content:center; padding:20px 10px; }
+.bk-busca-caja{ width:min(460px, 100%); max-height:calc(100vh - 40px); display:flex; flex-direction:column; background:var(--card); border-radius:14px; padding:14px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+.bk-busca-cab{ display:flex; gap:8px; align-items:flex-start; justify-content:space-between; }
+.bk-busca-consigna{ font-weight:700; font-size:14.5px; line-height:1.3; }
+.bk-busca-intentos{ font-size:12px; color:var(--text-dim); margin:6px 0; }
+#bk-busca-input{ width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line-strong); background:var(--card2); color:var(--text); font-size:16px; font-family:'Alegreya Sans',sans-serif; box-sizing:border-box; }
+.bk-busca-error{ color:#B33B22; font-weight:700; font-size:13px; min-height:18px; margin:6px 0 2px; }
+.bk-busca-lista{ overflow-y:auto; display:flex; flex-direction:column; gap:4px; min-height:120px; }
+.bk-opcion{ display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--text); cursor:pointer; text-align:left; font-family:'Alegreya Sans',sans-serif; font-size:15px; }
+.bk-opcion:hover:not([disabled]){ background:var(--card2); border-color:var(--line); }
+.bk-opcion img{ width:36px; height:24px; object-fit:cover; border-radius:2px; box-shadow:0 0 0 1px var(--line); }
+.bk-opcion small{ margin-left:auto; color:var(--text-dim); font-size:11px; }
+.bk-opcion[disabled]{ opacity:.45; cursor:default; }
+.bk-respuestas{ text-align:left; margin-top:12px; max-height:420px; overflow-y:auto; }
+.bk-resp{ margin-bottom:10px; }
+.bk-resp-tit{ font-weight:700; font-size:12.5px; margin-bottom:4px; }
+.bk-resp-lista{ display:flex; flex-wrap:wrap; gap:4px; }
+.bk-resp-lista span{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; padding:2px 6px; border-radius:6px; background:var(--card2); }
+.bk-resp-lista img{ width:20px; height:13px; object-fit:cover; }
+@media (max-width:420px){ .bk-cab{ font-size:10.5px; min-height:50px; } .bk-cab-ico{ font-size:17px; } .bk-tablero{ grid-template-columns:minmax(56px, .8fr) repeat(3, minmax(0, 1fr)); gap:5px; } }
 /* ---------- MEMOTEST ---------- */
 .mm-niveles{ grid-template-columns:repeat(3, 1fr) !important; }
 .mm-tablero{ display:grid; gap:8px; max-width:620px; margin:0 auto; }
@@ -2725,6 +2766,10 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
         <h3>🔎 Sopa Grillera</h3>
         <p>Encontrá las palabras escondidas: Fútbol o De todo un poco, en 4 dificultades. Una nueva cada día.</p>
       </div>
+      <div class="mini-juego-card" id="mini-card-banderoku">
+        <h3>🏳️ Banderoku</h3>
+        <p>Completá la grilla de 3x3 con banderas que cumplan las dos consignas. Una nueva cada día.</p>
+      </div>
       <div class="mini-juego-card" id="mini-card-memo">
         <h3>🃏 Memotest Grillero</h3>
         <p>Encontrá los pares con las caras de los jugadores, contra reloj.</p>
@@ -3262,6 +3307,48 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
               <div id="sg-ranking-lista" style="margin-top:6px;"></div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mini-banderoku" style="display:none;">
+      <span class="rps-volver" id="banderoku-volver">← Volver a Minijuegos</span>
+      <div id="bk-menu">
+        <div class="rps-titulo">🏳️ Banderoku</div>
+        <div class="gd-intro">Cada casilla necesita la bandera de un país que cumpla <b>la consigna de su fila y la de su columna</b>. Tenés 3 intentos por casilla y no podés repetir países. Al final ves la <b>rareza</b>: qué % de los jugadores eligió tu misma bandera (cuanto menos, más mérito).<br><small>Colores: cuentan los principales (fondo, franjas y símbolos grandes), no los detalles chicos de los escudos. Entran los 193 países de la ONU + Vaticano, Palestina, Kosovo y Taiwán.</small></div>
+        <div class="bk-estado" id="bk-estado-hoy"></div>
+        <div class="cz-elegir-fila" style="margin:12px 0;">
+          <button class="auth-btn" id="bk-diaria-btn">📅 Grilla del día</button>
+          <button class="auth-btn" id="bk-libre-btn" style="background:transparent; color:var(--red); border-color:var(--red);">🎲 Grilla libre</button>
+        </div>
+      </div>
+      <div id="bk-juego" style="display:none;">
+        <div class="bk-subtitulo" id="bk-subtitulo"></div>
+        <div class="bk-tablero" id="bk-tablero"></div>
+        <div class="bk-marcador" id="bk-marcador"></div>
+        <div style="text-align:center;"><button class="cg-opcion" id="bk-terminar-btn">🏁 Terminar</button></div>
+        <div class="sg-final" id="bk-final" style="display:none; margin-top:14px;">
+          <div class="sg-final-titulo" id="bk-final-titulo"></div>
+          <div class="sg-frase-intro" id="bk-final-sub"></div>
+          <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
+            <button class="cg-opcion gl-compartir-btn" id="bk-compartir-btn">📤 Compartir resultado</button>
+            <button class="cg-opcion" id="bk-respuestas-btn">👀 Ver respuestas posibles</button>
+            <button class="cg-opcion" id="bk-otra-btn">🎲 Otra grilla</button>
+          </div>
+          <div class="bk-respuestas" id="bk-respuestas" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="cg-pistas-col" style="margin-top:16px;">
+        <div class="gd-pista-titulo">🏆 Ranking de la grilla de hoy</div>
+        <div id="bk-ranking-lista" style="margin-top:6px;"></div>
+      </div>
+      <div class="bk-buscador" id="bk-buscador" style="display:none;">
+        <div class="bk-busca-caja">
+          <div class="bk-busca-cab"><div class="bk-busca-consigna" id="bk-busca-consigna"></div><button class="cg-opcion" id="bk-busca-cerrar">✕</button></div>
+          <div class="bk-busca-intentos" id="bk-busca-intentos"></div>
+          <input type="text" id="bk-busca-input" placeholder="Escribí un país…" autocomplete="off">
+          <div class="bk-busca-error" id="bk-busca-error"></div>
+          <div class="bk-busca-lista" id="bk-busca-lista"></div>
         </div>
       </div>
     </div>
@@ -15931,6 +16018,550 @@ document.getElementById('crucigrillo-volver').addEventListener('click', ()=>{
   document.getElementById('cg-juego-wrap').style.display = 'none';
   cgAplicarModoTeclado();
   document.getElementById('mini-crucigrillo').style.display = 'none';
+  document.getElementById('mini-lista').style.display = 'grid';
+});
+
+
+/* ---------- MINIJUEGO: BANDEROKU ---------- */
+/* Banderoku: base de banderas (193 países de la ONU + Vaticano, Palestina, Kosovo y Taiwán).
+   Formato: iso | nombre | continente | colores | atributos | idiomas oficiales | otros nombres
+   Continentes: AF África, EU Europa, AS Asia, NA América del Norte y Central (incluye Caribe), SA América del Sur, OC Oceanía
+   Colores (solo los principales: fondo, franjas y símbolos grandes, no detalles chicos de escudos):
+     r rojo · a azul · v verde · m amarillo/dorado · b blanco · n negro · o naranja
+   Atributos: E estrella · L media luna · S sol · C cruz · Q escudo o emblema · A animal · T triángulo · X texto o escritura
+              H franjas horizontales · V franjas verticales · D diagonal · M sin salida al mar · I país isla
+   Idiomas: es español · en inglés · fr francés · ar árabe · pt portugués */
+const BK_DATOS = `
+dz|Argelia|AF|vbr|LEV|ar|
+ao|Angola|AF|rnm|EQH|pt|
+bj|Benín|AF|vmr|H|fr|
+bw|Botsuana|AF|abn|HM|en|
+bf|Burkina Faso|AF|rvm|EHM||
+bi|Burundi|AF|rvb|EDM|fr en|
+cv|Cabo Verde|AF|abrm|EHI|pt|
+cm|Camerún|AF|vrm|EV|fr en|
+cf|República Centroafricana|AF|abvmr|EHM|fr|Centroafrica
+td|Chad|AF|amr|VM|fr ar|
+km|Comoras|AF|mbrav|LETHI|ar fr|
+cg|República del Congo|AF|vmr|D|fr|Congo
+cd|República Democrática del Congo|AF|amr|ED|fr|RD Congo,Congo Kinshasa,Zaire
+ci|Costa de Marfil|AF|obv|V|fr|Ivory Coast
+dj|Yibuti|AF|avbr|ETH|fr ar|Djibouti
+eg|Egipto|AF|rbnm|AQH|ar|
+gq|Guinea Ecuatorial|AF|vbra|TQH|es fr pt|
+er|Eritrea|AF|vram|TQ||
+sz|Esuatini|AF|amrnb|QHM|en|Suazilandia
+et|Etiopía|AF|vmra|EQHM||
+ga|Gabón|AF|vma|H|fr|
+gm|Gambia|AF|ravb|H|en|
+gh|Ghana|AF|rmvn|EH|en|
+gn|Guinea|AF|rmv|V|fr|
+gw|Guinea-Bisáu|AF|rmvn|EH|pt|Guinea Bissau
+ke|Kenia|AF|nrvb|QH|en|
+ls|Lesoto|AF|abvn|QHM|en|
+lr|Liberia|AF|rba|EH|en|
+ly|Libia|AF|rnvb|LEH|ar|
+mg|Madagascar|AF|brv|HI|fr|
+mw|Malaui|AF|nrv|SHM|en|Malawi
+ml|Malí|AF|vmr|VM||
+ma|Marruecos|AF|rv|E|ar|
+mu|Mauricio|AF|ramv|HI|en|
+mr|Mauritania|AF|rvm|LEH|ar|
+mz|Mozambique|AF|vnmrb|ETQH|pt|
+na|Namibia|AF|arvbm|SD|en|
+ne|Níger|AF|obv|HM||
+ng|Nigeria|AF|vb|V|en|
+rw|Ruanda|AF|amv|SHM|fr en|
+st|Santo Tomé y Príncipe|AF|vmrn|ETHI|pt|
+sn|Senegal|AF|vmr|EV|fr|
+sc|Seychelles|AF|amrbv|DI|en fr|
+sl|Sierra Leona|AF|vba|H|en|
+so|Somalia|AF|ab|E|ar|
+za|Sudáfrica|AF|ravnmb|TH|en|
+ss|Sudán del Sur|AF|nrvbam|ETHM|en|
+sd|Sudán|AF|rbnv|TH|ar en|
+tz|Tanzania|AF|vmna|D|en|
+tg|Togo|AF|vmrb|EH|fr|
+tn|Túnez|AF|rb|LE|ar|
+ug|Uganda|AF|nmrb|AHM|en|
+zm|Zambia|AF|vrno|AVM|en|
+zw|Zimbabue|AF|vmrnb|ETAHM|en|
+al|Albania|EU|rn|A||
+ad|Andorra|EU|amr|QVM||
+at|Austria|EU|rb|HM||
+by|Bielorrusia|EU|rvb|HM||Belarús
+be|Bélgica|EU|nmr|V|fr|
+ba|Bosnia y Herzegovina|EU|amb|ET||Bosnia
+bg|Bulgaria|EU|bvr|H||
+cy|Chipre|EU|bov|QI||
+hr|Croacia|EU|rba|QH||
+dk|Dinamarca|EU|rb|C||
+sk|Eslovaquia|EU|bar|QHM||
+si|Eslovenia|EU|bar|QH||
+es|España|EU|rm|QH|es|
+ee|Estonia|EU|anb|H||
+fi|Finlandia|EU|ba|C||
+fr|Francia|EU|abr|V|fr|
+de|Alemania|EU|nrm|H||
+gr|Grecia|EU|ab|CH||
+hu|Hungría|EU|rbv|HM||
+ie|Irlanda|EU|vbo|VI|en|
+is|Islandia|EU|abr|CI||
+it|Italia|EU|vbr|V||
+xk|Kosovo|EU|amb|EM||
+lv|Letonia|EU|rb|H||
+li|Liechtenstein|EU|arm|QHM||
+lt|Lituania|EU|mvr|H||
+lu|Luxemburgo|EU|rba|HM|fr|
+mt|Malta|EU|br|CI|en|
+md|Moldavia|EU|amr|QAVM||
+mc|Mónaco|EU|rb|H|fr|
+me|Montenegro|EU|rm|QA||
+mk|Macedonia del Norte|EU|rm|SM||Macedonia
+no|Noruega|EU|rba|C||
+nl|Países Bajos|EU|rba|H||Holanda
+pl|Polonia|EU|br|H||
+pt|Portugal|EU|vrm|QV|pt|
+gb|Reino Unido|EU|abr|CI|en|Inglaterra,Gran Bretaña
+cz|Chequia|EU|bra|THM||República Checa
+ro|Rumania|EU|amr|V||Rumanía
+ru|Rusia|EU|bar|H||
+sm|San Marino|EU|ba|QHM||
+rs|Serbia|EU|rab|QAHM||
+se|Suecia|EU|am|C||
+ch|Suiza|EU|rb|CM|fr|
+ua|Ucrania|EU|am|H||
+va|Ciudad del Vaticano|EU|mb|QVM||Vaticano
+af|Afganistán|AS|bn|XQM||
+sa|Arabia Saudita|AS|vb|X|ar|Arabia Saudí
+am|Armenia|AS|rao|HM||
+az|Azerbaiyán|AS|arvb|LEHM||
+bh|Baréin|AS|rb|I|ar|Bahrein
+bd|Bangladés|AS|vr|||Bangladesh
+bt|Bután|AS|mob|ADM||
+bn|Brunéi|AS|mbnr|QLXD||
+kh|Camboya|AS|arb|QH||
+qa|Catar|AS|rb||ar|Qatar
+cn|China|AS|rm|E||
+kp|Corea del Norte|AS|arb|EH||
+kr|Corea del Sur|AS|bran|||Corea
+ae|Emiratos Árabes Unidos|AS|vbnr|HV|ar|Emiratos,EAU
+ph|Filipinas|AS|arbm|ESTHI|en|
+ge|Georgia|AS|br|C||
+in|India|AS|obva|H|en|
+id|Indonesia|AS|rb|HI||
+iq|Irak|AS|rbnv|XH|ar|Iraq
+ir|Irán|AS|vbr|QXH||
+il|Israel|AS|ba|EH||
+jp|Japón|AS|br|SI||
+jo|Jordania|AS|nbvr|ETH|ar|
+kz|Kazajistán|AS|am|SAM||Kazajstán
+kg|Kirguistán|AS|rm|SM||
+kw|Kuwait|AS|vbrn|H|ar|
+la|Laos|AS|rab|HM||
+lb|Líbano|AS|rbv|H|ar|
+my|Malasia|AS|rbam|LEH||
+mv|Maldivas|AS|rvb|LI||
+mn|Mongolia|AS|ram|QVM||
+mm|Myanmar|AS|mvrb|EH||Birmania
+np|Nepal|AS|rab|SLTM||
+om|Omán|AS|brv|QHV|ar|
+pk|Pakistán|AS|vb|LEV|en|
+ps|Palestina|AS|nbvr|TH|ar|
+sg|Singapur|AS|rb|LEHI|en|
+sy|Siria|AS|vbnr|EH|ar|
+lk|Sri Lanka|AS|movr|AVI||
+tj|Tayikistán|AS|rbvm|EHM||
+th|Tailandia|AS|rba|H||
+tw|Taiwán|AS|rab|SI||
+tl|Timor Oriental|AS|rmnb|ETI|pt|Timor-Leste
+tm|Turkmenistán|AS|vrb|LEVM||
+tr|Turquía|AS|rb|LE||
+uz|Uzbekistán|AS|abvr|LEHM||
+vn|Vietnam|AS|rm|E||
+ye|Yemen|AS|rbn|H|ar|
+ag|Antigua y Barbuda|NA|rnabm|STI|en|
+bs|Bahamas|NA|amn|THI|en|
+bb|Barbados|NA|amn|VI|en|
+bz|Belice|NA|arb|QH|en|
+ca|Canadá|NA|rb|V|en fr|
+cr|Costa Rica|NA|abr|QH|es|
+cu|Cuba|NA|abr|ETHI|es|
+dm|Dominica|NA|vmnbr|EACI|en|
+sv|El Salvador|NA|ab|QH|es|
+us|Estados Unidos|NA|rba|EH|en|EEUU,USA,EE.UU.
+gd|Granada|NA|rmv|EI|en|
+gt|Guatemala|NA|ab|QAV|es|
+ht|Haití|NA|ar|QHI|fr|
+hn|Honduras|NA|ab|EH|es|
+jm|Jamaica|NA|vmn|DI|en|
+mx|México|NA|vbr|QAV|es|
+ni|Nicaragua|NA|ab|QH|es|
+pa|Panamá|NA|bra|E|es|
+do|República Dominicana|NA|arb|CQI|es|Dominicana
+kn|San Cristóbal y Nieves|NA|vmnrb|EDI|en|
+vc|San Vicente y las Granadinas|NA|amv|VI|en|San Vicente
+lc|Santa Lucía|NA|abnm|TI|en|
+tt|Trinidad y Tobago|NA|rnb|DI|en|
+ar|Argentina|SA|abm|SH|es|
+bo|Bolivia|SA|rmv|QHM|es|
+br|Brasil|SA|vmab|EX|pt|
+cl|Chile|SA|bra|EH|es|
+co|Colombia|SA|mar|H|es|
+ec|Ecuador|SA|mar|QAH|es|
+gy|Guyana|SA|vmnrb|T|en|
+py|Paraguay|SA|rba|QHM|es|
+pe|Perú|SA|rb|V|es|
+sr|Surinam|SA|vbrm|EH||
+uy|Uruguay|SA|bam|SH|es|
+ve|Venezuela|SA|mar|EHQ|es|
+au|Australia|OC|abr|ECI|en|
+fj|Fiyi|OC|abr|CQI|en|Fiji
+ki|Kiribati|OC|rmab|SAHI|en|
+mh|Islas Marshall|OC|abo|EDI|en|Marshall
+fm|Micronesia|OC|ab|EI|en|
+nr|Nauru|OC|amb|EHI|en|
+nz|Nueva Zelanda|OC|arb|ECI|en|
+pw|Palaos|OC|am|I|en|Palau
+pg|Papúa Nueva Guinea|OC|rnmb|EADI|en|
+ws|Samoa|OC|rab|EI|en|
+sb|Islas Salomón|OC|avmb|EDI|en|Salomón
+to|Tonga|OC|rb|CI|en|
+tv|Tuvalu|OC|abrm|ECI|en|
+vu|Vanuatu|OC|rvnm|THQI|en fr|
+`;
+
+const BK_PAISES = BK_DATOS.trim().split('\n').map(l => {
+  const [iso, nombre, cont, colores, attrs, idiomas, alias] = l.split('|');
+  return { iso, nombre, cont, colores: new Set(colores.split('')), attrs: new Set(attrs.split('')), idiomas: new Set((idiomas || '').split(' ').filter(Boolean)), alias: (alias || '').split(',').filter(Boolean) };
+});
+const BK_COLOR_NOMBRE = { r:'rojo', a:'azul', v:'verde', m:'amarillo', b:'blanco', n:'negro', o:'naranja' };
+const BK_CONT_NOMBRE = { AF:'África', EU:'Europa', AS:'Asia', NA:'América del Norte y Central', SA:'América del Sur', OC:'Oceanía' };
+const BK_CRITERIOS = [
+  ...Object.entries(BK_COLOR_NOMBRE).map(([k, n]) => ({ id:'c' + k, fam:'color', ico:{ r:'🟥', a:'🟦', v:'🟩', m:'🟨', b:'⬜', n:'⬛', o:'🟧' }[k], txt:`Tiene ${n}`, f: p => p.colores.has(k) })),
+  { id:'dos', fam:'cant', ico:'2️⃣', txt:'Solo 2 colores', f: p => p.colores.size === 2 },
+  { id:'cuatro', fam:'cant', ico:'🎨', txt:'4 colores o más', f: p => p.colores.size >= 4 },
+  { id:'E', fam:'simb', ico:'⭐', txt:'Tiene estrella', f: p => p.attrs.has('E') },
+  { id:'L', fam:'simb', ico:'🌙', txt:'Tiene media luna', f: p => p.attrs.has('L') },
+  { id:'S', fam:'simb', ico:'☀️', txt:'Tiene sol', f: p => p.attrs.has('S') },
+  { id:'C', fam:'simb', ico:'✝️', txt:'Tiene cruz', f: p => p.attrs.has('C') },
+  { id:'Q', fam:'simb', ico:'🛡️', txt:'Tiene escudo o emblema', f: p => p.attrs.has('Q') },
+  { id:'A', fam:'simb', ico:'🦅', txt:'Tiene un animal', f: p => p.attrs.has('A') },
+  { id:'T', fam:'simb', ico:'🔺', txt:'Tiene un triángulo', f: p => p.attrs.has('T') },
+  { id:'X', fam:'simb', ico:'✍️', txt:'Tiene texto o escritura', f: p => p.attrs.has('X') },
+  { id:'H', fam:'dis', ico:'☰', txt:'Franjas horizontales', f: p => p.attrs.has('H') },
+  { id:'V', fam:'dis', ico:'⫴', txt:'Franjas verticales', f: p => p.attrs.has('V') },
+  { id:'D', fam:'dis', ico:'⟋', txt:'Franja o línea diagonal', f: p => p.attrs.has('D') },
+  ...Object.entries(BK_CONT_NOMBRE).map(([k, n]) => ({ id:'k' + k, fam:'cont', ico:'🌎', txt:n, f: p => p.cont === k })),
+  { id:'M', fam:'geo', ico:'🏔️', txt:'Sin salida al mar', f: p => p.attrs.has('M') },
+  { id:'I', fam:'geo', ico:'🏝️', txt:'País isla', f: p => p.attrs.has('I') },
+  ...[['es','español'],['en','inglés'],['fr','francés'],['ar','árabe'],['pt','portugués']].map(([k, n]) => ({ id:'i' + k, fam:'idioma', ico:'🗣️', txt:`Idioma oficial: ${n}`, f: p => p.idiomas.has(k) }))
+];
+const BK_CRIT_POR_ID = Object.fromEntries(BK_CRITERIOS.map(c => [c.id, c]));
+
+function bkSoluciones(cf, cc){ return BK_PAISES.filter(p => cf.f(p) && cc.f(p)); }
+// ¿se pueden llenar las 9 casillas con banderas distintas?
+function bkHayAsignacion(sol){
+  const usados = new Set();
+  const orden = [...sol.keys()].sort((a, b) => sol[a].length - sol[b].length);
+  const prueba = (k) => {
+    if(k === orden.length) return true;
+    for(const p of sol[orden[k]]){
+      if(usados.has(p.iso)) continue;
+      usados.add(p.iso);
+      if(prueba(k + 1)) return true;
+      usados.delete(p.iso);
+    }
+    return false;
+  };
+  return prueba(0);
+}
+// Arma una grilla: 3 consignas de filas y 3 de columnas, con al menos 2 respuestas por casilla
+function bkGenerar(seedStr){
+  const rnd = sgRng('bk-' + seedStr);
+  for(let intento = 0; intento < 4000; intento++){
+    const elegidas = sgBarajar(BK_CRITERIOS, rnd).slice(0, 6);
+    const filas = elegidas.slice(0, 3), cols = elegidas.slice(3);
+    // no más de 2 de la misma familia, y nada de la misma familia en filas y columnas si es "excluyente"
+    const fams = {};
+    elegidas.forEach(c => fams[c.fam] = (fams[c.fam] || 0) + 1);
+    if(Object.values(fams).some(n => n > 2)) continue;
+    const excl = ['cont','idioma','cant'];
+    if(excl.some(f => filas.some(c => c.fam === f) && cols.some(c => c.fam === f))) continue;
+    const sol = [];
+    let ok = true;
+    for(const cf of filas){
+      for(const cc of cols){
+        const s = bkSoluciones(cf, cc);
+        if(s.length < 2){ ok = false; break; }
+        sol.push(s);
+      }
+      if(!ok) break;
+    }
+    if(!ok || !bkHayAsignacion(sol)) continue;
+    // que no sea demasiado fácil: al menos 2 casillas con pocas respuestas
+    if(sol.filter(s => s.length <= 6).length < 2 || sol.some(s => s.length > 70)) continue;
+    return { filas: filas.map(c => c.id), cols: cols.map(c => c.id), soluciones: sol.map(s => s.map(p => p.iso)) };
+  }
+  return null;
+}
+
+/* ---------- Banderoku: juego ---------- */
+const BK_INTENTOS_CASILLA = 3;
+const BK_PAIS_POR_ISO = Object.fromEntries(BK_PAISES.map(p => [p.iso, p]));
+const bk = { tipo:'diaria', fecha:null, semilla:'', grilla:null, celdas:[], terminado:false, guardado:false, celdaAbierta:null, rareza:null };
+function bkBandera(iso, ancho){ return `https://flagcdn.com/w${ancho || 160}/${iso}.png`; }
+function bkNorm(t){ return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function bkClave(){ return `grilloliga-bk-${bk.tipo}-${bk.fecha}`; }
+function bkGuardarLocal(){
+  if(bk.tipo !== 'diaria') return;
+  try{ localStorage.setItem(bkClave(), JSON.stringify({ c: bk.celdas, t: bk.terminado, g: bk.guardado })); }catch(_){}
+}
+function bkMostrar(cual){
+  document.getElementById('bk-menu').style.display = cual === 'menu' ? 'block' : 'none';
+  document.getElementById('bk-juego').style.display = cual === 'juego' ? 'block' : 'none';
+}
+async function bkRenderMenu(){
+  bkMostrar('menu');
+  const est = document.getElementById('bk-estado-hoy');
+  est.textContent = '';
+  try{
+    const { data: { user } } = await sbClient.auth.getUser();
+    if(!user) return;
+    const { data } = await sbClient.from('banderoku_resultados').select('aciertos, fecha').eq('usuario_id', user.id).eq('tipo', 'diaria');
+    const hoy = (data || []).find(x => x.fecha === cgFechaHoy());
+    const racha = sgCalcularRacha((data || []).map(x => x.fecha));
+    est.innerHTML = `${hoy ? `✅ Hoy: <b>${hoy.aciertos}/9</b>` : 'Todavía no jugaste la de hoy'} · 🔥 Racha: <b>${racha.actual}</b> (mejor ${racha.mejor})`;
+  }catch(_){}
+}
+function bkEmpezar(tipo){
+  bk.tipo = tipo;
+  bk.fecha = cgFechaHoy();
+  bk.semilla = tipo === 'diaria' ? bk.fecha : 'libre-' + Date.now() + '-' + Math.random();
+  bk.grilla = bkGenerar(bk.semilla);
+  if(!bk.grilla){ glToast('No se pudo armar la grilla, probá de nuevo.'); return; }
+  bk.celdas = Array.from({ length:9 }, () => ({ iso:null, intentos:0, fallidas:[] }));
+  bk.terminado = false; bk.guardado = false; bk.rareza = null;
+  if(tipo === 'diaria'){
+    try{
+      const prev = JSON.parse(localStorage.getItem(bkClave()) || 'null');
+      if(prev && Array.isArray(prev.c) && prev.c.length === 9){ bk.celdas = prev.c; bk.terminado = !!prev.t; bk.guardado = !!prev.g; }
+    }catch(_){}
+  }
+  bkMostrar('juego');
+  document.getElementById('bk-subtitulo').textContent = tipo === 'diaria'
+    ? `Grilla del ${new Date().toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'numeric' })}`
+    : 'Grilla libre';
+  bkRender();
+  if(bk.terminado) bkTerminar(true);
+}
+function bkCeldaResuelta(c){ return !!c.iso || c.intentos >= BK_INTENTOS_CASILLA; }
+function bkAciertos(){ return bk.celdas.filter(c => c.iso).length; }
+function bkRender(){
+  const g = bk.grilla;
+  const cab = (id) => { const c = BK_CRIT_POR_ID[id]; return `<div class="bk-cab"><span class="bk-cab-ico">${c.ico}</span><span>${c.txt}</span></div>`; };
+  let html = `<div class="bk-esquina"><b>${bkAciertos()}</b><span>/9</span></div>` + g.cols.map(cab).join('');
+  g.filas.forEach((f, i) => {
+    html += cab(f);
+    for(let j = 0; j < 3; j++){
+      const k = i * 3 + j, c = bk.celdas[k];
+      const puntos = Array.from({ length:BK_INTENTOS_CASILLA }, (_, n) => `<i class="${n < c.intentos - (c.iso ? 1 : 0) ? 'usado' : ''}"></i>`).join('');
+      if(c.iso){
+        const p = BK_PAIS_POR_ISO[c.iso];
+        const r = bk.rareza && bk.rareza[k] != null ? `<span class="bk-rareza">${bk.rareza[k]}%</span>` : '';
+        html += `<button class="bk-celda ok" data-k="${k}" disabled><img src="${bkBandera(c.iso)}" alt=""><span class="bk-nombre">${glEsc(p.nombre)}</span>${r}</button>`;
+      } else if(c.intentos >= BK_INTENTOS_CASILLA || bk.terminado){
+        html += `<button class="bk-celda fallo" data-k="${k}" disabled><span class="bk-x">✕</span><span class="bk-puntos">${puntos}</span></button>`;
+      } else {
+        html += `<button class="bk-celda" data-k="${k}"><span class="bk-mas">+</span><span class="bk-puntos">${puntos}</span></button>`;
+      }
+    }
+  });
+  const tab = document.getElementById('bk-tablero');
+  tab.innerHTML = html;
+  tab.querySelectorAll('.bk-celda:not([disabled])').forEach(b => b.addEventListener('click', ()=> bkAbrirBuscador(+b.dataset.k)));
+  const errores = bk.celdas.reduce((a, c) => a + c.intentos - (c.iso ? 1 : 0), 0);
+  document.getElementById('bk-marcador').innerHTML = `✅ <b>${bkAciertos()}</b>/9 aciertos · ❌ ${errores} error${errores === 1 ? '' : 'es'}` +
+    (bk.rareza ? ` · 💎 Rareza <b>${bk.rareza.total}</b>` : '');
+  document.getElementById('bk-terminar-btn').style.display = bk.terminado ? 'none' : '';
+}
+
+/* --- Buscador de países --- */
+function bkAbrirBuscador(k){
+  if(bk.terminado) return;
+  bk.celdaAbierta = k;
+  const i = Math.floor(k / 3), j = k % 3;
+  const f = BK_CRIT_POR_ID[bk.grilla.filas[i]], c = BK_CRIT_POR_ID[bk.grilla.cols[j]];
+  document.getElementById('bk-busca-consigna').innerHTML = `${f.ico} ${f.txt} <b>+</b> ${c.ico} ${c.txt}`;
+  const cel = bk.celdas[k];
+  document.getElementById('bk-busca-intentos').textContent = `Intentos en esta casilla: ${BK_INTENTOS_CASILLA - cel.intentos} de ${BK_INTENTOS_CASILLA}`;
+  document.getElementById('bk-busca-error').textContent = '';
+  const inp = document.getElementById('bk-busca-input');
+  inp.value = '';
+  bkFiltrar('');
+  document.getElementById('bk-buscador').style.display = 'flex';
+  setTimeout(()=> inp.focus(), 50);
+}
+function bkCerrarBuscador(){ document.getElementById('bk-buscador').style.display = 'none'; bk.celdaAbierta = null; }
+function bkFiltrar(texto){
+  const t = bkNorm(texto);
+  const usados = new Set(bk.celdas.map(c => c.iso).filter(Boolean));
+  const fallidas = new Set(bk.celdaAbierta != null ? bk.celdas[bk.celdaAbierta].fallidas : []);
+  let lista = BK_PAISES.filter(p => !t || bkNorm(p.nombre).includes(t) || p.alias.some(a => bkNorm(a).includes(t)));
+  lista.sort((a, b) => {
+    const pa = bkNorm(a.nombre).startsWith(t) ? 0 : 1, pb = bkNorm(b.nombre).startsWith(t) ? 0 : 1;
+    return pa - pb || a.nombre.localeCompare(b.nombre);
+  });
+  const cont = document.getElementById('bk-busca-lista');
+  cont.innerHTML = lista.slice(0, 60).map(p => {
+    const bloq = usados.has(p.iso) || fallidas.has(p.iso);
+    return `<button class="bk-opcion" data-iso="${p.iso}" ${bloq ? 'disabled' : ''}><img src="${bkBandera(p.iso, 80)}" alt="" loading="lazy"><span>${glEsc(p.nombre)}</span>${usados.has(p.iso) ? '<small>ya usada</small>' : fallidas.has(p.iso) ? '<small>no va acá</small>' : ''}</button>`;
+  }).join('') || '<div class="cz-online-esperando">No encuentro ese país.</div>';
+  cont.querySelectorAll('.bk-opcion:not([disabled])').forEach(b => b.addEventListener('click', ()=> bkElegir(b.dataset.iso)));
+}
+function bkElegir(iso){
+  const k = bk.celdaAbierta;
+  if(k == null) return;
+  const cel = bk.celdas[k];
+  const p = BK_PAIS_POR_ISO[iso];
+  const f = BK_CRIT_POR_ID[bk.grilla.filas[Math.floor(k / 3)]], c = BK_CRIT_POR_ID[bk.grilla.cols[k % 3]];
+  cel.intentos++;
+  if(f.f(p) && c.f(p)){
+    cel.iso = iso;
+    glVibrar(25);
+    bkCerrarBuscador();
+    glToast(`✅ ¡${p.nombre}!`);
+  } else {
+    cel.fallidas.push(iso);
+    glVibrar([30, 40, 30]);
+    const falla = [f, c].filter(x => !x.f(p)).map(x => `“${x.txt}”`).join(' ni ');
+    if(cel.intentos >= BK_INTENTOS_CASILLA){
+      bkCerrarBuscador();
+      glToast(`❌ ${p.nombre} no cumple ${falla}. Se terminaron los intentos de esa casilla.`);
+    } else {
+      document.getElementById('bk-busca-error').textContent = `❌ ${p.nombre} no cumple ${falla}. Te quedan ${BK_INTENTOS_CASILLA - cel.intentos}.`;
+      document.getElementById('bk-busca-intentos').textContent = `Intentos en esta casilla: ${BK_INTENTOS_CASILLA - cel.intentos} de ${BK_INTENTOS_CASILLA}`;
+      bkFiltrar(document.getElementById('bk-busca-input').value);
+    }
+  }
+  bkGuardarLocal();
+  bkRender();
+  if(bk.celdas.every(bkCeldaResuelta)) setTimeout(()=> bkTerminar(false), 300);
+}
+
+/* --- Final, rareza y ranking --- */
+async function bkTerminar(yaEstaba){
+  bk.terminado = true;
+  bkGuardarLocal();
+  const aciertos = bkAciertos();
+  const errores = bk.celdas.reduce((a, c) => a + c.intentos - (c.iso ? 1 : 0), 0);
+  if(!yaEstaba && aciertos >= 7) glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+  let user = null;
+  try{ ({ data: { user } } = await sbClient.auth.getUser()); }catch(_){}
+  if(user && !bk.guardado){
+    const respuestas = {};
+    bk.celdas.forEach((c, k) => { if(c.iso) respuestas[k] = c.iso; });
+    await sbClient.from('banderoku_resultados').insert({ usuario_id:user.id, fecha:bk.fecha, tipo:bk.tipo, aciertos, errores, respuestas }).then(()=>{}, ()=>{});
+    bk.guardado = true;
+    bkGuardarLocal();
+  }
+  if(bk.tipo === 'diaria') await bkCalcularRareza();
+  bkRender();
+  bkMostrarFinal(aciertos);
+  if(bk.tipo === 'diaria') bkCargarRanking();
+}
+// % de jugadores del día que eligieron la misma bandera en cada casilla (cuanto menos, más mérito)
+async function bkCalcularRareza(){
+  try{
+    const { data } = await sbClient.from('banderoku_resultados').select('usuario_id, aciertos, respuestas').eq('tipo', 'diaria').eq('fecha', bk.fecha);
+    const filas = data || [];
+    const total = Math.max(1, filas.length);
+    const r = { total:0 };
+    bk.celdas.forEach((c, k) => {
+      if(!c.iso){ r.total += 100; return; }
+      const iguales = filas.filter(x => x.respuestas && x.respuestas[k] === c.iso).length;
+      r[k] = Math.max(1, Math.round(iguales * 100 / total));
+      r.total += r[k];
+    });
+    bk.rareza = r;
+  }catch(_){}
+}
+function bkMostrarFinal(aciertos){
+  const fin = document.getElementById('bk-final');
+  fin.style.display = 'block';
+  const frases = ['Hay que repasar el atlas 📚', 'Arrancaste flojo, pero hay revancha mañana', 'Nada mal 🙂', '¡Muy bien! 👏', '¡Perfecto! Sos un experto en banderas 🌍'];
+  const idx = aciertos === 9 ? 4 : aciertos >= 7 ? 3 : aciertos >= 5 ? 2 : aciertos >= 3 ? 1 : 0;
+  document.getElementById('bk-final-titulo').textContent = `${aciertos}/9 · ${frases[idx]}`;
+  document.getElementById('bk-final-sub').textContent = bk.tipo === 'diaria'
+    ? (bk.rareza ? `💎 Rareza: ${bk.rareza.total} (cuanto más baja, más originales tus respuestas; cada casilla vacía suma 100)` : '')
+    : 'Las grillas libres no cuentan para el ranking.';
+}
+function bkVerRespuestas(){
+  const g = bk.grilla;
+  const box = document.getElementById('bk-respuestas');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  box.innerHTML = g.filas.map((f, i) => g.cols.map((c, j) => {
+    const k = i * 3 + j;
+    const sol = g.soluciones[k].map(iso => BK_PAIS_POR_ISO[iso]);
+    return `<div class="bk-resp"><div class="bk-resp-tit">${BK_CRIT_POR_ID[f].txt} + ${BK_CRIT_POR_ID[c].txt} <small>(${sol.length})</small></div><div class="bk-resp-lista">${sol.map(p => `<span title="${glEsc(p.nombre)}"><img src="${bkBandera(p.iso, 40)}" alt="" loading="lazy">${glEsc(p.nombre)}</span>`).join('')}</div></div>`;
+  }).join('')).join('');
+}
+async function bkCargarRanking(){
+  const cont = document.getElementById('bk-ranking-lista');
+  cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
+  const [{ data: filas }, { data: perfiles }] = await Promise.all([
+    sbClient.from('banderoku_resultados').select('usuario_id, aciertos, errores, respuestas').eq('tipo', 'diaria').eq('fecha', cgFechaHoy()),
+    sbClient.from('perfiles_usuario').select('id, username, marco')
+  ]);
+  glRegistrarMarcos(perfiles);
+  const nombre = {};
+  (perfiles || []).forEach(p => { nombre[p.id] = p.username; });
+  const todos = filas || [];
+  const total = Math.max(1, todos.length);
+  const conteo = {};
+  todos.forEach(x => Object.entries(x.respuestas || {}).forEach(([k, iso]) => { conteo[k + iso] = (conteo[k + iso] || 0) + 1; }));
+  const lista = todos.map(x => {
+    let rar = 0;
+    for(let k = 0; k < 9; k++){ const iso = (x.respuestas || {})[k]; rar += iso ? Math.max(1, Math.round((conteo[k + iso] || 0) * 100 / total)) : 100; }
+    return { nombre: nombre[x.usuario_id] || '???', aciertos: x.aciertos, rareza: rar };
+  }).sort((a, b) => b.aciertos - a.aciertos || a.rareza - b.rareza).slice(0, 10);
+  cont.innerHTML = lista.length
+    ? lista.map((f, i) => `<div class="pm-ranking-fila"><span>${['🥇','🥈','🥉'][i] || (i + 1) + '.'} ${glNombreConMarco(f.nombre)}</span><b>${f.aciertos}/9 <small>· 💎 ${f.rareza}</small></b></div>`).join('')
+    : '<div class="cz-online-esperando gl-vacio">Nadie jugó la grilla de hoy todavía.</div>';
+}
+
+/* --- Eventos --- */
+document.getElementById('bk-busca-input').addEventListener('input', (e)=> bkFiltrar(e.target.value));
+document.getElementById('bk-busca-input').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ const b = document.querySelector('#bk-busca-lista .bk-opcion:not([disabled])'); if(b) b.click(); }
+  if(e.key === 'Escape') bkCerrarBuscador();
+});
+document.getElementById('bk-busca-cerrar').addEventListener('click', bkCerrarBuscador);
+document.getElementById('bk-buscador').addEventListener('click', (e)=>{ if(e.target.id === 'bk-buscador') bkCerrarBuscador(); });
+document.getElementById('bk-diaria-btn').addEventListener('click', ()=> bkEmpezar('diaria'));
+document.getElementById('bk-libre-btn').addEventListener('click', ()=> bkEmpezar('libre'));
+document.getElementById('bk-terminar-btn').addEventListener('click', ()=>{
+  if(confirm('¿Terminar la grilla? Las casillas vacías quedan sin puntos.')) bkTerminar(false);
+});
+document.getElementById('bk-respuestas-btn').addEventListener('click', bkVerRespuestas);
+document.getElementById('bk-otra-btn').addEventListener('click', ()=>{ document.getElementById('bk-final').style.display = 'none'; document.getElementById('bk-respuestas').style.display = 'none'; bkRenderMenu(); });
+document.getElementById('bk-compartir-btn').addEventListener('click', ()=>{
+  const filas = [0, 1, 2].map(i => [0, 1, 2].map(j => bk.celdas[i * 3 + j].iso ? '🟩' : '🟥').join('')).join('\n');
+  glCompartirResultado([
+    `🏳️ Banderoku ${bk.tipo === 'diaria' ? bk.fecha.split('-').reverse().slice(0, 2).join('/') : '(libre)'} · ${bkAciertos()}/9${bk.rareza ? ' · 💎 Rareza ' + bk.rareza.total : ''}`,
+    filas
+  ]);
+});
+document.getElementById('mini-card-banderoku').addEventListener('click', ()=>{
+  document.getElementById('mini-lista').style.display = 'none';
+  document.getElementById('mini-banderoku').style.display = 'block';
+  document.getElementById('bk-final').style.display = 'none';
+  bkRenderMenu();
+  bkCargarRanking();
+});
+document.getElementById('banderoku-volver').addEventListener('click', ()=>{
+  bkCerrarBuscador();
+  document.getElementById('mini-banderoku').style.display = 'none';
   document.getElementById('mini-lista').style.display = 'grid';
 });
 
