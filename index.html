@@ -1941,6 +1941,20 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
 .mm-carta.par{ animation:sg-pop .4s ease-out; cursor:default; }
 .mm-carta.error .mm-cara{ animation:mm-error .35s; }
 @keyframes mm-error{ 25%{ transform:rotateY(180deg) translateX(-4px); } 75%{ transform:rotateY(180deg) translateX(4px); } }
+/* ---------- DATOS PERSONALES Y CUMPLEAÑOS ---------- */
+.jp-datos{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 2px; }
+.jp-dato{ font-size:12.5px; padding:3px 9px; border-radius:999px; background:var(--card2); border:1px solid var(--line); color:var(--text); }
+.jp-cumple-hoy{ background:linear-gradient(135deg, #D4AF37, #B33B22); color:#fff; border:none; font-weight:700; }
+.jp-apodos{ font-size:12.5px; color:var(--text-dim); margin:3px 0; }
+.jp-apodos b{ color:var(--text); }
+.cumples-caja{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin-bottom:16px; box-shadow:var(--card-sombra); }
+.cumples-caja.cumples-hoy{ border:1.5px solid #D4AF37; background:linear-gradient(135deg, rgba(212,175,55,.18), var(--card)); }
+.cumples-titulo{ font-weight:800; font-size:14.5px; margin-bottom:8px; }
+.cumples-lista{ display:flex; flex-wrap:wrap; gap:8px; }
+.cumple-chip{ display:flex; align-items:center; gap:8px; padding:5px 12px 5px 5px; border-radius:999px; border:1px solid var(--line-strong); background:var(--card2); color:var(--text); cursor:pointer; font-family:'Alegreya Sans',sans-serif; text-align:left; }
+.cumple-chip img{ width:34px; height:34px; border-radius:50%; object-fit:cover; }
+.cumple-chip b{ display:block; font-size:13.5px; }
+.cumple-chip small{ display:block; font-size:11.5px; color:var(--text-dim); }
 /* ---------- PANEL DE PARTIDOS (grillo) ---------- */
 .pa-admin{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:8px 10px; border:1px dashed var(--line-strong); border-radius:10px; background:var(--card2); }
 .pa-admin-tag{ font-size:12px; font-weight:700; color:var(--text-dim); margin-right:auto; }
@@ -2463,6 +2477,7 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
       <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6h12M8.5 12h12M8.5 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Resumen del torneo</span></h2>
     </div>
     <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
+    <div class="cumples-caja" id="cumples-caja" style="display:none;"></div>
     <div id="ios-instalar-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.55); align-items:center; justify-content:center;">
       <div class="auth-card" style="max-width:320px; text-align:center;">
         <h1 style="font-size:18px;">📱 Instalar en iPhone/iPad</h1>
@@ -4061,7 +4076,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function cargarDatosDesdeSupabase(){
-  const [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, ppR, partR] = await Promise.all([
+  const [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, ppR, partR, persR] = await Promise.all([
     sbClient.from('estadisticas').select('*'),
     sbClient.from('ranking_tabla_anual').select('*'),
     sbClient.from('ranking_goleadores').select('*'),
@@ -4071,8 +4086,12 @@ async function cargarDatosDesdeSupabase(){
     sbClient.from('ranking_porcentaje_victorias').select('*'),
     sbClient.from('ranking_menos_goles_recibidos').select('*'),
     sbClient.from('ranking_promedio_puntos').select('*'),
-    sbClient.from('partidos_completo').select('*')
+    sbClient.from('partidos_completo').select('*'),
+    sbClient.from('jugadores').select('nombre, fecha_nacimiento, altura_cm, apodos')
   ]);
+  // datos personales (edad, altura, apodos): si fallan, el sitio sigue andando sin ellos
+  const personales = {};
+  (persR && !persR.error ? persR.data || [] : []).forEach(j => { personales[j.nombre] = j; });
   for (const r of [estR, taR, golR, astR, gaR, gppR, pvR, mgrR, ppR, partR]){
     if (r.error) throw r.error;
   }
@@ -4109,7 +4128,7 @@ async function cargarDatosDesdeSupabase(){
   rankings['MEJORES DUPLAS'] = calcularRankingDuplas(partidos, 'mejores');
   rankings['PEORES DUPLAS'] = calcularRankingDuplas(partidos, 'peores');
 
-  return { estadisticas, rankings, partidos, fotos };
+  return { estadisticas, rankings, partidos, fotos, personales };
 }
 
 // Mejores duplas: pares de jugadores que jugaron JUNTOS en el mismo equipo al menos 5 partidos.
@@ -4399,7 +4418,7 @@ async function despuesDeLoguearse(){
   try {
     await glCargarUsernameActual();
     const d = await cargarDatosDesdeSupabase();
-    DATA = { estadisticas: d.estadisticas, rankings: d.rankings, partidos: d.partidos };
+    DATA = { estadisticas: d.estadisticas, rankings: d.rankings, partidos: d.partidos, personales: d.personales || {} };
     FOTOS_JUGADORES_REMOTAS = d.fotos;
     _cargaInicial.remove();
     iniciarApp();
@@ -17786,6 +17805,74 @@ function jpGraficoRendimiento(matches){
     </div>`;
 }
 
+/* ---------- Datos personales: edad, cumpleaños, altura y apodos ---------- */
+const GL_MESES_LARGO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function glEdad(fechaIso, ref){
+  const [y, m, d] = fechaIso.split('-').map(Number);
+  const hoy = ref || new Date();
+  let e = hoy.getFullYear() - y;
+  if(hoy.getMonth() + 1 < m || (hoy.getMonth() + 1 === m && hoy.getDate() < d)) e--;
+  return e;
+}
+function glEsCumpleHoy(fechaIso){
+  const [, m, d] = fechaIso.split('-').map(Number);
+  const hoy = new Date();
+  return hoy.getMonth() + 1 === m && hoy.getDate() === d;
+}
+function jpDatosPersonalesHtml(nombre){
+  const p = (DATA.personales || {})[nombre];
+  if(!p) return '';
+  const partes = [];
+  if(p.fecha_nacimiento){
+    const [, m, d] = p.fecha_nacimiento.split('-').map(Number);
+    partes.push(glEsCumpleHoy(p.fecha_nacimiento)
+      ? `<span class="jp-dato jp-cumple-hoy">🎂 ¡Hoy cumple ${glEdad(p.fecha_nacimiento)}!</span>`
+      : `<span class="jp-dato" title="Cumple el ${d} de ${GL_MESES_LARGO[m - 1]}">🎂 ${glEdad(p.fecha_nacimiento)} años</span>`);
+  }
+  if(p.altura_cm) partes.push(`<span class="jp-dato">📏 ${(p.altura_cm / 100).toFixed(2).replace('.', ',')} m</span>`);
+  const apodos = (p.apodos || '').split('/').map(x => x.trim()).filter(x => x && x.toLowerCase() !== nombre.toLowerCase());
+  let html = partes.length ? `<div class="jp-datos">${partes.join('')}</div>` : '';
+  if(apodos.length) html += `<div class="jp-apodos">También conocido como: ${apodos.map(a => `<b>${glEsc(a)}</b>`).join(' · ')}</div>`;
+  return html;
+}
+// tarjeta de Inicio: quién cumple hoy, o el próximo cumpleaños
+function renderCumples(){
+  const cont = document.getElementById('cumples-caja');
+  if(!cont) return;
+  const lista = Object.values(DATA.personales || {}).filter(p => p.fecha_nacimiento);
+  if(!lista.length){ cont.style.display = 'none'; return; }
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const proximo = p => {
+    const [, m, d] = p.fecha_nacimiento.split('-').map(Number);
+    let f = new Date(hoy.getFullYear(), m - 1, d);
+    if(f < hoy) f = new Date(hoy.getFullYear() + 1, m - 1, d);
+    return { p, f, dias: Math.round((f - hoy) / 86400000) };
+  };
+  const orden = lista.map(proximo).sort((a, b) => a.dias - b.dias);
+  const hoyCumplen = orden.filter(x => x.dias === 0);
+  const fotos = FOTOS_JUGADORES_REMOTAS || {};
+  const chip = (x) => `<button class="cumple-chip" data-jug="${glEsc(x.p.nombre)}">${fotos[x.p.nombre] ? `<img src="${fotos[x.p.nombre]}" alt="">` : '🦗'}<span><b>${glEsc(x.p.nombre)}</b><small>${x.dias === 0 ? `¡cumple ${glEdad(x.p.fecha_nacimiento)}!` : `${x.f.getDate()} de ${GL_MESES_LARGO[x.f.getMonth()]} · ${x.dias === 1 ? 'mañana' : 'en ' + x.dias + ' días'}`}</small></span></button>`;
+  if(hoyCumplen.length){
+    cont.className = 'cumples-caja cumples-hoy';
+    cont.innerHTML = `<div class="cumples-titulo">🎉 ¡Hoy es el cumple de ${hoyCumplen.map(x => glEsc(x.p.nombre)).join(' y ')}! Feliz cumple 🎂</div><div class="cumples-lista">${hoyCumplen.map(chip).join('')}</div>`;
+    let ya = null; try{ ya = localStorage.getItem('grilloliga-cumple-festejo'); }catch(_){}
+    const clave = hoy.toDateString();
+    if(ya !== clave){ try{ localStorage.setItem('grilloliga-cumple-festejo', clave); }catch(_){} setTimeout(()=> glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']), 900); }
+  } else {
+    const prox = orden.filter(x => x.dias === orden[0].dias);
+    cont.className = 'cumples-caja';
+    cont.innerHTML = `<div class="cumples-titulo">🎂 Próximo cumpleaños</div><div class="cumples-lista">${prox.map(chip).join('')}</div>`;
+  }
+  cont.style.display = '';
+  cont.querySelectorAll('[data-jug]').forEach(b => b.addEventListener('click', ()=>{
+    document.querySelector('.tab-btn[data-tab="jugadores"]').click();
+    activeJugador = b.dataset.jug;
+    renderJugadorChips(); renderJugadorProfile();
+  }));
+}
+
+renderCumples();
+
 let jpUltimoFestejado = null;
 function renderJugadorProfile(){
   const container = document.getElementById('jugador-profile');
@@ -17831,6 +17918,7 @@ function renderJugadorProfile(){
         <div class="jp-avatar">${jcAvatarHtml(activeJugador)}</div>
         <div>
           <div class="jp-name">${activeJugador}</div>
+          ${jpDatosPersonalesHtml(activeJugador)}
           ${matches.length ? `<div class="jp-forma-wrap"><span class="jp-forma-label">Forma reciente</span>${jpFormaRecienteHtml(matches)}</div>` : ''}
           <div class="jp-badges">${badges.map(b=>'<span class="jp-badge">'+b+'</span>').join('')}</div>
         </div>
