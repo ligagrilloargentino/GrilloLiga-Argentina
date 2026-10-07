@@ -18491,9 +18491,13 @@ function renderCumples(){
     const clave = hoy.toDateString();
     if(ya !== clave){ try{ localStorage.setItem('grilloliga-cumple-festejo', clave); }catch(_){} setTimeout(()=> glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']), 900); }
   } else {
-    const prox = orden.filter(x => x.dias === orden[0].dias);
     cont.className = 'cumples-caja';
-    cont.innerHTML = `<div class="cumples-titulo">🎂 Próximo cumpleaños</div><div class="cumples-lista">${prox.map(chip).join('')}</div>`;
+    cont.innerHTML = '';
+  }
+  // los próximos 3 cumpleaños (sin contar los de hoy)
+  const proximos = orden.filter(x => x.dias > 0).slice(0, 3);
+  if(proximos.length){
+    cont.insertAdjacentHTML('beforeend', `<div class="cumples-titulo"${hoyCumplen.length ? ' style="margin-top:12px;"' : ''}>🎂 Próximos cumpleaños</div><div class="cumples-lista">${proximos.map(chip).join('')}</div>`);
   }
   cont.style.display = '';
   cont.querySelectorAll('[data-jug]').forEach(b => b.addEventListener('click', ()=>{
