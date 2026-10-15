@@ -2582,11 +2582,52 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
 .fa-item .fa-acc{ display:flex; flex-wrap:wrap; gap:5px; padding:0 9px 9px; }
 .fa-item .fa-acc .alb-btn{ padding:6px 9px; font-size:12px; flex:1; }
 @media (min-width:700px){ .fa-admin{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+/* ===== ESTADÍSTICAS PÚBLICAS (sin cuenta) ===== */
+.auth-overlay{ flex-direction:column; gap:14px; overflow-y:auto; }
+.pub-invita{ width:100%; max-width:360px; box-sizing:border-box; background:var(--card); border:1px dashed var(--line-strong); border-radius:var(--radius); padding:14px 16px; text-align:center; font-size:13.5px; line-height:1.45; color:var(--text-dim); }
+.pub-invita b{ color:var(--text); }
+.pub-invita .auth-btn{ margin:10px 0 6px; }
+.pub-invita small{ display:block; font-size:12px; color:var(--text-dimmer); }
+#pub-est{ position:fixed; inset:0; z-index:10001; background:var(--bg); overflow-y:auto; display:none; -webkit-overflow-scrolling:touch; }
+.pub-wrap{ max-width:1100px; margin:0 auto; padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px)); }
+.pub-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.pub-top .brand{ margin:0; }
+.pub-cta{ display:flex; gap:8px; flex-wrap:wrap; }
+.pub-cta .auth-btn{ width:auto; margin:0; padding:9px 16px; }
+.pub-intro{ font-size:14px; color:var(--text-dim); margin:0 0 14px; line-height:1.45; }
+.pub-buscar{ width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:16px; margin-bottom:12px; }
+.pub-tabla-wrap{ overflow:auto; border:1px solid var(--line); border-radius:10px; background:var(--card); max-height:75vh; }
+.pub-tabla{ border-collapse:collapse; width:100%; font-size:13px; }
+.pub-tabla th{ position:sticky; top:0; z-index:2; background:var(--card2); color:var(--text-dim); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; font-weight:800; padding:9px 7px; text-align:center; cursor:pointer; white-space:normal; min-width:44px; border-bottom:1px solid var(--line-strong); user-select:none; }
+.pub-tabla th.act{ color:var(--red); }
+.pub-tabla th:first-child,.pub-tabla td:first-child{ position:sticky; left:0; z-index:1; background:var(--card); text-align:left; }
+.pub-tabla th:first-child{ z-index:3; background:var(--card2); }
+.pub-tabla td{ padding:7px; text-align:center; border-bottom:1px solid var(--line); font-family:'Barlow Condensed','Alegreya Sans',sans-serif; font-size:14.5px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--text); }
+.pub-tabla td.deb{ text-align:left; white-space:normal; min-width:240px; font-size:13px; color:var(--text-dim); }
+.pub-tabla tbody tr:nth-child(even) td{ background:color-mix(in srgb, var(--card2) 45%, var(--card)); }
+.pub-jug{ display:flex; align-items:center; gap:8px; font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; }
+.pub-av{ width:28px; height:28px; border-radius:50%; object-fit:cover; flex:none; background:var(--card2); border:1px solid var(--line); display:inline-grid; place-items:center; font-size:11px; font-weight:800; color:var(--text-dim); }
+.pub-pie{ margin-top:16px; text-align:center; font-size:13px; color:var(--text-dimmer); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+
+<!-- Estadísticas públicas: se ven sin cuenta (las lee de la vista "estadisticas", lo único público de la base) -->
+<section id="pub-est" aria-label="Estadísticas de la Grillo Liga">
+  <div class="pub-wrap">
+    <div class="pub-top">
+      <div class="brand"><span class="badge">2026</span><h1><span>GRILLOLIGA</span> ARGENTINA</h1></div>
+      <div class="pub-cta"><button type="button" class="auth-btn" id="pub-crear">Crear cuenta / Entrar</button></div>
+    </div>
+    <div class="section-head"><h2>📊 Estadísticas generales</h2></div>
+    <p class="pub-intro">Tabla de la Grillo Liga Argentina, torneo amateur de fútbol 2026: partidos jugados, ganados, goles, asistencias, hat-tricks y más de cada jugador. Tocá un título para ordenar.</p>
+    <input type="search" class="pub-buscar" id="pub-buscar" placeholder="Buscar jugador…" aria-label="Buscar jugador">
+    <div class="pub-tabla-wrap"><table class="pub-tabla" id="pub-tabla"><thead></thead><tbody><tr><td colspan="18">Cargando estadísticas…</td></tr></tbody></table></div>
+    <p class="pub-pie">Con tu cuenta tenés rankings, partidos con video, perfiles de cada jugador, minijuegos, el Foro y el Álbum de figuritas. <a href="#" id="pub-crear2">Hacete la cuenta acá</a>.</p>
+  </div>
+</section>
 <div class="auth-overlay" id="auth-overlay" style="display:none;">
   <div class="auth-card">
 
@@ -2660,6 +2701,11 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
       <div class="auth-switch"><a id="ir-a-login-desde-recuperar">Volver a iniciar sesión</a></div>
     </div>
 
+  </div>
+  <div class="pub-invita" id="pub-invita">
+    ¿Solo querés ver las estadísticas y no participar de los juegos ni del álbum de cartas coleccionables? <b>Bueno, mandale.</b>
+    <button type="button" class="auth-btn" id="pub-abrir">📊 Ver estadísticas sin cuenta</button>
+    <small>Pero te recomendamos hacerte la cuenta y empezar a participar de la Grillo Liga 🦗</small>
   </div>
 </div>
 
@@ -19758,6 +19804,66 @@ document.getElementById('jugador-search').addEventListener('input', (e)=>{
 renderJugadorChips();
 renderJugadorProfile();
 } // fin de iniciarApp()
+
+/* ---------- ESTADÍSTICAS PÚBLICAS (sin cuenta) ----------
+   Para quien no tiene cuenta: desde el login se puede ver la tabla general. Solo lee la vista
+   "estadisticas" (la base le da permiso de lectura pública únicamente a esa vista). */
+const PUB_COLS = [['jugador','Jugador'],['pj','PJ'],['pg','PG'],['pe','PE'],['pp','PP'],['porcentaje_pg','%PG'],['goles','Goles'],['asistencias','Ast'],['goles_mas_asistencias','G+A'],
+  ['goles_por_partido','Goles x P'],['asistencias_por_partido','Ast x P'],['goles_mas_asistencias_por_partido','G+A x P'],['hat_tricks','Hat tricks'],['max_goles','Máx goles'],['max_asistencias','Máx ast'],
+  ['goles_recibidos','Goles recibidos'],['goles_recibidos_por_partido','Recibidos x P'],['debut','Debut']];
+const PUB = { datos:null, col:'pj', dir:-1, buscar:'' };
+const pubEsc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function pubCargar(){
+  if(PUB.datos) return;
+  const { data, error } = await sbClient.from('estadisticas').select('*');
+  if(error) throw error;
+  PUB.datos = data || [];
+}
+function pubRender(){
+  const t = document.getElementById('pub-tabla');
+  if(!PUB.datos){ return; }
+  t.querySelector('thead').innerHTML = '<tr>' + PUB_COLS.map(([k, n]) => `<th data-col="${k}" class="${PUB.col === k ? 'act' : ''}" scope="col">${n}${PUB.col === k ? (PUB.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`).join('') + '</tr>';
+  const q = PUB.buscar.trim().toLowerCase();
+  const filas = PUB.datos.filter(r => !q || String(r.jugador).toLowerCase().includes(q)).slice().sort((a, b) => {
+    const x = a[PUB.col], y = b[PUB.col];
+    if(typeof x === 'number' || typeof y === 'number') return ((Number(x) || 0) - (Number(y) || 0)) * PUB.dir;
+    return String(x || '').localeCompare(String(y || ''), 'es') * PUB.dir;
+  });
+  t.querySelector('tbody').innerHTML = filas.length ? filas.map(r => '<tr>' + PUB_COLS.map(([k]) => {
+    if(k === 'jugador'){
+      const ini = pubEsc(String(r.jugador || '?').slice(0, 2).toUpperCase());
+      const foto = r.foto_url ? `<img class="pub-av" src="${pubEsc(r.foto_url)}" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;pub-av&quot;>${ini}</span>'">` : `<span class="pub-av">${ini}</span>`;
+      return `<td><span class="pub-jug">${foto}${pubEsc(r.jugador)}</span></td>`;
+    }
+    return `<td class="${k === 'debut' ? 'deb' : ''}">${pubEsc(r[k] == null ? '–' : r[k])}</td>`;
+  }).join('') + '</tr>').join('') : `<tr><td colspan="${PUB_COLS.length}">No hay jugadores con ese nombre.</td></tr>`;
+  t.querySelectorAll('th[data-col]').forEach(th => th.onclick = () => {
+    if(PUB.col === th.dataset.col) PUB.dir *= -1; else { PUB.col = th.dataset.col; PUB.dir = th.dataset.col === 'jugador' || th.dataset.col === 'debut' ? 1 : -1; }
+    pubRender();
+  });
+}
+async function pubPreparar(){
+  try{ await pubCargar(); pubRender(); }
+  catch(_){ document.querySelector('#pub-tabla tbody').innerHTML = `<tr><td colspan="${PUB_COLS.length}">No se pudieron cargar las estadísticas. Probá de nuevo en un rato.</td></tr>`; }
+}
+function pubAbrir(){
+  document.getElementById('pub-est').style.display = 'block';
+  document.getElementById('pub-est').scrollTop = 0;
+  pubPreparar();
+}
+function pubCerrar(){ document.getElementById('pub-est').style.display = 'none'; }
+document.getElementById('pub-abrir').addEventListener('click', pubAbrir);
+document.getElementById('pub-crear').addEventListener('click', pubCerrar);
+document.getElementById('pub-crear2').addEventListener('click', e => { e.preventDefault(); pubCerrar(); });
+document.getElementById('pub-buscar').addEventListener('input', e => { PUB.buscar = e.target.value; pubRender(); });
+// cuando aparece el login (visitante sin cuenta), la tabla se carga de fondo: así los buscadores también la leen.
+// Con el link …/#estadisticas se abre directo.
+new MutationObserver(() => {
+  const ov = document.getElementById('auth-overlay');
+  if(ov.style.display === 'none') { pubCerrar(); return; }
+  pubPreparar();
+  if(typeof GL_HASH_INICIAL !== 'undefined' && GL_HASH_INICIAL === '#estadisticas') pubAbrir();
+}).observe(document.getElementById('auth-overlay'), { attributes:true, attributeFilter:['style'] });
 </script>
 <div id="confirmar-salir-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.5); align-items:center; justify-content:center;">
   <div class="auth-card" style="max-width:300px; text-align:center;">
