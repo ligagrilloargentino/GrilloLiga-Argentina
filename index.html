@@ -2526,6 +2526,16 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
 .alb-tapada .alb-dorso .bd{ border-width:1px; }
 .alb-tap-n{ position:absolute; left:0; right:0; bottom:0; padding:3px 2px 4px; background:rgba(14,11,7,.82); color:#F0E7D2; font:700 10px/1.15 'Alegreya Sans',sans-serif; text-align:center; display:flex; flex-direction:column; }
 .alb-tap-n b{ font-size:8.5px; text-transform:uppercase; letter-spacing:.06em; }
+.alb-reglas{ background:var(--card); border:1px solid var(--line); border-radius:10px; margin-bottom:14px; box-shadow:var(--card-sombra); }
+.alb-reglas summary{ cursor:pointer; padding:11px 14px; font-weight:800; font-size:14.5px; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+.alb-reglas summary::-webkit-details-marker{ display:none; }
+.alb-reglas summary:after{ content:'▾'; color:var(--red); transition:transform .2s; }
+.alb-reglas[open] summary:after{ transform:rotate(180deg); }
+.alb-reglas-c{ padding:0 14px 12px; font-size:13.5px; line-height:1.45; color:var(--text); }
+.alb-reglas-c h5{ margin:12px 0 4px; font-family:'Special Elite',Georgia,serif; font-weight:400; font-size:15px; color:var(--red); }
+.alb-reglas-c p{ margin:0; }
+.alb-reglas-c ul{ margin:0; padding-left:18px; }
+.alb-reglas-c li{ margin:3px 0; }
 /* marcos de premio del álbum */
 .gl-marco-album{ --marco-c:#1f3c88; border-style:dashed; }
 .gl-marco-coleccionista{ --marco-c:#D4A800; border-color:transparent;
@@ -2799,11 +2809,10 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
     <div class="gag-icono"><svg width="30" height="30" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg></div>
     <div class="gag-texto">
       <b>Vinculá tu cuenta con Google</b>
-      <span>Así entrás sin contraseña y nunca perdés tu cuenta. Tocá el botón, elegí tu Google y listo: conservás todo (insignias, Carrera, votos). A partir de ahí entrá siempre con "Continuar con Google".</span>
+      <span>Así entrás sin contraseña y nunca perdés tu cuenta. Tocá el botón, elegí tu Google y listo: conservás todo (insignias, Carrera, votos). A partir de ahí entrá siempre con "Continuar con Google". <b>🃏 Además te regalamos un sobre para el Álbum GrilloLiga.</b></span>
     </div>
     <div class="gag-acciones">
       <button class="auth-btn auth-btn-google" id="gag-vincular"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Vincular ahora</span></button>
-      <button class="gag-despues" id="gag-despues">Más tarde</button>
     </div>
   </div>
 
@@ -4982,17 +4991,9 @@ if(LOGIN_REQUERIDO && !modoInvitado){
         document.getElementById('umm-google-estado').innerHTML = tieneGoogle
           ? '✅ <b>Cuenta vinculada con Google</b>'
           : '⚠️ Vinculá tu cuenta con Google para poder entrar sin contraseña y no perderla nunca.';
-        if(!tieneGoogle){
-          let pospuesto = false;
-          try{ pospuesto = sessionStorage.getItem('gl-aviso-google-despues') === '1'; }catch(_){}
-          const aviso = document.getElementById('gl-aviso-google');
-          if(!pospuesto) aviso.style.display = 'flex';
-          document.getElementById('gag-vincular').onclick = glVincularGoogle;
-          document.getElementById('gag-despues').onclick = ()=>{
-            aviso.style.display = 'none';
-            try{ sessionStorage.setItem('gl-aviso-google-despues', '1'); }catch(_){}
-          };
-        }
+        // quien no vinculó Google ve siempre el cartel (no se puede cerrar)
+        document.getElementById('gl-aviso-google').style.display = tieneGoogle ? 'none' : 'flex';
+        if(!tieneGoogle) document.getElementById('gag-vincular').onclick = glVincularGoogle;
         const btnVinc = document.getElementById('umm-vincular-google');
         btnVinc.style.display = tieneGoogle ? 'none' : '';
         btnVinc.onclick = glVincularGoogle;
@@ -17271,6 +17272,7 @@ function albRender(pegando){
   h += `<div class="alb-stat"><div class="alb-stat-row"><span class="alb-lbl">Figuritas pegadas</span><span class="alb-val">${n}<small>/144</small></span></div>
     <div class="alb-bar"><i style="width:${n / 144 * 100}%"></i><span class="alb-hito" style="left:33.3%"></span><span class="alb-hito" style="left:50%"></span></div>
     <div class="alb-hitos"><span class="${n >= 48 ? 'ok' : ''}">48 · 2 sobres</span><span class="${n >= 72 ? 'ok' : ''}">72 · marco + 3 sobres</span><span class="${n >= 144 ? 'ok' : ''}">144 · insignia</span></div></div>`;
+  h += albReglasHTML();
   h += `<nav class="alb-tabs" role="tablist">`
     + [['album','Álbum',0],['sobres','Sobres',e.sobres],['pila','Sin pegar',sinPegarN],['cambios','Cambios',recibidasPend]]
       .map(([k, t, c]) => `<button role="tab" data-alb-tab="${k}" aria-selected="${ALB.tab === k}">${t}${c ? `<span class="alb-n">${c}</span>` : ''}</button>`).join('')
@@ -17279,6 +17281,8 @@ function albRender(pegando){
   albQ('#alb-raiz').querySelectorAll('[data-alb-tab]').forEach(b => b.addEventListener('click', () => { ALB.tab = b.dataset.albTab; albRender(); }));
   const hb = albQ('#alb-habilitar');
   if(hb) hb.addEventListener('click', albConfirmarHabilitar);
+  const reg = albQ('#alb-reglas');
+  if(reg) reg.addEventListener('toggle', () => { ALB.reglasAbiertas = reg.open; });
   const irFotos = albQ('#alb-ir-fotos');
   if(irFotos) irFotos.addEventListener('click', () => { document.querySelector('.tab-btn[data-tab="fotosalbum"]')?.click(); window.scrollTo({ top:0, behavior:'smooth' }); });
   if(ALB.tab === 'album') albRenderLibro(pegando);
@@ -17286,6 +17290,37 @@ function albRender(pegando){
   else if(ALB.tab === 'sobres') albRenderSobres();
   else if(ALB.tab === 'pila') albRenderPila();
   else albRenderCambios();
+}
+function albReglasHTML(){
+  return `<details class="alb-reglas" id="alb-reglas" ${ALB.reglasAbiertas ? 'open' : ''}><summary>📜 Reglas del álbum</summary><div class="alb-reglas-c">
+    <h5>La colección</h5>
+    <p>36 jugadores con 4 cartas cada uno: <b>Común</b>, <b>Rara</b>, <b>Épica</b> y <b>Legendaria</b>. En total, 144 figuritas. En cada carta que sale de un sobre: 70% Común, 22% Rara, 7% Épica y 1% Legendaria.</p>
+    <h5>Cómo conseguir sobres (2 cartas cada uno)</h5>
+    <ul>
+      <li><b>Bienvenida:</b> 2 sobres la primera vez que entrás al álbum.</li>
+      <li><b>Cuenta vinculada con Google:</b> 1 sobre de regalo.</li>
+      <li><b>Sobre del día:</b> gratis, se reclama de 00:05 a 23:59 (hora de Argentina). Si no lo reclamás, se pierde.</li>
+      <li><b>Juegos del día:</b> otro sobre si completás en el mismo día el Crucigrillo difícil, la Sopa del día en difícil o experto, el Banderoku del día y el Memotest difícil.</li>
+      <li><b>Canje:</b> 7 repetidas = 1 sobre.</li>
+    </ul>
+    <h5>Pegar figuritas</h5>
+    <p>Las cartas nuevas quedan en <b>Sin pegar</b> y las pegás vos cuando quieras. Si ya la tenés pegada, queda como <b>repetida</b> para canjear o cambiar.</p>
+    <h5>Cambios</h5>
+    <ul>
+      <li>Se puede cambiar cualquier carta, de 1×1 hasta 3×1: uno de los dos lados siempre es 1 sola carta.</li>
+      <li>Podés publicar en el <b>mercado</b> (cualquiera acepta) o mandarle una <b>propuesta directa</b> a otro usuario.</li>
+      <li>La carta que ofrecés queda <b>reservada</b>: no la podés ofrecer a otro hasta retirarla o que te respondan.</li>
+      <li>Podés recibir hasta <b>10 cartas por día</b> en cambios.</li>
+      <li>Si cambiás una carta pegada, se despega y ese lugar queda vacío.</li>
+      <li>Las cartas que todavía no tenés aparecen tapadas: las ves recién cuando las conseguís o cuando alguien te las ofrece.</li>
+    </ul>
+    <h5>Premios</h5>
+    <ul>
+      <li><b>48 pegadas (1/3):</b> 2 sobres.</li>
+      <li><b>72 pegadas (la mitad):</b> marco exclusivo para tu perfil + 3 sobres.</li>
+      <li><b>144 pegadas (álbum completo):</b> insignia "Coleccionista Grillo" + marco dorado animado.</li>
+    </ul>
+  </div></details>`;
 }
 function albConfirmarHabilitar(){
   const m = document.createElement('div');
