@@ -979,6 +979,8 @@ header.top{
   color:var(--text);
 }
 .brand h1 span{color:var(--red);}
+#brand-inicio{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
+#brand-inicio:focus-visible{ outline:2px solid var(--red); outline-offset:4px; border-radius:4px; }
 .subtitle{
   color:var(--text-dim); font-size:12.5px; margin:4px 0 14px 0;
   font-style:italic; letter-spacing:0.3px;
@@ -2646,7 +2648,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
         </div>
       </div>
     </div>
-    <div class="brand">
+    <div class="brand" id="brand-inicio" role="link" tabindex="0" title="Ir al Inicio" aria-label="Ir al Inicio">
       <span class="badge">2026</span>
       <h1><span>GRILLOLIGA</span> ARGENTINA</h1>
     </div>
@@ -5058,6 +5060,20 @@ tabBtns.forEach(btn=>{
     if(btn.dataset.tab !== 'inicio') history.pushState({ appNav:true }, '', location.pathname + location.search);
   });
 });
+
+/* ---------- Tocar "2026" o "GRILLOLIGA ARGENTINA" lleva al Inicio ---------- */
+(function(){
+  const brand = document.getElementById('brand-inicio');
+  if(!brand) return;
+  const irAlInicio = ()=>{
+    // usa el mismo botón de la barra de abajo: cambia de pestaña y la deja marcada
+    const nav = document.getElementById('nav-inicio');
+    if(nav) nav.click(); else document.querySelector('.tab-btn[data-tab="inicio"]')?.click();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  };
+  brand.addEventListener('click', irAlInicio);
+  brand.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); irAlInicio(); } });
+})();
 
 /* ---------- Botón "atrás" del celular: dentro de la app va a Inicio, en Inicio pregunta si salir ---------- */
 function pwaDejarGuardiaEnInicio(){
