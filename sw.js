@@ -25,8 +25,10 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ---------- Recordatorio de racha (notificaciones push) ----------
-// Lo manda Supabase a las 23:00 a quienes lo activaron en Minijuegos → Desafío del día.
+// ---------- Notificaciones push ----------
+// Recordatorio de racha (23:00, a quienes lo activaron en Minijuegos → Desafío del día)
+// y avisos para grillo (Foro, respuestas, fotos para el álbum). Cada aviso trae su propia
+// etiqueta (tag) para que no se pisen entre sí.
 self.addEventListener('push', (event) => {
   let datos = {};
   try { datos = event.data ? event.data.json() : {}; } catch (e) { datos = { title: 'Grilloliga', body: event.data ? event.data.text() : '' }; }
@@ -35,7 +37,7 @@ self.addEventListener('push', (event) => {
       body: datos.body || '',
       icon: 'icon-192.png',
       badge: 'icon-192.png',
-      tag: 'recordatorio-racha',
+      tag: datos.tag || 'recordatorio-racha',
       renotify: true,
       data: { url: datos.url || './' }
     })

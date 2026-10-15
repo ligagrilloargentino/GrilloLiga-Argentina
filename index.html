@@ -4467,6 +4467,8 @@ const CR_LIGAS_PRIMER_CONTRATO = ['arg1','uru','bra','bol','chi','par','per','ec
 const CR_LIGAS_EUROPA = ['esp','por','fra','ale','ing','ita','hol'];
 
 
+// se guarda apenas carga: la lógica del botón "atrás" reescribe la URL y borra el #sección
+const GL_HASH_INICIAL = location.hash;
 const SUPABASE_URL = 'https://dpygypfcdriaojgleutr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweWd5cGZjZHJpYW9qZ2xldXRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NzIwNDUsImV4cCI6MjEwMzM0ODA0NX0.qmL3QsL2LXhQGmreZ4ORgJYs9wk8OilnNRgzB6Xfi1o';
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -6312,8 +6314,10 @@ document.getElementById('pa-manual').addEventListener('change', (e)=>{
 document.getElementById('pa-guardar-btn').addEventListener('click', paGuardar);
 document.getElementById('pa-jugador-nuevo-btn').addEventListener('click', paJugadorNuevo);
 paInit();
-if(location.hash === '#minijuegos'){
-  setTimeout(()=>{ const t = document.querySelector('.tab-btn[data-tab="minijuegos"]'); if(t) t.click(); history.replaceState(null, '', location.pathname); }, 400);
+// abrir directo una sección con #pestaña (lo usan las notificaciones del celular: #minijuegos, #foro, #fotosalbum, #album)
+if(GL_HASH_INICIAL && GL_HASH_INICIAL.length > 1){
+  const pestania = GL_HASH_INICIAL.slice(1);
+  setTimeout(()=>{ const t = document.querySelector(`.tab-btn[data-tab="${CSS.escape(pestania)}"]`); if(t) t.click(); history.replaceState(null, '', location.pathname); }, 400);
 }
 
 /* ---------- GRILLO WRAPPED: el año de cada jugador, en diciembre (grillo lo puede ver antes) ---------- */
