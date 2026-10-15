@@ -2519,6 +2519,13 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
 .alb-cx .avisos{ max-width:420px; width:100%; }
 .alb-cx .alb-aviso{ color:#F0E7D2; background:rgba(179,59,34,.18); }
 .alb-cx .alb-aviso.info{ background:rgba(156,122,46,.2); }
+.alb-tapada .alb-dorso{ border-radius:inherit; }
+.alb-tapada .alb-dorso .l1{ font-size:11px; top:7%; text-shadow:1px 1px 0 #1f3c88; }
+.alb-tapada .alb-dorso .l2,.alb-tapada .alb-dorso .se{ display:none; }
+.alb-tapada .alb-dorso .cir{ border-width:2px; box-shadow:0 0 0 2px #c8381e; }
+.alb-tapada .alb-dorso .bd{ border-width:1px; }
+.alb-tap-n{ position:absolute; left:0; right:0; bottom:0; padding:3px 2px 4px; background:rgba(14,11,7,.82); color:#F0E7D2; font:700 10px/1.15 'Alegreya Sans',sans-serif; text-align:center; display:flex; flex-direction:column; }
+.alb-tap-n b{ font-size:8.5px; text-transform:uppercase; letter-spacing:.06em; }
 /* marcos de premio del álbum */
 .gl-marco-album{ --marco-c:#1f3c88; border-style:dashed; }
 .gl-marco-coleccionista{ --marco-c:#D4A800; border-color:transparent;
@@ -17166,6 +17173,12 @@ function albCartaHTML(id, { badge = true, x = 0 } = {}){
     + `<img src="cartas/${id}.jpg" alt="${glEsc(albNom(id))}" loading="lazy" draggable="false" onerror="this.remove()"><div class="alb-holo"></div>`
     + (badge ? `<span class="alb-rb ${c.rareza}">${ALB_RZ[c.rareza]}</span>` : '') + (x > 1 ? `<span class="alb-x">×${x}</span>` : '') + `</div>`;
 }
+// sorpresa: las cartas que todavía no conseguiste se muestran tapadas (dorso + nombre), salvo que alguien te las ofrezca
+function albCartaOTapada(id){
+  if(albTotal(id)) return albCartaHTML(id, { badge:false });
+  const c = ALB.porId[id];
+  return `<div class="alb-card alb-tapada" data-r="${c.rareza}" title="${glEsc(albNom(id))}">${albDorsoHTML()}<span class="alb-tap-n">${glEsc(c.jugador)}<b style="color:${ALB_COLOR[c.rareza]}">${ALB_RZ[c.rareza]}</b></span></div>`;
+}
 function albDorsoHTML(){ return `<div class="alb-dorso"><div class="sol"></div><div class="pt"></div><div class="fr" style="top:68%;height:16%;background:#c8381e"></div><div class="fr" style="top:72%;height:6%;background:#1f3c88"></div><div class="bd"></div><div class="l1">GrilloLiga</div><div class="l2">ARGENTINA</div><div class="cir">${ALB_GRILLO('#efe3c4','#1f3c88')}</div><div class="se">FIGURITA OFICIAL • 2026</div></div>`; }
 function albSobreHTML(extra = ''){ return `<div class="alb-sobre">${extra}<div class="crimp top"></div><div class="marco"></div><div class="t1">GRILLOLIGA</div><div class="med">${ALB_GRILLO('#e2b84f','#0c0905')}</div><div class="t2">SOBRE · 2 CARTAS</div><div class="crimp bot"></div></div>`; }
 function albTilt(root){
@@ -17612,7 +17625,7 @@ function albBuilderHTML(){
     <div class="alb-paso"><span class="alb-lbl">3 · Vos pedís (hasta 3)${B.para ? ' · repetidas de ' + glEsc(B.para) : ''}</span>
       ${B.para ? '' : `<select id="alb-jugpide" style="margin-bottom:10px">${ALB.jug.map((j, k) => { const f = albFaltanDe(j); return `<option value="${k}" ${(B.jugPide || 0) === k ? 'selected' : ''}>${glEsc(j.jugador)} · ${f ? 'te falta' + (f > 1 ? 'n ' + f : ' 1') : 'las tenés todas'}</option>`; }).join('')}</select>`}
       ${B.pido.length ? `<div class="alb-chips">${B.pido.map(id => `<button data-quitar="${id}" aria-pressed="true">✕ ${glEsc(albNom(id))}</button>`).join('')}</div>` : ''}
-      ${pido === null ? '<div class="alb-vacio">Cargando sus repetidas…</div>' : pido.length ? `<div class="alb-grid-sel">${pido.map(id => { const [c, t] = albEtiquetaRecibir(id); return `<button class="alb-op" data-pido="${id}" aria-pressed="${B.pido.includes(id)}">${albCartaHTML(id, { badge:false })}<span class="t ${c}">${glEsc(t)}</span></button>`; }).join('')}</div>` : `<div class="alb-vacio">${B.para ? glEsc(B.para) + ' no tiene repetidas libres por ahora.' : 'No hay cartas con ese filtro.'}</div>`}</div>
+      ${pido === null ? '<div class="alb-vacio">Cargando sus repetidas…</div>' : pido.length ? `<div class="alb-grid-sel">${pido.map(id => { const [c, t] = albEtiquetaRecibir(id); return `<button class="alb-op" data-pido="${id}" aria-pressed="${B.pido.includes(id)}">${albCartaOTapada(id)}<span class="t ${c}">${glEsc(t)}</span></button>`; }).join('')}</div>` : `<div class="alb-vacio">${B.para ? glEsc(B.para) + ' no tiene repetidas libres por ahora.' : 'No hay cartas con ese filtro.'}</div>`}</div>
     <div class="alb-regla"><span class="${cls}">${txt}</span><button class="alb-btn grande" id="alb-enviar" ${cls === 'ok' ? '' : 'disabled'}>${B.para ? 'Enviar a ' + glEsc(B.para) : 'Publicar en el mercado'}</button></div>`;
 }
 async function albBindBuilder(){
