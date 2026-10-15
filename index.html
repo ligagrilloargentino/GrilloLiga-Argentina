@@ -2280,6 +2280,253 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
   .tr-globo b{ font-size:22px; }
   .tr-botonera{ grid-template-columns:repeat(3, 1fr); }
 }
+/* =====================================================================
+   ÁLBUM GRILLOLIGA (figuritas): libro, sobres, sin pegar y cambios
+   ===================================================================== */
+#panel-album{ --hoja:#F7F1E1; --hoja-dorso:#EFE6CF; --hoja-borde:rgba(20,17,12,.18);
+  --r-C:#8B8270; --r-R:#C76A12; --r-E:#B8860B; --r-L:#161310; }
+body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-borde:rgba(240,231,210,.16);
+  --r-C:#B5AC98; --r-R:#F08A1C; --r-E:#E8B730; --r-L:#E2B84F; }
+#alb-raiz{ max-width:560px; margin:0 auto; }
+.alb-lbl{ font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; font-weight:700; color:var(--text-dim); }
+.alb-aviso-prox{ background:var(--card); border:1px solid var(--line); border-left:4px solid var(--red); border-radius:10px; padding:12px 14px; margin-bottom:14px; box-shadow:var(--card-sombra); }
+.alb-aviso-prox b{ font-family:'Special Elite',Georgia,serif; font-weight:400; font-size:18px; display:block; margin-bottom:3px; }
+.alb-aviso-prox p{ margin:0; font-size:13.5px; color:var(--text-dim); line-height:1.4; }
+.alb-admin{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line-strong); display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:space-between; }
+.alb-admin small{ color:var(--text-dimmer); font-size:12px; max-width:34ch; }
+.alb-stat{ background:var(--card); border:1px solid var(--line); border-top:3px solid var(--red); border-radius:10px; box-shadow:var(--card-sombra); padding:12px 14px; margin-bottom:14px; }
+.alb-stat-row{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.alb-stat .alb-val{ font-family:var(--font-num); font-weight:700; font-size:30px; font-variant-numeric:tabular-nums; line-height:1; }
+.alb-stat .alb-val small{ font-size:18px; color:var(--text-dimmer); }
+.alb-bar{ position:relative; height:8px; background:var(--card2); border-radius:6px; margin:10px 0 6px; border:1px solid var(--line); }
+.alb-bar i{ position:absolute; inset:0 auto 0 0; background:var(--red); border-radius:6px; transition:width .6s; }
+.alb-bar .alb-hito{ position:absolute; top:-4px; width:2px; height:14px; background:var(--line-strong); }
+.alb-hitos{ display:flex; justify-content:space-between; gap:6px; font-size:11.5px; color:var(--text-dimmer); }
+.alb-hitos .ok{ color:var(--grass); font-weight:700; }
+.alb-tabs{ display:flex; gap:6px; margin-bottom:16px; }
+.alb-tabs button{ flex:1; border:1px solid var(--line-strong); background:transparent; border-radius:999px; padding:9px 4px; font-family:'Alegreya Sans',sans-serif; font-size:13.5px; font-weight:700; color:var(--text-dim); position:relative; cursor:pointer; }
+.alb-tabs button[aria-selected="true"]{ background:var(--red); border-color:var(--red); color:var(--claro-bg); box-shadow:0 2px 8px rgba(179,59,34,.28); }
+.alb-tabs .alb-n{ position:absolute; top:-7px; right:-2px; background:var(--grass); color:#fff; font:700 11px/1 var(--font-num); padding:3px 6px; border-radius:10px; }
+.alb-btn{ border:1px solid var(--red); background:var(--red); color:var(--claro-bg); border-radius:999px; padding:8px 14px; font-family:'Alegreya Sans',sans-serif; font-size:13.5px; font-weight:700; cursor:pointer; }
+.alb-btn.sec{ background:transparent; color:var(--red); }
+.alb-btn:disabled{ opacity:.35; cursor:default; }
+.alb-btn.grande{ font-size:17px; padding:12px 30px; box-shadow:0 2px 8px rgba(179,59,34,.28); }
+.alb-vacio{ text-align:center; padding:22px 10px; color:var(--text-dim); border:1px dashed var(--line-strong); border-radius:10px; font-size:14px; }
+.alb-h4{ font-family:'Special Elite',Georgia,serif; font-size:17px; font-weight:400; margin:18px 0 8px; }
+.alb-h4:first-child{ margin-top:0; }
+.alb-ayuda{ margin:0 0 12px; color:var(--text-dim); font-size:14px; }
+/* libro */
+.alb-libro{ position:relative; perspective:1700px; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
+.alb-hoja{ position:relative; background:var(--hoja); border:1px solid var(--hoja-borde); border-radius:3px 10px 10px 3px; padding:14px 14px 16px 20px;
+  box-shadow:var(--card-sombra),3px 3px 0 -1px var(--hoja),3px 3px 0 0 var(--hoja-borde),6px 6px 0 -1px var(--hoja),6px 6px 0 0 var(--hoja-borde); overflow:hidden; }
+.alb-hoja:before{ content:''; position:absolute; inset:0 auto 0 0; width:26px; background:linear-gradient(90deg,rgba(0,0,0,.16),rgba(0,0,0,.05) 40%,transparent); pointer-events:none; }
+.alb-ph{ display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:12px; position:relative; }
+.alb-ph:after{ content:''; position:absolute; left:0; bottom:-2px; width:40px; height:3px; border-radius:2px; background:var(--red); }
+.alb-pnum{ flex:none; width:48px; height:48px; border-radius:50%; background:var(--red); color:var(--claro-bg); display:grid; place-items:center; font:700 26px/1 var(--font-num); box-shadow:0 0 0 3px var(--hoja),0 0 0 4px var(--red); }
+.alb-pnum.l3{ font-size:19px; }
+.alb-ph h3{ margin:0; font-family:'Special Elite',Georgia,serif; font-weight:400; font-size:24px; line-height:1.05; color:var(--text); }
+.alb-ph p{ margin:2px 0 0; font-style:italic; font-size:13px; color:var(--text-dim); }
+.alb-ph .alb-c{ margin-left:auto; font:700 17px var(--font-num); color:var(--text-dim); font-variant-numeric:tabular-nums; }
+.alb-slots{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
+.alb-slot{ aspect-ratio:9/16; border-radius:7px; position:relative; }
+.alb-slot.v{ border:1.5px dashed var(--line-strong); background:var(--card2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; text-align:center; padding:6px; }
+.alb-slot.v .sn{ font:700 44px/1 var(--font-num); color:var(--text-dimmer); opacity:.55; }
+.alb-slot.v .sr{ font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; display:flex; align-items:center; gap:5px; color:var(--text); }
+.alb-slot.v .sr:before{ content:''; width:8px; height:8px; border-radius:50%; background:var(--rc); }
+.alb-slot.v .sh{ font-size:12px; color:var(--text-dimmer); }
+.alb-slot.v .sh.ya{ color:var(--grass); font-weight:700; }
+.alb-pfoot{ display:flex; justify-content:space-between; margin-top:10px; font-size:11px; color:var(--text-dimmer); letter-spacing:.05em; }
+.alb-pfoot b{ font-family:var(--font-num); font-size:13px; }
+.alb-slot.pegando .alb-card{ animation:albPegar .7s cubic-bezier(.2,1.4,.4,1); }
+@keyframes albPegar{ 0%{ transform:scale(1.5) rotate(-6deg); opacity:0; } 60%{ opacity:1; } 100%{ transform:none; } }
+.alb-leaf{ position:absolute; left:0; top:0; transform-style:preserve-3d; pointer-events:none; z-index:5; }
+.alb-st{ position:absolute; top:0; transform-origin:0 50%; transform-style:preserve-3d; }
+.alb-st>.fc,.alb-st>.bc{ position:absolute; inset:0; right:-1.5px; overflow:hidden; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.alb-st>.bc{ transform:rotateY(180deg); background:var(--hoja-dorso); }
+.alb-st .cw{ position:relative; }
+.alb-st .cw .alb-hoja{ box-shadow:none; }
+.alb-st i.sh{ position:absolute; inset:0; z-index:2; pointer-events:none; }
+.alb-st i.hl{ position:absolute; inset:0; z-index:3; pointer-events:none; background:#fff; opacity:0; mix-blend-mode:soft-light; }
+.alb-cast{ position:absolute; top:0; bottom:0; z-index:4; pointer-events:none; background:linear-gradient(90deg,rgba(0,0,0,.38),transparent); opacity:0; }
+.alb-pager{ display:flex; align-items:center; gap:8px; margin-top:16px; }
+.alb-pager button{ border:1px solid var(--red); background:var(--red); color:var(--claro-bg); border-radius:999px; width:46px; height:42px; font-size:22px; font-weight:700; line-height:1; cursor:pointer; }
+.alb-pager button:disabled{ opacity:.3; cursor:default; }
+.alb-pager .idx{ flex:1; width:auto; background:transparent; color:var(--text); border-color:var(--line-strong); font-size:14px; font-family:'Alegreya Sans',sans-serif; }
+.alb-pista{ text-align:center; font-size:12px; color:var(--text-dimmer); margin-top:8px; font-style:italic; }
+.alb-indice{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:12px; }
+.alb-indice button{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px; text-align:left; font-family:'Alegreya Sans',sans-serif; font-size:13.5px; font-weight:700; display:flex; justify-content:space-between; gap:4px; color:var(--text); cursor:pointer; }
+.alb-indice button span{ font-family:var(--font-num); color:var(--text-dimmer); }
+.alb-indice button.full span{ color:var(--grass); }
+.alb-indice button.act{ border-color:var(--red); }
+/* carta */
+.alb-card{ position:relative; border-radius:7px; overflow:hidden; background:#111; box-shadow:0 3px 10px rgba(0,0,0,.25); width:100%; height:100%; aspect-ratio:9/16; transition:transform .2s; }
+.alb-card img{ position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; }
+.alb-card .alb-fb{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; padding:8%;
+  background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--rc) 45%,#1a140d),#0e0b07 75%); color:#F0E7D2; border:2px solid var(--rc); border-radius:inherit; }
+.alb-card .alb-fb b{ font:700 clamp(20px,9cqw,48px)/1 var(--font-num); color:var(--rc); }
+.alb-card .alb-fb span{ font-family:'Special Elite',Georgia,serif; font-size:clamp(11px,6cqw,26px); line-height:1.05; word-break:break-word; }
+.alb-card .alb-fb small{ font-size:clamp(8px,4cqw,14px); text-transform:uppercase; letter-spacing:.08em; color:var(--rc); font-weight:800; }
+.alb-card{ container-type:inline-size; }
+.alb-holo{ position:absolute; inset:0; pointer-events:none; mix-blend-mode:color-dodge; opacity:0;
+  background:linear-gradient(calc(110deg + var(--mx,0)*40deg),transparent 20%,#ff6fd833 32%,#6fe0ff44 42%,#fff36f44 52%,transparent 66%),radial-gradient(circle at calc(var(--mx,.5)*100%) calc(var(--my,.3)*100%),#ffffff55,transparent 45%); }
+.alb-card[data-r="R"] .alb-holo{ opacity:.45; }
+.alb-card[data-r="E"] .alb-holo{ opacity:.7; }
+.alb-card[data-r="L"] .alb-holo{ opacity:.85; background:linear-gradient(calc(110deg + var(--mx,0)*40deg),transparent 18%,#ffd76a66 34%,#fff5c766 44%,#e2b84f55 54%,transparent 70%),radial-gradient(circle at calc(var(--mx,.5)*100%) calc(var(--my,.3)*100%),#fff2b066,transparent 45%); }
+.alb-rb{ position:absolute; left:5px; bottom:5px; font:700 10px/1 'Alegreya Sans',sans-serif; letter-spacing:.08em; text-transform:uppercase; padding:4px 6px; border-radius:999px; background:#F7F1E1; color:#161310; }
+.alb-rb.L{ background:#161310; color:#E2B84F; } .alb-rb.E{ background:#E8B730; } .alb-rb.R{ background:#F08A1C; }
+.alb-x{ position:absolute; right:5px; top:5px; background:var(--red); color:#fff; font:700 12px/1 var(--font-num); padding:4px 7px; border-radius:12px; }
+/* sin pegar */
+.alb-pila{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.alb-pila .alb-card{ height:auto; }
+.alb-pila .it{ display:flex; flex-direction:column; gap:6px; cursor:pointer; }
+.alb-pila .it .t{ font-size:11px; font-weight:800; text-align:center; color:var(--text-dimmer); }
+.alb-pila .it .t.res{ color:var(--gold); }
+.alb-caja{ background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:var(--card-sombra); padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:14px; flex-wrap:wrap; }
+.alb-caja .alb-val{ font:700 24px var(--font-num); }
+/* sobres */
+.alb-sobres{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+.alb-fuentes{ width:100%; display:grid; gap:8px; }
+.alb-fuente{ background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:var(--card-sombra); padding:11px 13px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.alb-fuente strong{ font-size:15px; }
+.alb-fuente small{ display:block; color:var(--text-dim); font-size:12.5px; margin-top:2px; line-height:1.35; }
+.alb-fuente .alb-btn:disabled{ background:transparent; color:var(--text-dimmer); border-color:var(--line-strong); opacity:1; }
+.alb-juegos{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.alb-juegos button{ border:1px solid var(--line-strong); background:transparent; border-radius:999px; padding:3px 9px; font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text-dim); cursor:pointer; }
+.alb-juegos button.ok{ border-color:var(--grass); color:var(--grass); font-weight:700; background:color-mix(in srgb,var(--grass) 10%,transparent); }
+.alb-sobre{ width:190px; aspect-ratio:5/7; position:relative; border-radius:6px; background:radial-gradient(circle at 50% 46%,#2c2416,#0a0805 72%); border:3px solid #e2b84f; box-shadow:0 14px 30px rgba(0,0,0,.35); overflow:hidden; }
+.alb-sobre:before{ content:""; position:absolute; inset:-60%; background:repeating-conic-gradient(from 0deg,#e2b84f18 0 6deg,transparent 6deg 12deg); }
+.alb-sobre .marco{ position:absolute; inset:10px; border:1.5px solid #e2b84faa; border-radius:4px; }
+.alb-sobre .med{ position:absolute; left:50%; top:50%; width:46%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; border:3px solid #e2b84f; background:#0c0905; display:grid; place-items:center; box-shadow:0 0 0 6px #0a0805,0 0 0 8px #e2b84f88,0 0 30px #e2b84f55; }
+.alb-sobre .med svg{ width:62%; }
+.alb-sobre .t1,.alb-sobre .t2{ position:absolute; left:0; right:0; text-align:center; color:#e2b84f; }
+.alb-sobre .t1{ top:16%; font:400 16px 'Special Elite',Georgia,serif; letter-spacing:.18em; }
+.alb-sobre .t2{ bottom:13%; font:700 10px 'Alegreya Sans',sans-serif; letter-spacing:.22em; }
+.alb-sobre .crimp{ position:absolute; left:0; right:0; height:14px; background:repeating-linear-gradient(90deg,#b9922f 0 4px,#7c5d18 4px 8px); }
+.alb-sobre .crimp.top{ top:0; } .alb-sobre .crimp.bot{ bottom:0; }
+.alb-sobre .cnt{ position:absolute; top:22px; right:10px; background:var(--red); color:#fff; font:700 14px/1 var(--font-num); padding:5px 8px; border-radius:12px; z-index:2; }
+/* apertura (siempre oscura) */
+.alb-ov{ position:fixed; inset:0; z-index:10050; background:radial-gradient(circle at 50% 45%,#2a2219,#0d0b08 75%); color:#F0E7D2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px)); touch-action:none; overflow:hidden; transition:background .5s; font-family:'Alegreya Sans',sans-serif; }
+.alb-ov .hint{ font:400 17px 'Special Elite',Georgia,serif; color:#e2b84f; text-align:center; min-height:2.4em; }
+.alb-stage{ position:relative; width:min(68vw,250px); aspect-ratio:9/16; }
+.alb-ov .alb-sobre{ position:absolute; inset:0; width:100%; height:auto; aspect-ratio:auto; }
+.alb-tira{ position:absolute; left:0; right:0; top:0; height:16%; z-index:3; transition:transform .7s cubic-bezier(.3,.7,.3,1),opacity .7s; }
+.alb-tira .tt{ position:absolute; inset:0; background:linear-gradient(#2c2416,#16120b); border:3px solid #e2b84f; border-bottom:0; border-radius:6px 6px 0 0; overflow:hidden; }
+.alb-tira .crimp{ position:absolute; top:0; left:0; right:0; height:14px; background:repeating-linear-gradient(90deg,#b9922f 0 4px,#7c5d18 4px 8px); }
+.alb-tira.ida{ transform:translate(120%,-80%) rotate(28deg); opacity:0; pointer-events:none; }
+.alb-corte{ position:absolute; left:0; top:16%; height:3px; z-index:4; background:linear-gradient(90deg,#fff,#e2b84f); box-shadow:0 0 12px #fff; width:0; border-radius:2px; pointer-events:none; transition:opacity .3s; }
+.alb-cuerpo{ position:absolute; inset:0; transition:transform .8s ease,opacity .8s; }
+.alb-cuerpo.baja{ transform:translateY(120%); opacity:0; pointer-events:none; }
+.alb-reveal{ position:absolute; inset:0; display:none; } .alb-reveal.on{ display:block; }
+.alb-rc{ position:absolute; inset:0; transition:transform .6s cubic-bezier(.2,.9,.3,1); cursor:pointer; }
+.alb-rc .flip{ position:absolute; inset:0; transform-style:preserve-3d; transition:transform .7s cubic-bezier(.3,.8,.3,1); }
+.alb-rc.volteada .flip{ transform:rotateY(180deg); }
+.alb-rc .cara,.alb-rc .dorso{ position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:9px; overflow:hidden; }
+.alb-rc .cara{ transform:rotateY(180deg); }
+.alb-rc .cara .alb-card{ border-radius:9px; }
+.alb-rc.shake .flip{ animation:albShake .12s linear infinite; }
+@keyframes albShake{ 0%{ transform:translate(0,0) rotate(0); } 25%{ transform:translate(-3px,1px) rotate(-1deg); } 50%{ transform:translate(2px,-2px) rotate(1deg); } 75%{ transform:translate(-1px,2px); } }
+.alb-rc.salir{ transform:translateX(-130%) rotate(-12deg); opacity:0; pointer-events:none; transition:transform .6s,opacity .6s; }
+.alb-rays{ position:absolute; left:50%; top:50%; width:220vmax; height:220vmax; transform:translate(-50%,-50%); pointer-events:none; opacity:0; background:repeating-conic-gradient(from 0deg,var(--ray,#ffc000) 0 4deg,transparent 4deg 14deg); transition:opacity .5s; animation:albGira 10s linear infinite;
+  -webkit-mask:radial-gradient(circle,#000 0,transparent 40%); mask:radial-gradient(circle,#000 0,transparent 40%); }
+.alb-rays.on{ opacity:.5; }
+@keyframes albGira{ to{ transform:translate(-50%,-50%) rotate(360deg); } }
+.alb-flash{ position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:10060; }
+.alb-flash.go{ animation:albFl .6s ease; }
+@keyframes albFl{ 15%{ opacity:.85; } 100%{ opacity:0; } }
+.alb-etq{ font:700 28px/1 var(--font-num); letter-spacing:.08em; text-transform:uppercase; min-height:1.1em; text-align:center; }
+.alb-ov-btns{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; min-height:44px; }
+.alb-ov .alb-btn.sec,.alb-modal .alb-btn.sec,.alb-cx .alb-btn.sec{ color:#F0E7D2; border-color:#7a6a4a; }
+.alb-dorso{ position:absolute; inset:0; background:#efe3c4; overflow:hidden; border-radius:9px; }
+.alb-dorso .sol{ position:absolute; left:50%; top:50%; width:150%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; background:repeating-conic-gradient(#e9b23a 0 8deg,#efe3c4 8deg 16deg); opacity:.5; }
+.alb-dorso .pt{ position:absolute; inset:0; background-image:radial-gradient(#c8381e 1.3px,transparent 1.7px); background-size:8px 8px; opacity:.35; }
+.alb-dorso .fr{ position:absolute; left:-20%; right:-20%; transform:rotate(-14deg); }
+.alb-dorso .bd{ position:absolute; inset:4%; border:2px solid #1f3c88; border-radius:8px; }
+.alb-dorso .l1{ position:absolute; top:10%; width:100%; text-align:center; font:italic 900 clamp(18px,8vw,32px)/1 Georgia,serif; color:#c8381e; text-shadow:2px 2px 0 #1f3c88; }
+.alb-dorso .l2{ position:absolute; top:19%; width:100%; text-align:center; font:700 11px 'Alegreya Sans',sans-serif; letter-spacing:.4em; color:#1f3c88; }
+.alb-dorso .cir{ position:absolute; left:50%; top:50%; width:52%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; background:#1f3c88; border:5px solid #efe3c4; box-shadow:0 0 0 4px #c8381e; display:grid; place-items:center; }
+.alb-dorso .cir svg{ width:62%; }
+.alb-dorso .se{ position:absolute; bottom:9%; left:50%; transform:translateX(-50%) rotate(-6deg); border:2px solid #c8381e; color:#c8381e; padding:3px 8px; font:700 10px 'Alegreya Sans',sans-serif; letter-spacing:.16em; white-space:nowrap; background:#efe3c4cc; }
+.alb-modal{ position:fixed; inset:0; z-index:10040; background:rgba(10,8,5,.82); color:#F0E7D2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; font-family:'Alegreya Sans',sans-serif;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px)); }
+.alb-modal .alb-card{ width:min(70vw,290px); height:auto; }
+.alb-modal p{ margin:0; text-align:center; max-width:38ch; line-height:1.4; }
+.alb-modal h3{ margin:0; font:400 22px 'Special Elite',Georgia,serif; color:#e2b84f; text-align:center; }
+/* cambios */
+.alb-sub{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.alb-sub button,.alb-chips button{ background:transparent; border:1px solid var(--line-strong); border-radius:999px; padding:7px 13px; font-family:'Alegreya Sans',sans-serif; font-size:13.5px; font-weight:700; color:var(--text-dim); cursor:pointer; }
+.alb-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.alb-chips button{ font-size:12.5px; padding:6px 11px; font-weight:600; }
+.alb-sub button[aria-pressed="true"],.alb-chips button[aria-pressed="true"]{ border-color:var(--grass); color:var(--grass); background:color-mix(in srgb,var(--grass) 12%,transparent); font-weight:700; }
+.alb-sub .k{ font-family:var(--font-num); background:var(--red); color:#fff; border-radius:9px; padding:1px 6px; margin-left:4px; font-size:12px; }
+.alb-cupo{ display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 13px; margin-bottom:12px; box-shadow:var(--card-sombra); }
+.alb-cupo .alb-val{ font:700 22px var(--font-num); font-variant-numeric:tabular-nums; }
+.alb-cupo .alb-bar{ flex:1; margin:0; }
+.alb-cupo small{ display:block; color:var(--text-dimmer); font-size:11.5px; }
+.alb-of{ background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:var(--card-sombra); padding:12px; margin-bottom:10px; }
+.alb-of.mia{ border-left:4px solid var(--gold); }
+.alb-of-h{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.alb-av{ width:34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#fff; font:700 15px var(--font-num); flex:none; }
+.alb-of-h b{ font-size:15px; display:block; line-height:1.1; }
+.alb-of-h small{ color:var(--text-dimmer); font-size:12px; }
+.alb-of-h .tipo{ margin-left:auto; font-family:var(--font-num); font-weight:700; font-size:15px; color:var(--text-dim); border:1px solid var(--line-strong); border-radius:999px; padding:2px 9px; }
+.alb-of-b{ display:grid; grid-template-columns:1fr 26px 1fr; gap:6px; align-items:start; }
+.alb-lado .alb-lbl{ margin-bottom:6px; display:block; }
+.alb-minis{ display:flex; gap:4px; flex-wrap:wrap; }
+.alb-mini{ width:43px; display:flex; flex-direction:column; gap:3px; align-items:center; cursor:zoom-in; background:none; border:0; padding:0; }
+.alb-mini .alb-card{ width:43px; height:auto; border-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,.25); }
+.alb-mini .alb-card .alb-fb{ padding:2px; gap:1px; border-width:1px; }
+.alb-mini .t,.alb-op .t{ font-size:9.5px; font-weight:800; letter-spacing:.02em; line-height:1.1; text-align:center; color:var(--text-dimmer); }
+.alb-mini .t.falta,.alb-op .t.falta{ color:var(--grass); } .alb-mini .t.peg,.alb-mini .t.no,.alb-op .t.peg{ color:var(--red); } .alb-mini .t.res,.alb-op .t.res{ color:var(--gold); }
+.alb-sw{ align-self:center; color:var(--red); width:26px; height:26px; }
+.alb-of-f{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:8px; flex-wrap:wrap; }
+.alb-of-f .motivo{ font-size:12.5px; color:var(--text-dimmer); flex:1; min-width:140px; }
+.alb-of-f .motivo.mal{ color:var(--red); }
+.alb-of-f .bts{ display:flex; gap:6px; }
+.alb-aviso{ background:color-mix(in srgb,var(--red) 9%,var(--card)); border:1px solid color-mix(in srgb,var(--red) 30%,transparent); border-left:4px solid var(--red); border-radius:8px; padding:9px 11px; font-size:13px; line-height:1.35; margin:6px 0; color:var(--text); }
+.alb-aviso.info{ background:color-mix(in srgb,var(--gold) 10%,var(--card)); border-color:color-mix(in srgb,var(--gold) 30%,transparent); border-left-color:var(--gold); }
+.alb-paso{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px; box-shadow:var(--card-sombra); }
+.alb-paso .alb-lbl{ display:block; margin-bottom:8px; }
+.alb-paso select{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:16px; }
+.alb-grid-sel{ display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px; }
+.alb-grid-sel > *{ min-width:0; }
+.alb-op{ background:none; border:0; padding:0; display:flex; flex-direction:column; gap:3px; align-items:center; position:relative; cursor:pointer; }
+.alb-op .alb-card{ width:100%; height:auto; border-radius:5px; outline:3px solid transparent; outline-offset:1px; transition:outline-color .15s,transform .15s; }
+.alb-op .alb-card .alb-fb{ padding:3px; border-width:1px; }
+.alb-op[aria-pressed="true"] .alb-card{ outline-color:var(--red); transform:translateY(-3px); }
+.alb-op[aria-pressed="true"]:after{ content:'✓'; position:absolute; top:-6px; right:-4px; width:20px; height:20px; border-radius:50%; background:var(--red); color:#fff; font:700 12px/20px 'Alegreya Sans',sans-serif; text-align:center; }
+.alb-op.res .alb-card{ opacity:.4; filter:grayscale(.6); }
+.alb-buscar{ width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:16px; margin-bottom:8px; }
+.alb-regla{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.alb-regla span{ font-size:13px; color:var(--text-dim); }
+.alb-regla span.ok{ color:var(--grass); font-weight:700; } .alb-regla span.mal{ color:var(--red); font-weight:700; }
+.alb-cx{ position:fixed; inset:0; z-index:10045; background:rgba(10,8,5,.9); color:#F0E7D2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; font-family:'Alegreya Sans',sans-serif;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px)); }
+.alb-cx h3{ margin:0; font:400 22px 'Special Elite',Georgia,serif; color:#e2b84f; text-align:center; }
+.alb-cx .fila{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; max-width:420px; }
+.alb-cx .pk{ display:flex; gap:6px; flex:1; justify-content:center; transition:transform .8s cubic-bezier(.5,0,.3,1),opacity .8s; }
+.alb-cx .pk .alb-card{ width:min(19vw,78px); height:auto; border-radius:6px; }
+.alb-cx .pk.a.go{ transform:translateX(130%) scale(.85); opacity:0; }
+.alb-cx .pk.b.go{ transform:translateX(-130%) scale(.85); opacity:0; }
+.alb-cx .lb{ font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#b9ad92; text-align:center; margin-bottom:6px; }
+.alb-cx .col{ flex:1; display:flex; flex-direction:column; }
+.alb-cx .resultado{ display:flex; gap:8px; justify-content:center; }
+.alb-cx .resultado .alb-card{ width:min(26vw,110px); height:auto; animation:albLlega .6s cubic-bezier(.2,1.3,.4,1) both; }
+.alb-cx .resultado .alb-card:nth-child(2){ animation-delay:.12s; } .alb-cx .resultado .alb-card:nth-child(3){ animation-delay:.24s; }
+@keyframes albLlega{ from{ transform:translateY(40px) scale(.7); opacity:0; } }
+.alb-cx .avisos{ max-width:420px; width:100%; }
+.alb-cx .alb-aviso{ color:#F0E7D2; background:rgba(179,59,34,.18); }
+.alb-cx .alb-aviso.info{ background:rgba(156,122,46,.2); }
+/* marcos de premio del álbum */
+.gl-marco-album{ --marco-c:#1f3c88; border-style:dashed; }
+.gl-marco-coleccionista{ --marco-c:#D4A800; border-color:transparent;
+  background:linear-gradient(var(--card),var(--card)) padding-box, linear-gradient(120deg,#E0B000,#FFF1A8,#B88A00,#FFE07A,#E0B000) border-box;
+  background-size:100% 100%, 300% 100%; animation:marcoOro 2.5s linear infinite, albBrillo 2.5s ease-in-out infinite; }
+@keyframes albBrillo{ 50%{ box-shadow:0 0 10px rgba(224,176,0,.55); } }
+@media (prefers-reduced-motion: reduce){
+  .gl-marco-coleccionista{ animation:none; }
+  .alb-rays,.alb-rc.shake .flip,.alb-slot.pegando .alb-card{ animation:none; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -2496,6 +2743,7 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
   <button class="tab-btn" data-tab="foro"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3.5 20.5l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg><span>Foro general</span></button>
   <button class="tab-btn" data-tab="grillobot"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M2 13v3M22 13v3"/></svg><span>GrilloBOT</span></button>
   <button class="tab-btn" data-tab="minijuegos"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="18" cy="14" r="1"/></svg><span>Minijuegos</span></button>
+  <button class="tab-btn" data-tab="album"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5C3 4.7 3.7 4 4.5 4H10c1.1 0 2 .9 2 2v14c0-1.1-.9-2-2-2H4.5c-.8 0-1.5-.7-1.5-1.5z"/><path d="M21 5.5c0-.8-.7-1.5-1.5-1.5H14c-1.1 0-2 .9-2 2v14c0-1.1.9-2 2-2h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg><span>Álbum GrilloLiga</span></button>
   <button class="tab-btn" data-tab="simulador"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 3 1.4 3.1L19.5 7.5l-3.1 1.4L15 12l-1.4-3.1-3.1-1.4 3.1-1.4z"/><path d="M4 20l8-8"/><path d="M19 15.5l.7 1.3 1.3.7-1.3.7-.7 1.3-.7-1.3-1.3-.7 1.3-.7z"/></svg><span>Simulador</span></button>
   <button class="tab-btn" data-tab="comparador"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7.5 21h9"/><path d="M4.5 7h15"/><path d="m5 7-3 6.5a3 3 0 0 0 6 0z"/><path d="m19 7-3 6.5a3 3 0 0 0 6 0z"/></svg><span>Comparar jugadores</span></button>
 </nav>
@@ -3830,6 +4078,13 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
     </div>
   </section>
 
+  <section id="panel-album" class="panel">
+    <div class="section-head">
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5C3 4.7 3.7 4 4.5 4H10c1.1 0 2 .9 2 2v14c0-1.1-.9-2-2-2H4.5c-.8 0-1.5-.7-1.5-1.5z"/><path d="M21 5.5c0-.8-.7-1.5-1.5-1.5H14c-1.1 0-2 .9-2 2v14c0-1.1.9-2 2-2h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg>Álbum GrilloLiga</h2>
+    </div>
+    <div id="alb-raiz"><div class="gl-vacio">Cargando el álbum…</div></div>
+  </section>
+
   <section id="panel-simulador" class="panel">
     <div class="section-head">
       <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 3 1.4 3.1L19.5 7.5l-3.1 1.4L15 12l-1.4-3.1-3.1-1.4 3.1-1.4z"/><path d="M4 20l8-8"/><path d="M19 15.5l.7 1.3 1.3.7-1.3.7-.7 1.3-.7-1.3-1.3-.7 1.3-.7z"/></svg><span>Simulador de partidos</span></h2>
@@ -4631,7 +4886,7 @@ async function abrirNotificaciones(){
   if(!user) return;
   const { data } = await sbClient.from('notificaciones').select('id, tipo, mensaje, leida, creado_en').eq('usuario_id', user.id).order('creado_en', { ascending:false }).limit(20);
   cont.innerHTML = (data && data.length)
-    ? data.map(n => `<div class="cr-fixture-fila" style="${n.leida?'opacity:0.6;':''}"><span>${n.mensaje}</span></div>`).join('')
+    ? data.map(n => `<div class="cr-fixture-fila" style="${n.leida?'opacity:0.6;':''}"><span>${String(n.mensaje == null ? '' : n.mensaje).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span></div>`).join('')
     : '<div class="cz-online-esperando">No tenés notificaciones todavía.</div>';
   const sinLeer = (data || []).filter(n => !n.leida).map(n => n.id);
   if(sinLeer.length){
@@ -6206,20 +6461,24 @@ const INSIGNIAS_DEF = [
   { id:'sin_ayuda', icono:'🧩', nombre:'Sin ayuda', desc:'Completó un Crucigrillo Difícil del día sin revelar letras' },
   { id:'lector_mentes', icono:'🧠', nombre:'Lector de mentes', desc:'partidas de Piedra, papel o tijera ganadas al GrilloBOT en Difícil', niveles:[1,5,15] },
   { id:'ojo_aguila', icono:'🔎', nombre:'Ojo de águila', desc:'Sopas Grilleras completadas', niveles:[10,50,150] },
-  { id:'constante', icono:'📅', nombre:'Constante', desc:'Completó el Desafío del día 7 días seguidos' }
+  { id:'constante', icono:'📅', nombre:'Constante', desc:'Completó el Desafío del día 7 días seguidos' },
+  // premios del Álbum GrilloLiga (los otorga el servidor en album_premios)
+  { id:'album_mitad', icono:'📖', nombre:'Medio álbum', desc:'Pegó la mitad del álbum de figuritas (72)', soloMarco:true, claseMarco:'gl-marco-album' },
+  { id:'coleccionista_grillo', icono:'🦗', nombre:'Coleccionista Grillo', desc:'Completó el álbum de figuritas (144)', claseMarco:'gl-marco-coleccionista' }
 ];
 const INSIGNIA_NIVELES_NOMBRE = ['', 'Bronce', 'Plata', 'Oro'];
 
 // Devuelve un Map id -> { nivel (0 = bloqueada; 1..3 si tiene niveles; 1 si es simple), valor }
 async function calcularInsigniasUsuario(userId){
-  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }, { data: rpsDificil }, { data: sopas }, { data: cgFechas }] = await Promise.all([
+  const [{ data: resultados }, { data: historial }, { data: cgRacha }, { data: cgLimpios }, { data: rpsDificil }, { data: sopas }, { data: cgFechas }, { data: albPremios }] = await Promise.all([
     sbClient.from('minijuegos_resultados').select('juego, resultado').eq('usuario_id', userId),
     sbClient.from('cabezones_historial').select('modo, fue_campeon').eq('usuario_id', userId),
     sbClient.from('crucigrillo_racha').select('mejor_racha').eq('usuario_id', userId).maybeSingle(),
     sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId).eq('dificultad', 'dificil').eq('pistas_usadas', 0).limit(1),
     sbClient.from('rps_historial').select('id').eq('usuario_id', userId).eq('modo', 'bot').eq('dificultad', 'dificil').eq('gano', true),
     sbClient.from('sopa_resultados').select('id, fecha, tipo').eq('usuario_id', userId),
-    sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId)
+    sbClient.from('crucigrillo_progreso_diario').select('fecha').eq('usuario_id', userId),
+    sbClient.from('album_premios').select('hito').eq('usuario_id', userId)
   ]);
   const r = resultados || [];
   const h = historial || [];
@@ -6235,9 +6494,11 @@ async function calcularInsigniasUsuario(userId){
     sin_ayuda: (cgLimpios || []).length,
     lector_mentes: (rpsDificil || []).length,
     ojo_aguila: (sopas || []).length,
+    album_mitad: (albPremios || []).some(x => x.hito === 'mitad') ? 1 : 0,
+    coleccionista_grillo: (albPremios || []).some(x => x.hito === 'completo') ? 1 : 0,
     constante: ddRachaCombinada((cgFechas || []).map(x => x.fecha), (sopas || []).filter(x => x.tipo === 'diaria').map(x => x.fecha)).mejor
   };
-  const umbralSimple = { primeros_pasos:1, coleccionista:5, sin_ayuda:1, constante:7 };
+  const umbralSimple = { primeros_pasos:1, coleccionista:5, sin_ayuda:1, constante:7, album_mitad:1, coleccionista_grillo:1 };
   const estado = new Map();
   INSIGNIAS_DEF.forEach(ins => {
     const v = valores[ins.id] || 0;
@@ -6260,7 +6521,7 @@ function renderizarInsignias(contenedor, estado, marcarNuevas){
   }
   const claves = [];
   const nuevasParaFestejar = [];
-  contenedor.innerHTML = INSIGNIAS_DEF.map(ins => {
+  contenedor.innerHTML = INSIGNIAS_DEF.filter(ins => !ins.soloMarco).map(ins => {
     const { nivel, valor } = estado.get(ins.id) || { nivel:0, valor:0 };
     const desbloqueada = nivel > 0;
     let esNueva = false;
@@ -6306,7 +6567,7 @@ function glMarcoInfo(marcoId){
   const ins = INSIGNIAS_DEF.find(x => x.id === id);
   if(!ins) return null;
   const nivel = nivelTxt ? parseInt(nivelTxt) : 0;
-  return { id: marcoId, icono: ins.icono, nombre: ins.nombre + (nivel ? ' ' + INSIGNIA_NIVELES_NOMBRE[nivel] : ''), clase: nivel ? 'gl-marco-n' + nivel : 'gl-marco-simple' };
+  return { id: marcoId, icono: ins.icono, nombre: ins.nombre + (nivel ? ' ' + INSIGNIA_NIVELES_NOMBRE[nivel] : ''), clase: ins.claseMarco || (nivel ? 'gl-marco-n' + nivel : 'gl-marco-simple') };
 }
 function glEsc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function glNombreConMarco(username){
@@ -16821,6 +17082,593 @@ document.getElementById('dd-aviso-prueba').addEventListener('click', async ()=>{
 new MutationObserver(()=>{ if(document.getElementById('mini-lista').style.display !== 'none') ddActualizar(); })
   .observe(document.getElementById('mini-lista'), { attributes:true, attributeFilter:['style'] });
 document.querySelectorAll('[data-tab="minijuegos"]').forEach(b => b.addEventListener('click', ()=> setTimeout(ddActualizar, 50)));
+
+/* ===================== ÁLBUM GRILLOLIGA (figuritas) =====================
+   Todo lo que mueve cartas o sobres pasa por funciones de Supabase (album_*):
+   el sorteo, el pegado, los canjes y los cambios se validan en el servidor.
+   Las imágenes van en la carpeta cartas/ del repo: cartas/<jugador>-<C|R|E|L>.jpg
+   (ej: cartas/chiappe-C.jpg). Si falta una, se ve una carta de reemplazo. */
+const ALB_RZ = { C:'Común', R:'Rara', E:'Épica', L:'Legendaria' };
+const ALB_ORDEN = ['C','R','E','L'];
+const ALB_COLOR = { C:'#c8c2b4', R:'#f08a1c', E:'#ffc000', L:'#e2b84f' };
+const ALB_GRILLO = (c, f) => `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M44 30C40 18 33 10 24 6" stroke="${c}" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M56 30C60 18 67 10 76 6" stroke="${c}" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M50 26L68 36L72 58L62 70L50 92L38 70L28 58L32 36Z" fill="${c}"/><path d="M34 46L47 52L45 58L33 53ZM66 46L53 52L55 58L67 53Z" fill="${f}"/><path d="M40 66L50 74L60 66" stroke="${f}" stroke-width="2.5" fill="none"/></svg>`;
+const ALB_SWAP = '<svg class="alb-sw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>';
+const ALB = { cat:null, porId:{}, jug:[], e:null, ofertas:[], tab:'album', pagina:0, cmb:'mercado', filtro:'todas',
+  B:{ para:'', doy:[], pido:[], jugPide:0 }, verIndice:false, flip:null, usuarios:null, repDe:{}, cargado:false };
+const albQ = s => document.querySelector(s);
+const albNom = id => { const c = ALB.porId[id]; return c ? c.jugador + ' ' + ALB_RZ[c.rareza] : id; };
+async function albRpc(fn, args){
+  const { data, error } = await sbClient.rpc(fn, args || {});
+  if(error) throw new Error(error.message || 'Algo salió mal');
+  return data;
+}
+function albError(e){ glToast('⚠️ ' + (e && e.message ? e.message : 'Algo salió mal')); }
+
+/* ---------- datos ---------- */
+async function albCargarCatalogo(){
+  if(ALB.cat) return;
+  const { data, error } = await sbClient.from('album_cartas').select('id, jugador, numero, posicion, rareza, orden').order('orden');
+  if(error) throw error;
+  ALB.cat = data;
+  data.forEach(c => { ALB.porId[c.id] = c; });
+  const vistos = {};
+  data.forEach(c => { if(!vistos[c.jugador]){ vistos[c.jugador] = true; ALB.jug.push({ jugador:c.jugador, numero:c.numero, posicion:c.posicion, base:c.id.slice(0, -2) }); } });
+}
+async function albCargar(){
+  await albCargarCatalogo();
+  ALB.e = await albRpc('album_estado');
+  ALB.ofertas = ALB.e.habilitado ? (await albRpc('album_ofertas_listado') || []) : [];
+}
+const albCopias = () => (ALB.e && ALB.e.copias) || [];
+const albPegada = id => albCopias().some(c => c.carta === id && c.pegada);
+const albTotal = id => albCopias().filter(c => c.carta === id).length;
+const albLibres = id => albCopias().filter(c => c.carta === id && !c.reservada);
+const albPegadas = () => albCopias().filter(c => c.pegada).length;
+const albSinPegar = id => !albPegada(id) && albCopias().some(c => c.carta === id && !c.pegada);
+// mismo criterio que el servidor: por carta, la "principal" es la pegada (o la más vieja); el resto sin pegar y sin reservar son repetidas
+function albRepetidas(){
+  const grupos = {};
+  albCopias().forEach(c => { (grupos[c.carta] = grupos[c.carta] || []).push(c); });
+  const out = [];
+  Object.values(grupos).forEach(g => {
+    g.sort((a, b) => (b.pegada - a.pegada) || (a.id - b.id));
+    g.slice(1).forEach(c => { if(!c.pegada && !c.reservada) out.push(c); });
+  });
+  return out;
+}
+function albOfertaDeCopiaReservada(id){
+  const mias = ALB.ofertas.filter(o => o.mia && (o.da || []).includes(id));
+  if(!mias.length) return 'Ofrecida';
+  return mias[0].para ? 'Ofrecida a ' + mias[0].para : 'En el mercado';
+}
+
+/* ---------- piezas visuales ---------- */
+function albCartaHTML(id, { badge = true, x = 0 } = {}){
+  const c = ALB.porId[id];
+  if(!c) return '';
+  return `<div class="alb-card" data-r="${c.rareza}"><div class="alb-fb" style="--rc:${ALB_COLOR[c.rareza]}"><b>${c.numero}</b><span>${glEsc(c.jugador)}</span><small>${ALB_RZ[c.rareza]}</small></div>`
+    + `<img src="cartas/${id}.jpg" alt="${glEsc(albNom(id))}" loading="lazy" draggable="false" onerror="this.remove()"><div class="alb-holo"></div>`
+    + (badge ? `<span class="alb-rb ${c.rareza}">${ALB_RZ[c.rareza]}</span>` : '') + (x > 1 ? `<span class="alb-x">×${x}</span>` : '') + `</div>`;
+}
+function albDorsoHTML(){ return `<div class="alb-dorso"><div class="sol"></div><div class="pt"></div><div class="fr" style="top:68%;height:16%;background:#c8381e"></div><div class="fr" style="top:72%;height:6%;background:#1f3c88"></div><div class="bd"></div><div class="l1">GrilloLiga</div><div class="l2">ARGENTINA</div><div class="cir">${ALB_GRILLO('#efe3c4','#1f3c88')}</div><div class="se">FIGURITA OFICIAL • 2026</div></div>`; }
+function albSobreHTML(extra = ''){ return `<div class="alb-sobre">${extra}<div class="crimp top"></div><div class="marco"></div><div class="t1">GRILLOLIGA</div><div class="med">${ALB_GRILLO('#e2b84f','#0c0905')}</div><div class="t2">SOBRE · 2 CARTAS</div><div class="crimp bot"></div></div>`; }
+function albTilt(root){
+  root.querySelectorAll('.alb-card').forEach(el => {
+    el.addEventListener('pointermove', e => {
+      if(ALB.flip) return;
+      const b = el.getBoundingClientRect(), x = (e.clientX - b.left) / b.width, y = (e.clientY - b.top) / b.height;
+      el.style.setProperty('--mx', x.toFixed(3)); el.style.setProperty('--my', y.toFixed(3));
+      if(el.dataset.r !== 'C' && e.pointerType !== 'touch') el.style.transform = `perspective(600px) rotateY(${(x - .5) * 14}deg) rotateX(${(.5 - y) * 14}deg)`;
+    });
+    el.addEventListener('pointerleave', () => { el.style.transform = ''; });
+  });
+}
+function albZoom(id, extraHTML = '', alAbrir){
+  const m = document.createElement('div');
+  m.className = 'alb-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', albNom(id));
+  m.innerHTML = `${albCartaHTML(id, { badge:false })}<p><b>${glEsc(albNom(id))}</b></p>${extraHTML}<div class="alb-ov-btns" data-btns><button class="alb-btn sec" data-cerrar>Cerrar</button></div>`;
+  document.body.appendChild(m);
+  albTilt(m);
+  m.addEventListener('click', e => { if(e.target === m || e.target.closest('[data-cerrar]')) m.remove(); });
+  if(alAbrir) alAbrir(m);
+  return m;
+}
+
+/* ---------- estructura del panel ---------- */
+async function albAbrir(){
+  const raiz = albQ('#alb-raiz');
+  if(!ALB.cargado) raiz.innerHTML = '<div class="gl-vacio">Cargando el álbum…</div>';
+  try{ await albCargar(); ALB.cargado = true; if(!ALB.jug.length) throw new Error('sin catálogo'); albRender(); }
+  catch(e){ console.warn('Álbum:', e); raiz.innerHTML = '<div class="gl-vacio">No se pudo cargar el álbum. Probá de nuevo en un rato.</div>'; }
+}
+function albRender(pegando){
+  const e = ALB.e, n = albPegadas(), hab = e.habilitado;
+  const recibidasPend = ALB.ofertas.filter(o => !o.mia && o.para).length;
+  const sinPegarN = new Set(albCopias().filter(c => !c.pegada && !albPegada(c.carta)).map(c => c.carta)).size;
+  let h = '';
+  if(!hab){
+    h += `<div class="alb-aviso-prox"><b>🃏 Próximamente</b><p>El álbum de figuritas de la Grillo Liga se habilita muy pronto: 2 sobres de bienvenida, un sobre gratis por día y otro por completar los juegos del día. Mientras tanto, podés hojearlo.</p>`
+      + (e.es_grillo ? `<div class="alb-admin"><small>Solo vos ves esto. Al habilitarlo, cada usuario recibe sus 2 sobres de bienvenida al entrar.</small><button class="alb-btn" id="alb-habilitar">Habilitar álbum</button></div>` : '')
+      + `</div>`;
+  }
+  h += `<div class="alb-stat"><div class="alb-stat-row"><span class="alb-lbl">Figuritas pegadas</span><span class="alb-val">${n}<small>/144</small></span></div>
+    <div class="alb-bar"><i style="width:${n / 144 * 100}%"></i><span class="alb-hito" style="left:33.3%"></span><span class="alb-hito" style="left:50%"></span></div>
+    <div class="alb-hitos"><span class="${n >= 48 ? 'ok' : ''}">48 · 2 sobres</span><span class="${n >= 72 ? 'ok' : ''}">72 · marco + 3 sobres</span><span class="${n >= 144 ? 'ok' : ''}">144 · insignia</span></div></div>`;
+  h += `<nav class="alb-tabs" role="tablist">`
+    + [['album','Álbum',0],['sobres','Sobres',e.sobres],['pila','Sin pegar',sinPegarN],['cambios','Cambios',recibidasPend]]
+      .map(([k, t, c]) => `<button role="tab" data-alb-tab="${k}" aria-selected="${ALB.tab === k}">${t}${c ? `<span class="alb-n">${c}</span>` : ''}</button>`).join('')
+    + `</nav><div id="alb-vista"></div>`;
+  albQ('#alb-raiz').innerHTML = h;
+  albQ('#alb-raiz').querySelectorAll('[data-alb-tab]').forEach(b => b.addEventListener('click', () => { ALB.tab = b.dataset.albTab; albRender(); }));
+  const hb = albQ('#alb-habilitar');
+  if(hb) hb.addEventListener('click', albConfirmarHabilitar);
+  if(ALB.tab === 'album') albRenderLibro(pegando);
+  else if(!hab) albQ('#alb-vista').innerHTML = '<div class="alb-vacio">🔒 Se habilita muy pronto. Cuando esté abierto, acá vas a poder abrir sobres, pegar figuritas y cambiarlas.</div>';
+  else if(ALB.tab === 'sobres') albRenderSobres();
+  else if(ALB.tab === 'pila') albRenderPila();
+  else albRenderCambios();
+}
+function albConfirmarHabilitar(){
+  const m = document.createElement('div');
+  m.className = 'alb-modal'; m.setAttribute('role', 'dialog');
+  m.innerHTML = `<h3>¿Habilitar el álbum?</h3><p>Se abre para todos: cada usuario recibe 2 sobres de bienvenida y empiezan a circular las cartas y los sobres. No se puede volver atrás desde la página.</p>
+    <div class="alb-ov-btns"><button class="alb-btn sec" data-no>Todavía no</button><button class="alb-btn" data-si>Sí, habilitar</button></div>`;
+  document.body.appendChild(m);
+  m.querySelector('[data-no]').onclick = () => m.remove();
+  m.querySelector('[data-si]').onclick = async () => {
+    m.remove();
+    try{ await albRpc('album_habilitar'); glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']); glToast('🃏 ¡Álbum habilitado para todos!'); await albAbrir(); }
+    catch(e){ albError(e); }
+  };
+}
+
+/* ---------- ÁLBUM (libro) ---------- */
+function albHojaHTML(i, pegando){
+  const j = ALB.jug[i], num = String(j.numero);
+  const ids = ALB_ORDEN.map(r => j.base + '-' + r);
+  const tiene = ids.filter(albPegada).length;
+  let h = `<div class="alb-hoja"><div class="alb-ph"><div class="alb-pnum ${num.length > 2 ? 'l3' : ''}">${num}</div><div><h3>${glEsc(j.jugador)}</h3><p>${glEsc(j.posicion)}</p></div><div class="alb-c">${tiene}/4</div></div><div class="alb-slots">`;
+  ALB_ORDEN.forEach((r, k) => {
+    const id = ids[k];
+    if(albPegada(id)) h += `<div class="alb-slot ${pegando === id ? 'pegando' : ''}">${albCartaHTML(id)}</div>`;
+    else {
+      const ya = albSinPegar(id);
+      h += `<div class="alb-slot v" style="--rc:var(--r-${r})"><div class="sn">${num}</div><div class="sr">${ALB_RZ[r]}</div><div class="sh ${ya ? 'ya' : ''}">${ya ? '¡La tenés sin pegar!' : 'Te falta'}</div></div>`;
+    }
+  });
+  return h + `</div><div class="alb-pfoot"><span>GRILLOLIGA · ÁLBUM 2026</span><b>${i + 1}</b></div></div>`;
+}
+function albRenderLibro(pegando){
+  const i = ALB.pagina;
+  let h = `<div class="alb-libro" id="alb-libro"><div id="alb-base">${albHojaHTML(i, pegando)}</div></div>
+    <div class="alb-pager"><button id="alb-prev" aria-label="Hoja anterior" ${i === 0 ? 'disabled' : ''}>‹</button><button class="idx" id="alb-idx">Hoja ${i + 1} de ${ALB.jug.length} · Índice</button><button id="alb-next" aria-label="Hoja siguiente" ${i === ALB.jug.length - 1 ? 'disabled' : ''}>›</button></div>
+    <div class="alb-pista">Arrastrá la hoja desde el borde para darla vuelta</div>`;
+  if(ALB.verIndice) h += '<div class="alb-indice">' + ALB.jug.map((x, k) => {
+    const t = ALB_ORDEN.filter(r => albPegada(x.base + '-' + r)).length;
+    return `<button data-p="${k}" class="${t === 4 ? 'full' : ''} ${k === i ? 'act' : ''}">${glEsc(x.jugador)}<span>${t}/4</span></button>`;
+  }).join('') + '</div>';
+  const v = albQ('#alb-vista');
+  v.innerHTML = h;
+  albTilt(albQ('#alb-base'));
+  albQ('#alb-prev').onclick = () => albPasar(ALB.pagina - 1);
+  albQ('#alb-next').onclick = () => albPasar(ALB.pagina + 1);
+  albQ('#alb-idx').onclick = () => { ALB.verIndice = !ALB.verIndice; albRenderLibro(); };
+  v.querySelectorAll('.alb-indice button').forEach(b => b.onclick = () => {
+    const p = +b.dataset.p;
+    if(p !== ALB.pagina){ window.scrollTo({ top:albQ('#alb-libro').getBoundingClientRect().top + scrollY - 80, behavior:'smooth' }); albPasar(p); }
+  });
+  albArrastre(albQ('#alb-libro'));
+}
+function albActualizarPager(){
+  const i = ALB.pagina, p = albQ('#alb-prev');
+  if(!p) return;
+  p.disabled = i === 0; albQ('#alb-next').disabled = i === ALB.jug.length - 1;
+  albQ('#alb-idx').textContent = `Hoja ${i + 1} de ${ALB.jug.length} · Índice`;
+  document.querySelectorAll('.alb-indice button').forEach(b => b.classList.toggle('act', +b.dataset.p === i));
+}
+// la hoja que gira son N tiras verticales encadenadas: cada una gira un poco más que la anterior y el papel se curva
+const ALB_N = 10;
+function albCrearLeaf(idx){
+  const libro = albQ('#alb-libro'), base = albQ('#alb-base').firstElementChild, W = base.offsetWidth, H = base.offsetHeight, w = W / ALB_N;
+  const contenido = albHojaHTML(idx);
+  let inner = '';
+  for(let i = ALB_N - 1; i >= 0; i--) inner = `<div class="alb-st" style="width:${w}px;height:${H}px;left:${i ? w : 0}px"><div class="fc"><div class="cw" style="width:${W}px;margin-left:${-i * w}px">${contenido}</div><i class="sh"></i><i class="hl"></i></div><div class="bc"><i class="sh"></i></div>${inner}</div>`;
+  const leaf = document.createElement('div');
+  leaf.className = 'alb-leaf'; leaf.style.width = W + 'px'; leaf.style.height = H + 'px'; leaf.innerHTML = inner;
+  const cast = document.createElement('div'); cast.className = 'alb-cast';
+  libro.appendChild(cast); libro.appendChild(leaf);
+  return { leaf, cast, W, w, st:[...leaf.querySelectorAll('.alb-st')] };
+}
+function albPintarAngulo(f, th){
+  const s = Math.sin(th * Math.PI / 180), curl = 38 * s;
+  const P = f.st.map((el, i) => { const t = Math.pow(i / (ALB_N - 1), 1.6); return f.dir > 0 ? Math.min(180, th + curl * t) : Math.max(0, th - curl * t); });
+  const sf = a => ((1 - Math.cos(a * Math.PI / 180)) / 2 * .55).toFixed(3), sb = a => ((1 + Math.cos(a * Math.PI / 180)) / 2 * .45).toFixed(3);
+  let prev = 0, x = 0;
+  f.st.forEach((el, i) => {
+    const phi = P[i], a0 = i ? (P[i - 1] + phi) / 2 : phi, a1 = i < ALB_N - 1 ? (phi + P[i + 1]) / 2 : phi;
+    el.style.transform = `rotateY(${-(phi - prev)}deg)`; prev = phi;
+    el.children[0].children[1].style.background = `linear-gradient(90deg,rgba(0,0,0,${sf(a0)}),rgba(0,0,0,${sf(a1)}))`;
+    el.children[0].children[2].style.opacity = (Math.max(0, Math.sin(phi * Math.PI / 180)) * .5 * (phi < 90 ? 1 : 0)).toFixed(3);
+    el.children[1].children[0].style.background = `linear-gradient(270deg,rgba(0,0,0,${sb(a0)}),rgba(0,0,0,${sb(a1)}))`;
+    x += f.w * Math.cos(phi * Math.PI / 180);
+  });
+  const cx = Math.max(0, Math.min(f.W, x));
+  f.cast.style.left = cx + 'px'; f.cast.style.width = (18 + 60 * s) + 'px'; f.cast.style.opacity = (s * .9 * (x > 0 ? 1 : 0)).toFixed(3);
+  f.th = th;
+}
+function albIniciarFlip(destino){
+  if(ALB.flip) return null;
+  const dir = destino > ALB.pagina ? 1 : -1;
+  let f;
+  if(dir > 0){ f = albCrearLeaf(ALB.pagina); albQ('#alb-base').innerHTML = albHojaHTML(destino); f.th = 0; }
+  else { f = albCrearLeaf(destino); f.th = 180; }
+  f.dir = dir; f.destino = destino; ALB.flip = f;
+  albPintarAngulo(f, f.th);
+  return f;
+}
+function albAnimarA(f, obj, dur, fin){
+  const ini = f.th, t0 = performance.now(), d = dur * Math.max(.25, Math.abs(obj - ini) / 180), ease = t => 1 - Math.pow(1 - t, 3);
+  (function paso(now){ const t = Math.min(1, (now - t0) / d); albPintarAngulo(f, ini + (obj - ini) * ease(t)); if(t < 1) requestAnimationFrame(paso); else fin(); })(t0);
+}
+function albTerminarFlip(f, completo){
+  const fin = () => {
+    f.leaf.remove(); f.cast.remove();
+    if(completo) ALB.pagina = f.destino;
+    const base = albQ('#alb-base');
+    if(base){ base.innerHTML = albHojaHTML(ALB.pagina); albTilt(base); }
+    ALB.flip = null; albActualizarPager();
+  };
+  albAnimarA(f, (f.dir > 0) === completo ? 180 : 0, 850, fin);
+}
+function albPasar(n){
+  if(n < 0 || n >= ALB.jug.length || n === ALB.pagina || ALB.flip) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ ALB.pagina = n; albRenderLibro(); return; }
+  const f = albIniciarFlip(n);
+  if(f) albTerminarFlip(f, true);
+}
+function albArrastre(libro){
+  let x0, y0, id = null, activo = false, lastX, lastT, vel = 0;
+  libro.addEventListener('pointerdown', e => { if(ALB.flip) return; x0 = lastX = e.clientX; y0 = e.clientY; lastT = performance.now(); id = e.pointerId; activo = false; vel = 0; });
+  libro.addEventListener('pointermove', e => {
+    if(id !== e.pointerId) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    if(!activo){
+      if(Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) return;
+      const dest = dx < 0 ? ALB.pagina + 1 : ALB.pagina - 1;
+      if(dest < 0 || dest >= ALB.jug.length || !albIniciarFlip(dest)){ id = null; return; }
+      activo = true; libro.setPointerCapture(e.pointerId);
+    }
+    const now = performance.now(); vel = (e.clientX - lastX) / Math.max(1, now - lastT); lastX = e.clientX; lastT = now;
+    const W = ALB.flip.W, borde = ALB.flip.dir > 0 ? W + dx * 1.25 : -W + dx * 2.2;
+    albPintarAngulo(ALB.flip, Math.acos(Math.max(-1, Math.min(1, borde / W))) * 180 / Math.PI);
+  });
+  const soltar = e => {
+    if(id !== e.pointerId) return;
+    id = null;
+    if(!activo || !ALB.flip) return;
+    activo = false;
+    const f = ALB.flip;
+    let completo = f.dir > 0 ? (f.th > 75 || vel < -.5) : (f.th < 105 || vel > .5);
+    if(f.dir > 0 && vel > .5) completo = false;
+    if(f.dir < 0 && vel < -.5) completo = false;
+    albTerminarFlip(f, completo);
+  };
+  libro.addEventListener('pointerup', soltar);
+  libro.addEventListener('pointercancel', soltar);
+}
+
+/* ---------- SOBRES ---------- */
+const ALB_JUEGOS = [['crucigrillo','Crucigrillo difícil','mini-card-crucigrillo'],['sopa','Sopa del día difícil o experto','mini-card-sopa'],['banderoku','Banderoku del día','mini-card-banderoku'],['memotest','Memotest difícil','mini-card-memo']];
+function albRenderSobres(){
+  const e = ALB.e, j = e.juegos || {}, hechos = ALB_JUEGOS.filter(([k]) => j[k]).length;
+  const temprano = (e.hora || '') < '00:05';
+  const v = albQ('#alb-vista');
+  v.innerHTML = `<div class="alb-sobres">${albSobreHTML(e.sobres ? `<span class="cnt">×${e.sobres}</span>` : '')}
+    <button class="alb-btn grande" id="alb-abrir" ${e.sobres ? '' : 'disabled'}>${e.sobres ? 'Abrir sobre' : 'No tenés sobres'}</button>
+    <div class="alb-fuentes">
+      <div class="alb-fuente"><div><strong>Sobre del día</strong><small>Gratis. Se reclama de 00:05 a 23:59 (hora de Argentina); si no lo reclamás, se pierde.</small></div>
+        <button class="alb-btn" id="alb-diario" ${e.diario_reclamado || temprano ? 'disabled' : ''}>${e.diario_reclamado ? 'Reclamado' : temprano ? 'Desde 00:05' : 'Reclamar'}</button></div>
+      <div class="alb-fuente"><div><strong>Juegos del día · ${hechos}/4</strong><small>Completá los 4 hoy y ganás otro sobre.</small>
+        <div class="alb-juegos">${ALB_JUEGOS.map(([k, t]) => `<button class="${j[k] ? 'ok' : ''}" data-juego="${k}">${j[k] ? '✓' : '○'} ${t}</button>`).join('')}</div></div>
+        <button class="alb-btn" id="alb-juegos" ${hechos === 4 && !e.juegos_reclamado ? '' : 'disabled'}>${e.juegos_reclamado ? 'Cobrado' : hechos === 4 ? 'Reclamar' : 'Faltan ' + (4 - hechos)}</button></div>
+    </div></div>`;
+  albQ('#alb-abrir').onclick = albAbrirSobre;
+  albQ('#alb-diario').onclick = async () => { try{ await albRpc('album_reclamar_diario'); glToast('🃏 +1 sobre del día'); await albAbrir(); }catch(err){ albError(err); } };
+  albQ('#alb-juegos').onclick = async () => { try{ await albRpc('album_reclamar_juegos'); glToast('🃏 +1 sobre por los juegos del día'); await albAbrir(); }catch(err){ albError(err); } };
+  v.querySelectorAll('[data-juego]').forEach(b => b.onclick = () => {
+    const juego = ALB_JUEGOS.find(x => x[0] === b.dataset.juego);
+    document.querySelector('.tab-btn[data-tab="minijuegos"]').click();
+    setTimeout(() => { if(juego[0] === 'sopa' && typeof sg !== 'undefined') sg.fechaArchivo = ''; const c = document.getElementById(juego[2]); if(c) c.click(); }, 120);
+  });
+}
+async function albAbrirSobre(){
+  let res;
+  try{ res = await albRpc('album_abrir_sobre'); }catch(e){ albError(e); return; }
+  const cartas = res.cartas;
+  const ov = document.createElement('div');
+  ov.className = 'alb-ov'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Abrir sobre');
+  ov.innerHTML = `<div class="alb-rays"></div><div class="hint">Deslizá el dedo por la línea de arriba para abrirlo</div>
+    <div class="alb-stage"><div class="alb-reveal">${cartas.map((c, k) => `<div class="alb-rc" data-k="${k}" style="z-index:${2 - k};transform:translateY(${k * 6}px) rotate(${k ? 3 : -2}deg)"><div class="flip"><div class="dorso">${albDorsoHTML()}</div><div class="cara">${albCartaHTML(c.carta, { badge:false })}</div></div></div>`).join('')}</div>
+    <div class="alb-cuerpo">${albSobreHTML()}</div><div class="alb-tira"><div class="tt"><div class="crimp"></div></div></div><div class="alb-corte"></div></div>
+    <div class="alb-etq"></div><div class="alb-ov-btns" data-btns><button class="alb-btn sec" data-saltar>Abrir sin animación</button></div>`;
+  document.body.appendChild(ov);
+  let flash = document.querySelector('.alb-flash');
+  if(!flash){ flash = document.createElement('div'); flash.className = 'alb-flash'; document.body.appendChild(flash); }
+  const stage = ov.querySelector('.alb-stage'), corte = ov.querySelector('.alb-corte'), hint = ov.querySelector('.hint'), etq = ov.querySelector('.alb-etq'), btns = ov.querySelector('[data-btns]'), rays = ov.querySelector('.alb-rays');
+  let x0 = null, abierto = false;
+  const abrir = () => {
+    if(abierto) return;
+    abierto = true; corte.style.width = '100%'; ov.querySelector('.alb-tira').classList.add('ida');
+    setTimeout(() => { corte.style.opacity = 0; ov.querySelector('.alb-reveal').classList.add('on'); ov.querySelector('.alb-cuerpo').classList.add('baja'); hint.textContent = 'Tocá la carta para darla vuelta'; btns.innerHTML = ''; }, 450);
+  };
+  stage.addEventListener('pointerdown', e => { const b = stage.getBoundingClientRect(); if(e.clientY - b.top < b.height * .32){ x0 = e.clientX; stage.setPointerCapture(e.pointerId); } });
+  stage.addEventListener('pointermove', e => { if(x0 === null || abierto) return; const b = stage.getBoundingClientRect(); corte.style.width = (Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)) * 100) + '%'; if(Math.abs(e.clientX - x0) > b.width * .6) abrir(); });
+  stage.addEventListener('pointerup', () => { if(!abierto) corte.style.width = '0'; x0 = null; });
+  btns.querySelector('[data-saltar]').onclick = abrir;
+  let turno = 0;
+  ov.querySelectorAll('.alb-rc').forEach(el => el.addEventListener('click', () => {
+    const k = +el.dataset.k;
+    if(k !== turno || el.classList.contains('volteada') || el.dataset.busy) return;
+    el.dataset.busy = 1;
+    const c = cartas[k], rz = ALB.porId[c.carta].rareza, dur = { C:0, R:500, E:1100, L:2200 }[rz], col = ALB_COLOR[rz];
+    etq.textContent = ''; rays.style.setProperty('--ray', col);
+    if(rz !== 'C'){ el.classList.add('shake'); rays.classList.add('on'); }
+    if(rz === 'L'){ hint.textContent = '¡¿Qué es esto?!'; ov.style.background = 'radial-gradient(circle at 50% 45%,#3a2a08,#000 70%)'; glVibrar(200); }
+    else if(rz === 'E') hint.textContent = 'Algo brilla…';
+    setTimeout(() => {
+      el.classList.remove('shake');
+      if(rz === 'E' || rz === 'L'){ flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go'); }
+      el.classList.add('volteada');
+      etq.textContent = ALB_RZ[rz] + (c.nueva ? ' · ¡nueva!' : ' · repetida'); etq.style.color = col;
+      hint.textContent = ALB.porId[c.carta].jugador;
+      albTilt(el);
+      setTimeout(() => {
+        rays.classList.remove('on'); ov.style.background = ''; turno++;
+        if(turno < cartas.length){
+          hint.textContent += ' · tocá para ver la siguiente';
+          el.addEventListener('click', () => { el.classList.add('salir'); etq.textContent = ''; hint.textContent = 'Tocá la carta para darla vuelta'; }, { once:true });
+        } else {
+          if(cartas.some(x => ALB.porId[x.carta].rareza !== 'C')) glConfetti(['#D4AF37','#B33B22','#4A6B43','#F0E7D2']);
+          btns.innerHTML = `<button class="alb-btn" data-ir>Ver en Sin pegar</button><button class="alb-btn sec" data-otro>${res.quedan ? 'Abrir otro sobre' : 'Cerrar'}</button>`;
+          albAbrir();
+          btns.querySelector('[data-ir]').onclick = () => { ov.remove(); ALB.tab = 'pila'; albRender(); };
+          btns.querySelector('[data-otro]').onclick = () => { ov.remove(); if(res.quedan) albAbrirSobre(); };
+        }
+      }, 700);
+    }, dur);
+  }));
+}
+
+/* ---------- SIN PEGAR ---------- */
+function albRenderPila(){
+  const porCarta = {};
+  albCopias().filter(c => !c.pegada).forEach(c => { (porCarta[c.carta] = porCarta[c.carta] || []).push(c); });
+  const orden = id => ALB.porId[id].orden;
+  const paraPegar = Object.keys(porCarta).filter(id => !albPegada(id)).sort((a, b) => orden(a) - orden(b));
+  const reps = albRepetidas(), repPorCarta = {};
+  reps.forEach(c => { repPorCarta[c.carta] = (repPorCarta[c.carta] || 0) + 1; });
+  const repIds = Object.keys(repPorCarta).sort((a, b) => orden(a) - orden(b));
+  let h = `<p class="alb-ayuda">Las cartas nuevas quedan acá hasta que las pegues. Tocá una para verla de cerca.</p><h4 class="alb-h4">Para pegar</h4>`;
+  h += paraPegar.length ? '<div class="alb-pila">' + paraPegar.map(id => {
+    const libre = porCarta[id].some(c => !c.reservada);
+    return `<div class="it" data-id="${id}">${albCartaHTML(id, { x:porCarta[id].length })}${libre ? `<button class="alb-btn" data-pegar="${id}">Pegar</button>` : `<span class="t res">${glEsc(albOfertaDeCopiaReservada(id))}</span>`}</div>`;
+  }).join('') + '</div>' : '<div class="alb-vacio">No tenés cartas para pegar. Abrí un sobre para conseguir más.</div>';
+  h += `<h4 class="alb-h4">Repetidas</h4>`;
+  h += repIds.length ? '<div class="alb-pila">' + repIds.map(id => `<div class="it" data-id="${id}">${albCartaHTML(id, { x:repPorCarta[id] })}<span class="t">Repetida${repPorCarta[id] > 1 ? ' ×' + repPorCarta[id] : ''}</span></div>`).join('') + '</div>'
+    : '<div class="alb-vacio">Todavía no tenés repetidas.</div>';
+  h += `<div class="alb-caja"><div><div class="alb-lbl">Repetidas para canjear</div><div class="alb-val">${reps.length}/7</div></div><button class="alb-btn" id="alb-canjear" ${reps.length < 7 ? 'disabled' : ''}>Canjear 7 por 1 sobre</button></div>`;
+  const v = albQ('#alb-vista');
+  v.innerHTML = h;
+  v.querySelectorAll('[data-pegar]').forEach(b => b.onclick = ev => { ev.stopPropagation(); albPegar(b.dataset.pegar); });
+  v.querySelectorAll('.it').forEach(it => it.onclick = () => {
+    const id = it.dataset.id, puede = !albPegada(id) && albLibres(id).some(c => !c.pegada);
+    albZoom(id, albPegada(id) ? '<p>Ya la tenés pegada: es repetida, sirve para canjear o cambiar.</p>' : '', m => {
+      if(puede){ const b = document.createElement('button'); b.className = 'alb-btn'; b.textContent = 'Pegar en el álbum'; b.onclick = () => { m.remove(); albPegar(id); }; m.querySelector('[data-btns]').prepend(b); }
+    });
+  });
+  albTilt(v);
+  albQ('#alb-canjear').onclick = async () => { try{ await albRpc('album_canjear'); glToast('🃏 Canjeaste 7 repetidas: +1 sobre'); await albAbrir(); }catch(e){ albError(e); } };
+}
+async function albPegar(id){
+  const copia = albCopias().filter(c => c.carta === id && !c.pegada && !c.reservada).sort((a, b) => a.id - b.id)[0];
+  if(!copia){ glToast('Esa carta está ofrecida en un cambio: retirala primero.'); return; }
+  let r;
+  try{ r = await albRpc('album_pegar', { p_copia:copia.id }); }catch(e){ albError(e); return; }
+  ALB.pagina = ALB.jug.findIndex(j => j.base === id.slice(0, -2));
+  ALB.tab = 'album';
+  await albCargar();
+  albRender(id);
+  glVibrar(40);
+  const premios = r.premios_nuevos || [];
+  if(premios.length){
+    glConfetti(['#E0B000','#B33B22','#4A6B43','#F0E7D2']);
+    const txt = { tercio:'¡Pegaste 48 figuritas! Ganaste 2 sobres', mitad:'¡Medio álbum! Ganaste un marco exclusivo y 3 sobres', completo:'¡ÁLBUM COMPLETO! Insignia Coleccionista Grillo + marco dorado' };
+    glToast('🏆 ' + premios.map(p => txt[p]).join(' · '));
+    const cont = document.getElementById('umm-insignias');
+    if(cont) sbClient.auth.getUser().then(({ data:{ user } }) => { if(user) calcularInsigniasUsuario(user.id).then(est => renderizarInsignias(cont, est, true)); });
+  } else glToast('¡Pegada! ' + albNom(id));
+}
+
+/* ---------- CAMBIOS ---------- */
+const ALB_COLS = ['#B33B22','#4A6B43','#9C7A2E','#1f3c88','#6b3fa0','#2b7a78','#8A2C19'];
+const albColorDe = n => ALB_COLS[[...String(n)].reduce((a, c) => a + c.charCodeAt(0), 0) % ALB_COLS.length];
+const albAvatar = n => `<span class="alb-av" style="background:${albColorDe(n)}">${glEsc(String(n || '?').slice(0, 2).toUpperCase())}</span>`;
+function albHace(f){
+  const m = Math.round((Date.now() - new Date(f).getTime()) / 60000);
+  if(m < 1) return 'recién'; if(m < 60) return `hace ${m} min`; const hs = Math.round(m / 60); if(hs < 24) return `hace ${hs} h`;
+  const d = Math.round(hs / 24); return d === 1 ? 'ayer' : `hace ${d} días`;
+}
+// cómo queda una carta que DOY (lo que el servidor elegiría: primero una copia sin pegar)
+function albEtiquetaDar(id){
+  if(!albTotal(id)) return ['no', 'No la tenés'];
+  const libres = albLibres(id);
+  if(!libres.length) return ['res', albOfertaDeCopiaReservada(id)];
+  if(libres.some(c => !c.pegada)) return albPegada(id) ? ['', 'Repetida'] : ['', 'Sin pegar'];
+  return ['peg', 'Pegada'];
+}
+const albEtiquetaRecibir = id => albTotal(id) ? ['', 'Ya la tenés'] : ['falta', '¡Te falta!'];
+function albMiniHTML(id, [cls, txt]){ return `<button class="alb-mini" data-z="${id}" aria-label="Ver ${glEsc(albNom(id))}">${albCartaHTML(id, { badge:false })}<span class="t ${cls}">${glEsc(txt)}</span></button>`; }
+function albPuedo(o){
+  const usadas = {};
+  const falt = [];
+  (o.pide || []).forEach(id => { usadas[id] = (usadas[id] || 0) + 1; if(albLibres(id).length < usadas[id]) falt.push(id); });
+  if(falt.length){
+    const reserv = falt.filter(id => albTotal(id) >= (usadas[id] || 1));
+    if(reserv.length) return { ok:false, msg:albNom(reserv[0]) + ' está ofrecida en otro cambio. Retirala para usarla acá.' };
+    return { ok:false, msg:'Te falta' + (falt.length > 1 ? 'n' : '') + ' ' + falt.map(albNom).join(', ') };
+  }
+  if((ALB.e.recibidas_hoy || 0) + (o.da || []).length > 10) return { ok:false, msg:'Superarías el límite de 10 cartas recibidas hoy' };
+  const peg = (o.pide || []).some(id => !albLibres(id).some(c => !c.pegada));
+  return { ok:true, msg: peg ? '⚠ Te pide una carta pegada' : (o.da || []).some(id => !albTotal(id)) ? 'Te da cartas que te faltan' : 'Podés hacer este cambio' };
+}
+function albOfertaHTML(o, modo){
+  const p = albPuedo(o);
+  const bts = modo === 'recibida'
+    ? `<button class="alb-btn sec" data-rech="${o.id}">Rechazar</button><button class="alb-btn" data-acep="${o.id}" ${p.ok ? '' : 'disabled'}>Aceptar</button>`
+    : `<button class="alb-btn" data-acep="${o.id}" ${p.ok ? '' : 'disabled'}>Cambiar</button>`;
+  return `<div class="alb-of"><div class="alb-of-h">${albAvatar(o.de)}<div><b>${glEsc(o.de || 'Usuario')}</b><small>${modo === 'recibida' ? 'Te propone un cambio · ' : ''}${albHace(o.creado_en)}</small></div><span class="tipo">${o.da.length}×${o.pide.length}</span></div>
+    <div class="alb-of-b"><div class="alb-lado"><span class="alb-lbl">Te da</span><div class="alb-minis">${o.da.map(id => albMiniHTML(id, albEtiquetaRecibir(id))).join('')}</div></div>${ALB_SWAP}<div class="alb-lado"><span class="alb-lbl">Te pide</span><div class="alb-minis">${o.pide.map(id => albMiniHTML(id, albEtiquetaDar(id))).join('')}</div></div></div>
+    <div class="alb-of-f"><span class="motivo ${p.ok ? '' : 'mal'}">${glEsc(p.msg)}</span><div class="bts">${bts}</div></div></div>`;
+}
+function albMiaHTML(o){
+  const pub = !o.para;
+  return `<div class="alb-of mia"><div class="alb-of-h">${pub ? `<span class="alb-av" style="background:var(--gold)">YO</span><div><b>Tu publicación</b><small>En el mercado · ${albHace(o.creado_en)}</small></div>` : `${albAvatar(o.para)}<div><b>Para ${glEsc(o.para)}</b><small>Esperando respuesta · ${albHace(o.creado_en)}</small></div>`}<span class="tipo">${o.da.length}×${o.pide.length}</span></div>
+    <div class="alb-of-b"><div class="alb-lado"><span class="alb-lbl">Das</span><div class="alb-minis">${o.da.map(id => albMiniHTML(id, ['res', 'Reservada'])).join('')}</div></div>${ALB_SWAP}<div class="alb-lado"><span class="alb-lbl">Pedís</span><div class="alb-minis">${o.pide.map(id => albMiniHTML(id, albEtiquetaRecibir(id))).join('')}</div></div></div>
+    <div class="alb-of-f"><span class="motivo">${pub ? 'Cualquiera puede aceptarla. Tus cartas quedan reservadas' : 'Tus cartas quedan reservadas hasta que responda'}</span><div class="bts"><button class="alb-btn sec" data-canc="${o.id}" data-pub="${pub ? 1 : 0}">${pub ? 'Retirar del mercado' : 'Cancelar propuesta'}</button></div></div></div>`;
+}
+function albRenderCambios(){
+  const v = albQ('#alb-vista'), e = ALB.e;
+  const recibidas = ALB.ofertas.filter(o => !o.mia && o.para), enviadas = ALB.ofertas.filter(o => o.mia && o.para);
+  const mias = ALB.ofertas.filter(o => o.mia && !o.para), mercado = ALB.ofertas.filter(o => !o.mia && !o.para);
+  let h = `<div class="alb-cupo"><div><span class="alb-lbl">Recibidas hoy</span><small>Máximo 10 por día</small></div><div class="alb-bar"><i style="width:${Math.min(100, (e.recibidas_hoy || 0) * 10)}%"></i></div><span class="alb-val">${e.recibidas_hoy || 0}/10</span></div>
+    <div class="alb-sub">${[['mercado','Mercado'],['propuestas','Propuestas' + (recibidas.length ? `<span class="k">${recibidas.length}</span>` : '')],['proponer','Proponer']].map(([k, t]) => `<button data-sub="${k}" aria-pressed="${ALB.cmb === k}">${t}</button>`).join('')}</div>`;
+  if(ALB.cmb === 'mercado'){
+    h += `<div class="alb-chips">${[['todas','Todas'],['sirven','Tienen cartas que me faltan'],['puedo','Puedo hacerlas']].map(([k, t]) => `<button data-fil="${k}" aria-pressed="${ALB.filtro === k}">${t}</button>`).join('')}</div>`;
+    h += mias.map(albMiaHTML).join('');
+    const lista = mercado.filter(o => ALB.filtro === 'sirven' ? o.da.some(id => !albTotal(id)) : ALB.filtro === 'puedo' ? albPuedo(o).ok : true);
+    h += lista.length ? lista.map(o => albOfertaHTML(o, 'mercado')).join('') : `<div class="alb-vacio">${mercado.length ? 'No hay ofertas con ese filtro.' : 'Todavía no hay ofertas en el mercado. ¡Publicá la primera desde "Proponer"!'}</div>`;
+  } else if(ALB.cmb === 'propuestas'){
+    h += '<h4 class="alb-h4">Recibidas</h4>' + (recibidas.length ? recibidas.map(o => albOfertaHTML(o, 'recibida')).join('') : '<div class="alb-vacio">No tenés propuestas nuevas.</div>');
+    h += '<h4 class="alb-h4">Enviadas</h4>' + (enviadas.length ? enviadas.map(albMiaHTML).join('') : '<div class="alb-vacio">No enviaste propuestas.</div>');
+  } else h += albBuilderHTML();
+  v.innerHTML = h;
+  v.querySelectorAll('[data-sub]').forEach(b => b.onclick = () => { ALB.cmb = b.dataset.sub; albRenderCambios(); });
+  v.querySelectorAll('[data-fil]').forEach(b => b.onclick = () => { ALB.filtro = b.dataset.fil; albRenderCambios(); });
+  v.querySelectorAll('[data-z]').forEach(b => b.onclick = ev => { ev.stopPropagation(); albZoom(b.dataset.z); });
+  v.querySelectorAll('[data-acep]').forEach(b => b.onclick = () => { const o = ALB.ofertas.find(x => x.id === +b.dataset.acep); if(o) albHacerCambio(o); });
+  v.querySelectorAll('[data-rech]').forEach(b => b.onclick = async () => { try{ await albRpc('album_rechazar_oferta', { p_id:+b.dataset.rech }); glToast('Propuesta rechazada'); await albAbrir(); }catch(err){ albError(err); } });
+  v.querySelectorAll('[data-canc]').forEach(b => b.onclick = async () => {
+    try{ await albRpc('album_cancelar_oferta', { p_id:+b.dataset.canc }); glToast(b.dataset.pub === '1' ? 'La retiraste del mercado: tus cartas quedan libres' : 'Propuesta cancelada: tus cartas quedan libres'); await albAbrir(); }
+    catch(err){ albError(err); }
+  });
+  if(ALB.cmb === 'proponer') albBindBuilder();
+}
+// cartas que puedo dar: las que tienen alguna copia libre (primero repetidas, después sin pegar, al final pegadas)
+function albMisCartasParaDar(){
+  const ids = [...new Set(albCopias().map(c => c.carta))];
+  const peso = id => { const [cls, t] = albEtiquetaDar(id); return cls === 'res' ? 4 : cls === 'peg' ? 3 : t === 'Sin pegar' ? 2 : 1; };
+  return ids.sort((a, b) => (peso(a) - peso(b)) || (ALB.porId[a].orden - ALB.porId[b].orden));
+}
+// en el mercado se elige primero el jugador y se ven sus 4 cartas; con un usuario, sus repetidas
+function albOpcionesPido(){
+  const B = ALB.B;
+  if(B.para) return (ALB.repDe[B.para] || []).slice().sort((a, b) => (!!albTotal(a) - !!albTotal(b)) || (ALB.porId[a].orden - ALB.porId[b].orden));
+  const j = ALB.jug[B.jugPide || 0];
+  return ALB_ORDEN.map(r => j.base + '-' + r);
+}
+const albFaltanDe = j => ALB_ORDEN.filter(r => !albTotal(j.base + '-' + r)).length;
+function albReglaB(){
+  const a = ALB.B.doy.length, b = ALB.B.pido.length;
+  if(!a || !b) return ['', 'Elegí al menos una carta de cada lado'];
+  if(a > 1 && b > 1) return ['mal', 'No vale: uno de los dos lados tiene que ser 1 sola carta'];
+  return ['ok', a + '×' + b + ' · válido'];
+}
+function albBuilderHTML(){
+  const B = ALB.B, [cls, txt] = albReglaB();
+  const peg = B.doy.filter(id => albEtiquetaDar(id)[0] === 'peg'), nuevas = B.doy.filter(id => albEtiquetaDar(id)[1] === 'Sin pegar');
+  const usuarios = ALB.usuarios || [];
+  const misCartas = albMisCartasParaDar();
+  const pido = B.para && !ALB.repDe[B.para] ? null : albOpcionesPido();
+  return `<div class="alb-paso"><span class="alb-lbl">1 · ¿A quién?</span><select id="alb-para"><option value="">Mercado (cualquiera)</option>${usuarios.map(u => `<option value="${glEsc(u)}" ${B.para === u ? 'selected' : ''}>${glEsc(u)}</option>`).join('')}</select></div>
+    <div class="alb-paso"><span class="alb-lbl">2 · Vos das (hasta 3)</span>${misCartas.length ? `<div class="alb-grid-sel">${misCartas.map(id => { const [c, t] = albEtiquetaDar(id); return `<button class="alb-op ${c === 'res' ? 'res' : ''}" data-doy="${id}" aria-pressed="${B.doy.includes(id)}">${albCartaHTML(id, { badge:false })}<span class="t ${c}">${glEsc(t)}</span></button>`; }).join('')}</div>` : '<div class="alb-vacio">Todavía no tenés cartas para ofrecer.</div>'}
+    ${peg.map(id => `<div class="alb-aviso"><b>${glEsc(albNom(id))}</b> está pegada en tu álbum. Si la cambiás se despega y ese lugar queda vacío.</div>`).join('')}
+    ${nuevas.map(id => `<div class="alb-aviso info"><b>${glEsc(albNom(id))}</b> todavía no la pegaste y no la tenés en el álbum.</div>`).join('')}</div>
+    <div class="alb-paso"><span class="alb-lbl">3 · Vos pedís (hasta 3)${B.para ? ' · repetidas de ' + glEsc(B.para) : ''}</span>
+      ${B.para ? '' : `<select id="alb-jugpide" style="margin-bottom:10px">${ALB.jug.map((j, k) => { const f = albFaltanDe(j); return `<option value="${k}" ${(B.jugPide || 0) === k ? 'selected' : ''}>${glEsc(j.jugador)} · ${f ? 'te falta' + (f > 1 ? 'n ' + f : ' 1') : 'las tenés todas'}</option>`; }).join('')}</select>`}
+      ${B.pido.length ? `<div class="alb-chips">${B.pido.map(id => `<button data-quitar="${id}" aria-pressed="true">✕ ${glEsc(albNom(id))}</button>`).join('')}</div>` : ''}
+      ${pido === null ? '<div class="alb-vacio">Cargando sus repetidas…</div>' : pido.length ? `<div class="alb-grid-sel">${pido.map(id => { const [c, t] = albEtiquetaRecibir(id); return `<button class="alb-op" data-pido="${id}" aria-pressed="${B.pido.includes(id)}">${albCartaHTML(id, { badge:false })}<span class="t ${c}">${glEsc(t)}</span></button>`; }).join('')}</div>` : `<div class="alb-vacio">${B.para ? glEsc(B.para) + ' no tiene repetidas libres por ahora.' : 'No hay cartas con ese filtro.'}</div>`}</div>
+    <div class="alb-regla"><span class="${cls}">${txt}</span><button class="alb-btn grande" id="alb-enviar" ${cls === 'ok' ? '' : 'disabled'}>${B.para ? 'Enviar a ' + glEsc(B.para) : 'Publicar en el mercado'}</button></div>`;
+}
+async function albBindBuilder(){
+  const v = albQ('#alb-vista'), B = ALB.B;
+  if(!ALB.usuarios){
+    ALB.usuarios = [];
+    const { data } = await sbClient.from('perfiles_usuario').select('username').order('username');
+    ALB.usuarios = (data || []).map(x => x.username).filter(u => u && u !== GL_USERNAME);
+    if(ALB.cmb === 'proponer' && ALB.tab === 'cambios') albRenderCambios();
+    return;
+  }
+  albTilt(v);
+  albQ('#alb-para').onchange = async ev => {
+    B.para = ev.target.value; B.pido = [];
+    albRenderCambios();
+    if(B.para && !ALB.repDe[B.para]){
+      try{ ALB.repDe[B.para] = await albRpc('album_repetidas_de', { p_username:B.para }) || []; }catch(e){ ALB.repDe[B.para] = []; }
+      if(ALB.cmb === 'proponer') albRenderCambios();
+    }
+  };
+  const jp = albQ('#alb-jugpide');
+  if(jp) jp.onchange = () => { B.jugPide = +jp.value; albRenderCambios(); };
+  v.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => { B.pido = B.pido.filter(x => x !== b.dataset.quitar); albRenderCambios(); });
+  const tog = (arr, id) => { const i = arr.indexOf(id); if(i >= 0) arr.splice(i, 1); else if(arr.length < 3) arr.push(id); else glToast('Máximo 3 cartas por lado'); };
+  v.querySelectorAll('[data-doy]').forEach(b => b.onclick = () => {
+    const id = b.dataset.doy;
+    if(albEtiquetaDar(id)[0] === 'res' && !B.doy.includes(id)){ const d = albOfertaDeCopiaReservada(id); glToast(d === 'En el mercado' ? 'Está en el mercado: retirala para ofrecerla a otro' : d + ': cancelá esa propuesta primero'); return; }
+    if(B.doy.includes(id) || B.doy.filter(x => x === id).length < albLibres(id).length) tog(B.doy, id);
+    albRenderCambios();
+  });
+  v.querySelectorAll('[data-pido]').forEach(b => b.onclick = () => { tog(B.pido, b.dataset.pido); albRenderCambios(); });
+  albQ('#alb-enviar').onclick = async () => {
+    try{
+      await albRpc('album_crear_oferta', { p_para:B.para || null, p_da:B.doy, p_pide:B.pido });
+      glToast(B.para ? 'Propuesta enviada a ' + B.para : 'Publicada en el mercado');
+      ALB.cmb = B.para ? 'propuestas' : 'mercado';
+      ALB.B = { para:'', doy:[], pido:[], jugPide:ALB.B.jugPide || 0 };
+      await albAbrir();
+      window.scrollTo({ top:albQ('#alb-raiz').getBoundingClientRect().top + scrollY - 80, behavior:'smooth' });
+    }catch(e){ albError(e); }
+  };
+}
+function albHacerCambio(o){
+  const doy = o.pide, recibo = o.da;
+  const avisos = [
+    ...doy.filter(id => albEtiquetaDar(id)[0] === 'peg').map(id => `<div class="alb-aviso"><b>${glEsc(albNom(id))}</b> está pegada en tu álbum. Si la cambiás se despega y ese lugar queda vacío.</div>`),
+    ...doy.filter(id => albEtiquetaDar(id)[1] === 'Sin pegar').map(id => `<div class="alb-aviso info"><b>${glEsc(albNom(id))}</b> todavía no la pegaste y no la tenés en el álbum.</div>`)];
+  const fuerte = avisos.some(a => a.startsWith('<div class="alb-aviso">'));
+  const cx = document.createElement('div');
+  cx.className = 'alb-cx'; cx.setAttribute('role', 'dialog'); cx.setAttribute('aria-label', 'Confirmar cambio');
+  cx.innerHTML = `<h3>Cambio con ${glEsc(o.de || 'usuario')}</h3><div class="fila"><div class="col"><div class="lb">Das</div><div class="pk a">${doy.map(id => albCartaHTML(id, { badge:false })).join('')}</div></div>${ALB_SWAP.replace('class="alb-sw"', 'class="alb-sw" style="color:#e2b84f;flex:none"')}<div class="col"><div class="lb">Recibís</div><div class="pk b">${recibo.map(id => albCartaHTML(id, { badge:false })).join('')}</div></div></div>
+    <div class="avisos">${avisos.join('')}</div><div class="alb-ov-btns"><button class="alb-btn sec" data-no>Cancelar</button><button class="alb-btn" data-si>${fuerte ? 'Cambiar igual' : 'Confirmar cambio'}</button></div>`;
+  document.body.appendChild(cx);
+  cx.querySelector('[data-no]').onclick = () => cx.remove();
+  cx.querySelector('[data-si]').onclick = async () => {
+    cx.querySelector('[data-si]').disabled = true;
+    try{ await albRpc('album_aceptar_oferta', { p_id:o.id }); }
+    catch(e){ cx.remove(); albError(e); await albAbrir(); return; }
+    cx.querySelector('.avisos').innerHTML = ''; cx.querySelector('.alb-ov-btns').innerHTML = '';
+    cx.querySelectorAll('.pk').forEach(p => p.classList.add('go'));
+    albAbrir();
+    setTimeout(() => {
+      cx.innerHTML = `<h3>¡Cambio hecho!</h3><div class="resultado">${recibo.map(id => albCartaHTML(id)).join('')}</div><p style="margin:0;text-align:center">Las cartas nuevas quedaron en <b>Sin pegar</b>.</p><div class="alb-ov-btns"><button class="alb-btn" data-ir>Ir a pegarlas</button><button class="alb-btn sec" data-ok>Seguir cambiando</button></div>`;
+      albTilt(cx);
+      cx.querySelector('[data-ir]').onclick = () => { cx.remove(); ALB.tab = 'pila'; albRender(); };
+      cx.querySelector('[data-ok]').onclick = () => { cx.remove(); albRender(); };
+    }, 850);
+  };
+}
+
+document.querySelectorAll('[data-tab="album"]').forEach(b => b.addEventListener('click', () => setTimeout(albAbrir, 30)));
+
 
 /* ---------- MINIJUEGO: SOPA GRILLERA ---------- */
 /* Frases escondidas: dichos, refranes y citas de dominio público. a = autor u origen (se muestra al revelarla) */
