@@ -2536,6 +2536,42 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
   .gl-marco-coleccionista{ animation:none; }
   .alb-rays,.alb-rc.shake .flip,.alb-slot.pegando .alb-card{ animation:none; }
 }
+/* ===== CARGA DE IMÁGENES PARA EL ÁLBUM ===== */
+#fa-raiz{ max-width:560px; margin:0 auto; }
+.fa-aviso{ background:var(--card); border:1px solid var(--line); border-left:4px solid var(--red); border-radius:10px; padding:13px 15px; margin-bottom:14px; box-shadow:var(--card-sombra); }
+.fa-aviso b{ font-family:'Special Elite',Georgia,serif; font-weight:400; font-size:18px; display:block; margin-bottom:5px; }
+.fa-aviso p{ margin:0 0 8px; font-size:14px; line-height:1.45; color:var(--text); }
+.fa-aviso ul{ margin:0 0 8px; padding-left:18px; font-size:13.5px; color:var(--text-dim); line-height:1.5; }
+.fa-aviso .fa-priv{ font-size:12.5px; color:var(--grass); font-weight:700; margin:0; }
+.fa-form{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; box-shadow:var(--card-sombra); display:flex; flex-direction:column; gap:8px; }
+.fa-lbl{ font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; font-weight:700; color:var(--text-dim); margin-top:4px; }
+.fa-form select,.fa-form input[type="text"],.fa-form #fa-coment{ width:100%; box-sizing:border-box; padding:9px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:16px; }
+.fa-drop{ display:flex; align-items:center; justify-content:center; min-height:84px; border:2px dashed var(--line-strong); border-radius:10px; background:var(--card2); cursor:pointer; font-weight:700; color:var(--text-dim); text-align:center; padding:10px; }
+.fa-drop:hover{ border-color:var(--red); color:var(--red); }
+.fa-previas{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.fa-previas:empty{ display:none; }
+.fa-prev{ position:relative; aspect-ratio:3/4; border-radius:8px; overflow:hidden; background:var(--card2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-dimmer); text-align:center; padding:4px; }
+.fa-prev img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.fa-prev button{ position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; border:0; background:rgba(0,0,0,.65); color:#fff; font-size:15px; line-height:26px; cursor:pointer; padding:0; z-index:2; }
+.fa-form .alb-btn.grande{ margin-top:8px; align-self:stretch; }
+.fa-estado{ font-size:13.5px; min-height:1.2em; text-align:center; }
+.fa-estado.ok{ color:var(--grass); font-weight:700; } .fa-estado.mal{ color:var(--red); font-weight:700; }
+.fa-lista{ display:flex; flex-direction:column; gap:6px; }
+.fa-fila{ display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:14px; }
+.fa-fila small{ color:var(--text-dimmer); display:block; font-size:12px; }
+.fa-tag{ font-size:11.5px; font-weight:800; border-radius:999px; padding:3px 9px; white-space:nowrap; border:1px solid var(--line-strong); color:var(--text-dim); }
+.fa-tag.usada{ border-color:var(--grass); color:var(--grass); } .fa-tag.descartada{ border-color:var(--red); color:var(--red); }
+.fa-admin{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.fa-item{ background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--card-sombra); display:flex; flex-direction:column; }
+.fa-item a.fa-img{ display:block; aspect-ratio:3/4; background:var(--card2); position:relative; }
+.fa-item a.fa-img img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.fa-item .fa-info{ padding:8px 9px; font-size:13px; line-height:1.3; flex:1; }
+.fa-item .fa-info b{ display:block; font-size:14px; }
+.fa-item .fa-info small{ color:var(--text-dimmer); display:block; }
+.fa-item .fa-info i{ display:block; margin-top:3px; color:var(--text-dim); font-size:12.5px; word-break:break-word; }
+.fa-item .fa-acc{ display:flex; flex-wrap:wrap; gap:5px; padding:0 9px 9px; }
+.fa-item .fa-acc .alb-btn{ padding:6px 9px; font-size:12px; flex:1; }
+@media (min-width:700px){ .fa-admin{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -2753,6 +2789,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
   <button class="tab-btn" data-tab="grillobot"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="14" r="1.2"/><circle cx="15" cy="14" r="1.2"/><path d="M2 13v3M22 13v3"/></svg><span>GrilloBOT</span></button>
   <button class="tab-btn" data-tab="minijuegos"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5.5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="15.5" cy="11.5" r="1"/><circle cx="18" cy="14" r="1"/></svg><span>Minijuegos</span></button>
   <button class="tab-btn" data-tab="album"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5C3 4.7 3.7 4 4.5 4H10c1.1 0 2 .9 2 2v14c0-1.1-.9-2-2-2H4.5c-.8 0-1.5-.7-1.5-1.5z"/><path d="M21 5.5c0-.8-.7-1.5-1.5-1.5H14c-1.1 0-2 .9-2 2v14c0-1.1.9-2 2-2h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg><span>Álbum GrilloLiga</span></button>
+  <button class="tab-btn" data-tab="fotosalbum"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Carga de imágenes para el álbum</span></button>
   <button class="tab-btn" data-tab="simulador"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 3 1.4 3.1L19.5 7.5l-3.1 1.4L15 12l-1.4-3.1-3.1-1.4 3.1-1.4z"/><path d="M4 20l8-8"/><path d="M19 15.5l.7 1.3 1.3.7-1.3.7-.7 1.3-.7-1.3-1.3-.7 1.3-.7z"/></svg><span>Simulador</span></button>
   <button class="tab-btn" data-tab="comparador"><svg class="gl-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7.5 21h9"/><path d="M4.5 7h15"/><path d="m5 7-3 6.5a3 3 0 0 0 6 0z"/><path d="m19 7-3 6.5a3 3 0 0 0 6 0z"/></svg><span>Comparar jugadores</span></button>
 </nav>
@@ -4092,6 +4129,13 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
       <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5C3 4.7 3.7 4 4.5 4H10c1.1 0 2 .9 2 2v14c0-1.1-.9-2-2-2H4.5c-.8 0-1.5-.7-1.5-1.5z"/><path d="M21 5.5c0-.8-.7-1.5-1.5-1.5H14c-1.1 0-2 .9-2 2v14c0-1.1.9-2 2-2h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg>Álbum GrilloLiga</h2>
     </div>
     <div id="alb-raiz"><div class="gl-vacio">Cargando el álbum…</div></div>
+  </section>
+
+  <section id="panel-fotosalbum" class="panel">
+    <div class="section-head">
+      <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>Carga de imágenes para el álbum</h2>
+    </div>
+    <div id="fa-raiz"><div class="gl-vacio">Cargando…</div></div>
   </section>
 
   <section id="panel-simulador" class="panel">
@@ -17216,7 +17260,7 @@ function albRender(pegando){
   const sinPegarN = new Set(albCopias().filter(c => !c.pegada && !albPegada(c.carta)).map(c => c.carta)).size;
   let h = '';
   if(!hab){
-    h += `<div class="alb-aviso-prox"><b>🃏 Próximamente</b><p>El álbum de figuritas de la Grillo Liga se habilita muy pronto: 2 sobres de bienvenida, un sobre gratis por día y otro por completar los juegos del día. Mientras tanto, podés hojearlo.</p>`
+    h += `<div class="alb-aviso-prox"><b>🃏 Próximamente</b><p>El álbum de figuritas de la Grillo Liga se habilita muy pronto: 2 sobres de bienvenida, un sobre gratis por día y otro por completar los juegos del día. Mientras tanto, podés hojearlo.</p><p style="margin-top:10px"><button class="alb-btn sec" id="alb-ir-fotos">📸 Mandá tu foto para el álbum</button></p>`
       + (e.es_grillo ? `<div class="alb-admin"><small>Solo vos ves esto. Al habilitarlo, cada usuario recibe sus 2 sobres de bienvenida al entrar.</small><button class="alb-btn" id="alb-habilitar">Habilitar álbum</button></div>` : '')
       + `</div>`;
   }
@@ -17231,6 +17275,8 @@ function albRender(pegando){
   albQ('#alb-raiz').querySelectorAll('[data-alb-tab]').forEach(b => b.addEventListener('click', () => { ALB.tab = b.dataset.albTab; albRender(); }));
   const hb = albQ('#alb-habilitar');
   if(hb) hb.addEventListener('click', albConfirmarHabilitar);
+  const irFotos = albQ('#alb-ir-fotos');
+  if(irFotos) irFotos.addEventListener('click', () => { document.querySelector('.tab-btn[data-tab="fotosalbum"]')?.click(); window.scrollTo({ top:0, behavior:'smooth' }); });
   if(ALB.tab === 'album') albRenderLibro(pegando);
   else if(!hab) albQ('#alb-vista').innerHTML = '<div class="alb-vacio">🔒 Se habilita muy pronto. Cuando esté abierto, acá vas a poder abrir sobres, pegar figuritas y cambiarlas.</div>';
   else if(ALB.tab === 'sobres') albRenderSobres();
@@ -17697,6 +17743,158 @@ function albHacerCambio(o){
 }
 
 document.querySelectorAll('[data-tab="album"]').forEach(b => b.addEventListener('click', () => setTimeout(albAbrir, 30)));
+
+/* ===================== CARGA DE IMÁGENES PARA EL ÁLBUM =====================
+   Los usuarios suben fotos a un depósito PRIVADO de Supabase (album-fotos), dentro de su propia carpeta.
+   Solo el usuario grillo puede verlas, descargarlas y marcarlas (lo controla el servidor, no la página). */
+const FA = { archivos:[], filtro:'pendiente', usuario:null };
+const FA_MAX = 3, FA_MAX_MB = 15;
+const FA_ESTADOS = { pendiente:'Pendiente de revisión', usada:'Usada en el álbum ✓', descartada:'Descartada' };
+function faJugadores(){
+  const nombres = ((typeof DATA !== 'undefined' && DATA && DATA.estadisticas) || []).map(r => r['Jugador']).filter(Boolean);
+  return [...new Set(nombres)].sort((a, b) => a.localeCompare(b, 'es'));
+}
+function faFecha(f){ const d = new Date(f); return d.toLocaleDateString('es-AR', { day:'numeric', month:'short' }) + ' ' + d.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' }); }
+function faExt(file){
+  const n = (file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+  const e = n ? n[1] : (file.type || '').split('/')[1] || 'jpg';
+  return e === 'jpeg' ? 'jpg' : e;
+}
+function faTipo(file){
+  if(file.type) return file.type;
+  const e = faExt(file);
+  return { heic:'image/heic', heif:'image/heif', png:'image/png', webp:'image/webp' }[e] || 'image/jpeg';
+}
+async function faAbrir(){
+  const raiz = document.getElementById('fa-raiz');
+  let user = null;
+  try{ ({ data:{ user } } = await sbClient.auth.getUser()); }catch(_){}
+  if(!user){ raiz.innerHTML = '<div class="gl-vacio">Iniciá sesión para mandar tu foto.</div>'; return; }
+  FA.usuario = user; FA.archivos = [];
+  const esGrillo = GL_USERNAME === 'grillo';
+  raiz.innerHTML = `
+    <div class="fa-aviso"><b>📸 Fotos para el Álbum Oficial</b>
+      <p>Se solicita a los participantes que envíen una foto de cuerpo completo jugando al fútbol, o de las rodillas para arriba, para sumarla al catálogo del álbum oficial de cartas coleccionables.</p>
+      <ul><li>Con buena luz y la cara bien visible.</li><li>En lo posible, foto vertical.</li><li>Foto original: nada de capturas de pantalla, recortes ni fotos de documentos.</li></ul>
+      <p class="fa-priv">🔒 Las fotos que subas solo las ve el administrador de la Grillo Liga.</p></div>
+    <div class="fa-form">
+      <label class="fa-lbl" for="fa-jugador">¿Quién aparece en la foto?</label>
+      <select id="fa-jugador"><option value="">Elegí el jugador…</option>${faJugadores().map(j => `<option value="${glEsc(j)}">${glEsc(j)}</option>`).join('')}<option value="Otro">Otro (lo aclaro en el comentario)</option></select>
+      <span class="fa-lbl">Fotos (hasta ${FA_MAX})</span>
+      <label class="fa-drop" for="fa-file"><span>📷 Tocá acá para elegir tus fotos</span></label>
+      <input type="file" id="fa-file" accept="image/*" multiple hidden>
+      <div class="fa-previas" id="fa-previas"></div>
+      <label class="fa-lbl" for="fa-coment">Comentario (opcional)</label>
+      <input type="text" id="fa-coment" maxlength="200" placeholder="Ej: la del gol en la final, para la Legendaria">
+      <button class="alb-btn grande" id="fa-enviar" disabled>Enviar fotos</button>
+      <div class="fa-estado" id="fa-estado" role="status"></div>
+    </div>
+    <h4 class="alb-h4">Tus envíos</h4><div id="fa-mios"><div class="gl-vacio">Cargando…</div></div>
+    ${esGrillo ? '<h4 class="alb-h4">Fotos recibidas · solo vos las ves</h4><div class="alb-chips" id="fa-filtros"></div><div id="fa-admin"><div class="gl-vacio">Cargando…</div></div>' : ''}`;
+  const sel = document.getElementById('fa-jugador'), inp = document.getElementById('fa-file');
+  const actualizarBoton = () => { document.getElementById('fa-enviar').disabled = !(sel.value && FA.archivos.length); };
+  sel.addEventListener('change', actualizarBoton);
+  inp.addEventListener('change', () => {
+    const est = document.getElementById('fa-estado'); est.className = 'fa-estado'; est.textContent = '';
+    for(const f of inp.files){
+      if(FA.archivos.length >= FA_MAX){ est.className = 'fa-estado mal'; est.textContent = `Máximo ${FA_MAX} fotos por envío.`; break; }
+      if(!/^image\//.test(f.type) && !/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name)){ est.className = 'fa-estado mal'; est.textContent = `"${f.name}" no es una imagen.`; continue; }
+      if(f.size > FA_MAX_MB * 1048576){ est.className = 'fa-estado mal'; est.textContent = `"${f.name}" pesa más de ${FA_MAX_MB} MB.`; continue; }
+      FA.archivos.push(f);
+    }
+    inp.value = '';
+    faPintarPrevias(); actualizarBoton();
+  });
+  document.getElementById('fa-enviar').addEventListener('click', faEnviar);
+  faCargarMios();
+  if(esGrillo) faCargarAdmin();
+}
+function faPintarPrevias(){
+  const cont = document.getElementById('fa-previas');
+  cont.querySelectorAll('img').forEach(i => URL.revokeObjectURL(i.src));
+  cont.innerHTML = FA.archivos.map((f, k) => `<div class="fa-prev"><span>${glEsc(f.name)}</span><img src="${URL.createObjectURL(f)}" alt="" onerror="this.remove()"><button data-quitar="${k}" aria-label="Quitar foto">×</button></div>`).join('');
+  cont.querySelectorAll('[data-quitar]').forEach(b => b.addEventListener('click', () => {
+    FA.archivos.splice(+b.dataset.quitar, 1); faPintarPrevias();
+    document.getElementById('fa-enviar').disabled = !(document.getElementById('fa-jugador').value && FA.archivos.length);
+  }));
+}
+async function faEnviar(){
+  const btn = document.getElementById('fa-enviar'), est = document.getElementById('fa-estado');
+  const jugador = document.getElementById('fa-jugador').value, comentario = document.getElementById('fa-coment').value.trim() || null;
+  if(!jugador || !FA.archivos.length) return;
+  btn.disabled = true;
+  let ok = 0;
+  for(let k = 0; k < FA.archivos.length; k++){
+    const f = FA.archivos[k];
+    est.className = 'fa-estado'; est.textContent = `Subiendo ${k + 1} de ${FA.archivos.length}…`;
+    const path = `${FA.usuario.id}/${Date.now()}-${k}.${faExt(f)}`;
+    const { error: e1 } = await sbClient.storage.from('album-fotos').upload(path, f, { contentType: faTipo(f), upsert:false });
+    if(e1){ est.className = 'fa-estado mal'; est.textContent = `No se pudo subir "${f.name}". Probá de nuevo o con otra foto.`; continue; }
+    const { error: e2 } = await sbClient.from('album_fotos_enviadas').insert({ jugador, comentario, path });
+    if(e2){ est.className = 'fa-estado mal'; est.textContent = 'La foto se subió pero no se pudo registrar. Avisale a grillo.'; continue; }
+    ok++;
+  }
+  if(ok){
+    FA.archivos = []; faPintarPrevias();
+    document.getElementById('fa-coment').value = '';
+    est.className = 'fa-estado ok'; est.textContent = `¡Gracias! Recibimos ${ok} foto${ok > 1 ? 's' : ''}. Grillo las va a revisar.`;
+    glToast('📸 ¡Foto enviada para el álbum!');
+    faCargarMios();
+    if(GL_USERNAME === 'grillo') faCargarAdmin();
+  }
+  btn.disabled = !(document.getElementById('fa-jugador').value && FA.archivos.length);
+}
+async function faCargarMios(){
+  const cont = document.getElementById('fa-mios');
+  if(!cont) return;
+  const { data, error } = await sbClient.from('album_fotos_enviadas').select('id, jugador, estado, creado_en').eq('usuario_id', FA.usuario.id).order('creado_en', { ascending:false });
+  if(error){ cont.innerHTML = '<div class="gl-vacio">No se pudieron cargar tus envíos.</div>'; return; }
+  cont.innerHTML = (data && data.length)
+    ? '<div class="fa-lista">' + data.map(x => `<div class="fa-fila"><span><b>${glEsc(x.jugador)}</b><small>${faFecha(x.creado_en)}</small></span><span class="fa-tag ${x.estado}">${FA_ESTADOS[x.estado] || x.estado}</span></div>`).join('') + '</div>'
+    : '<div class="gl-vacio">Todavía no mandaste fotos.</div>';
+}
+async function faCargarAdmin(){
+  const cont = document.getElementById('fa-admin'), fil = document.getElementById('fa-filtros');
+  if(!cont) return;
+  const { data, error } = await sbClient.from('album_fotos_enviadas').select('id, usuario_id, jugador, comentario, path, estado, creado_en').order('creado_en', { ascending:false });
+  if(error){ cont.innerHTML = '<div class="gl-vacio">No se pudieron cargar las fotos.</div>'; return; }
+  const todas = data || [];
+  const cuenta = k => todas.filter(x => k === 'todas' || x.estado === k).length;
+  fil.innerHTML = [['pendiente','Pendientes'],['usada','Usadas'],['descartada','Descartadas'],['todas','Todas']]
+    .map(([k, t]) => `<button data-fa-fil="${k}" aria-pressed="${FA.filtro === k}">${t} (${cuenta(k)})</button>`).join('');
+  fil.querySelectorAll('[data-fa-fil]').forEach(b => b.onclick = () => { FA.filtro = b.dataset.faFil; faCargarAdmin(); });
+  const lista = todas.filter(x => FA.filtro === 'todas' || x.estado === FA.filtro);
+  if(!lista.length){ cont.innerHTML = '<div class="gl-vacio">No hay fotos en esta categoría.</div>'; return; }
+  const ids = [...new Set(lista.map(x => x.usuario_id))];
+  const [{ data: perfiles }, { data: firmadas }] = await Promise.all([
+    sbClient.from('perfiles_usuario').select('id, username').in('id', ids),
+    sbClient.storage.from('album-fotos').createSignedUrls(lista.map(x => x.path), 3600)
+  ]);
+  const nombre = Object.fromEntries((perfiles || []).map(p => [p.id, p.username]));
+  const url = Object.fromEntries((firmadas || []).map(s => [s.path, s.signedUrl]));
+  cont.innerHTML = '<div class="fa-admin">' + lista.map(x => `<div class="fa-item">
+      <a class="fa-img" href="${glEsc(url[x.path] || '#')}" target="_blank" rel="noopener" aria-label="Ver foto en grande">${url[x.path] ? `<img src="${glEsc(url[x.path])}" alt="${glEsc(x.jugador)}" loading="lazy">` : ''}</a>
+      <div class="fa-info"><b>${glEsc(x.jugador)}</b><small>de ${glEsc(nombre[x.usuario_id] || 'usuario')} · ${faFecha(x.creado_en)}</small>${x.comentario ? `<i>"${glEsc(x.comentario)}"</i>` : ''}<span class="fa-tag ${x.estado}" style="display:inline-block;margin-top:5px">${FA_ESTADOS[x.estado]}</span></div>
+      <div class="fa-acc"><button class="alb-btn" data-fa-bajar="${x.id}">Descargar</button>
+        ${x.estado !== 'usada' ? `<button class="alb-btn sec" data-fa-estado="usada" data-id="${x.id}">Usada</button>` : ''}
+        ${x.estado !== 'descartada' ? `<button class="alb-btn sec" data-fa-estado="descartada" data-id="${x.id}">Descartar</button>` : ''}
+        ${x.estado !== 'pendiente' ? `<button class="alb-btn sec" data-fa-estado="pendiente" data-id="${x.id}">Volver a pendiente</button>` : ''}</div></div>`).join('') + '</div>';
+  cont.querySelectorAll('[data-fa-bajar]').forEach(b => b.onclick = async () => {
+    const x = lista.find(y => y.id === +b.dataset.faBajar);
+    const nombreArchivo = `${x.jugador.replace(/\s+/g, '_')}-${x.id}.${x.path.split('.').pop()}`;
+    const { data: s, error: e } = await sbClient.storage.from('album-fotos').createSignedUrl(x.path, 600, { download: nombreArchivo });
+    if(e || !s){ glToast('No se pudo descargar la foto.'); return; }
+    const a = document.createElement('a'); a.href = s.signedUrl; a.download = nombreArchivo; document.body.appendChild(a); a.click(); a.remove();
+  });
+  cont.querySelectorAll('[data-fa-estado]').forEach(b => b.onclick = async () => {
+    const { error: e } = await sbClient.from('album_fotos_enviadas').update({ estado: b.dataset.faEstado }).eq('id', +b.dataset.id);
+    if(e){ glToast('No se pudo actualizar.'); return; }
+    glToast(b.dataset.faEstado === 'usada' ? '✓ Marcada como usada' : b.dataset.faEstado === 'descartada' ? 'Foto descartada' : 'Volvió a pendientes');
+    faCargarAdmin();
+  });
+}
+document.querySelectorAll('[data-tab="fotosalbum"]').forEach(b => b.addEventListener('click', () => setTimeout(faAbrir, 30)));
+
 
 
 /* ---------- MINIJUEGO: SOPA GRILLERA ---------- */
