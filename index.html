@@ -2609,6 +2609,16 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
 .pub-jug{ display:flex; align-items:center; gap:8px; font-family:'Alegreya Sans',sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; }
 .pub-av{ width:28px; height:28px; border-radius:50%; object-fit:cover; flex:none; background:var(--card2); border:1px solid var(--line); display:inline-grid; place-items:center; font-size:11px; font-weight:800; color:var(--text-dim); }
 .pub-pie{ margin-top:16px; text-align:center; font-size:13px; color:var(--text-dimmer); }
+/* ===== EL GRILLO DICE + avisos ===== */
+.grillo-dice{ position:relative; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--grass); border-radius:14px; padding:12px 14px 12px 64px; margin-bottom:16px; box-shadow:var(--card-sombra); min-height:56px; }
+.grillo-dice .gd-ico{ position:absolute; left:12px; top:12px; width:40px; height:40px; border-radius:50%; background:color-mix(in srgb, var(--grass) 16%, var(--card)); display:grid; place-items:center; font-size:22px; }
+.grillo-dice .gd-tit{ font-family:'Special Elite',Georgia,serif; font-size:15px; color:var(--grass); display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.grillo-dice .gd-tit small{ font-family:'Alegreya Sans',sans-serif; font-size:11px; color:var(--text-dimmer); }
+.grillo-dice .gd-frase{ margin-top:4px; font-size:14.5px; line-height:1.45; color:var(--text); }
+.grillo-dice .gd-otra{ margin-top:6px; background:none; border:0; padding:0; color:var(--text-dimmer); font-size:12px; text-decoration:underline; cursor:pointer; font-family:'Alegreya Sans',sans-serif; }
+.notif-push{ margin:4px 0 10px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+.notif-push .cg-opcion{ width:100%; }
+.notif-push small{ display:block; margin-top:5px; font-size:11.5px; color:var(--text-dimmer); line-height:1.35; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -2744,6 +2754,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
       <div id="notif-dropdown" class="notif-dropdown" style="position:absolute; z-index:9001; top:60px; right:16px; max-width:320px; width:90vw;">
         <div class="auth-card" style="max-height:60vh; overflow-y:auto;">
           <h1 style="font-size:16px;">🔔 Notificaciones</h1>
+          <div class="notif-push" id="notif-push" style="display:none;"><button class="cg-opcion" id="notif-push-btn">🔔 Recibir avisos en el celular</button><small id="notif-push-nota">Te avisamos cuando te responden en el Foro, si estás por perder la racha y, con el Álbum, cuando te proponen un cambio.</small></div>
           <div id="notif-lista" style="margin-top:8px;"></div>
         </div>
       </div>
@@ -2869,6 +2880,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
       <h2><svg class="gl-ico sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6h12M8.5 12h12M8.5 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Resumen del torneo</span></h2>
     </div>
     <button class="auth-btn" id="instalar-app-btn" style="display:none; max-width:280px; margin:0 0 16px;">📱 Probá la APP Oficial para Celulares</button>
+    <div class="grillo-dice" id="grillo-dice" style="display:none;"></div>
     <div class="cumples-caja" id="cumples-caja" style="display:none;"></div>
     <div id="ios-instalar-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.55); align-items:center; justify-content:center;">
       <div class="auth-card" style="max-width:320px; text-align:center;">
@@ -17150,21 +17162,33 @@ async function ddRenderAviso(){
   const btn = document.getElementById('dd-aviso-btn'), nota = document.getElementById('dd-aviso-nota');
   if(!ddPushSoportado()){
     btn.style.display = 'none';
+    const caja = document.getElementById('notif-push');
+    if(caja){ caja.style.display = ''; document.getElementById('notif-push-btn').style.display = 'none';
+      document.getElementById('notif-push-nota').textContent = /iphone|ipad|ipod/i.test(navigator.userAgent) ? '🔔 Para recibir avisos en iPhone: Compartir → "Agregar a inicio" y abrí la app desde ahí.' : 'Este navegador no permite avisos en el celular.'; }
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     nota.textContent = ios ? '🔔 Para recibir el aviso de racha en iPhone: Compartir → "Agregar a inicio" y abrí la app desde ahí.' : '';
     return;
   }
   btn.style.display = '';
-  const sub = await ddSuscripcionActual();
+  const cajaP = document.getElementById('notif-push');
+  if(cajaP) cajaP.style.display = '';
+  let sub = null;
+  try{ sub = await ddSuscripcionActual(); }catch(e){}
   const activo = !!sub && Notification.permission === 'granted';
   btn.classList.toggle('activo', activo);
-  btn.textContent = activo ? '🔔 Aviso de racha activado (tocá para desactivar)' : '🔔 Avisarme a las 23:00 si estoy por perder la racha';
+  btn.textContent = activo ? '🔔 Avisos en el celular activados (tocá para desactivar)' : '🔔 Avisarme en el celular (racha de las 23:00, Foro y Álbum)';
+  const caja = document.getElementById('notif-push'), b2 = document.getElementById('notif-push-btn');
+  if(caja && b2){
+    caja.style.display = '';
+    b2.classList.toggle('activo', activo);
+    b2.textContent = activo ? '🔔 Avisos activados en este dispositivo (tocá para desactivar)' : '🔔 Recibir avisos en el celular';
+  }
   nota.textContent = Notification.permission === 'denied' ? 'Bloqueaste las notificaciones: habilitalas desde la configuración del navegador.' : '';
   document.getElementById('dd-aviso-prueba').style.display = activo && GL_USERNAME === 'grillo' ? '' : 'none';
 }
 async function ddToggleAviso(){
-  const btn = document.getElementById('dd-aviso-btn');
-  btn.disabled = true;
+  const btns = [document.getElementById('dd-aviso-btn'), document.getElementById('notif-push-btn')].filter(Boolean);
+  btns.forEach(b => b.disabled = true);
   try{
     const { data: { user } } = await sbClient.auth.getUser();
     if(!user){ glToast('Entrá con tu usuario para activar el aviso.'); return; }
@@ -17173,7 +17197,7 @@ async function ddToggleAviso(){
     if(actual && Notification.permission === 'granted'){
       await sbClient.from('push_suscripciones').delete().eq('endpoint', actual.endpoint);
       await actual.unsubscribe();
-      glToast('🔕 Aviso de racha desactivado');
+      glToast('🔕 Avisos desactivados en este dispositivo');
       return;
     }
     const permiso = await Notification.requestPermission();
@@ -17183,15 +17207,17 @@ async function ddToggleAviso(){
     await sbClient.from('push_suscripciones').delete().eq('endpoint', j.endpoint);
     const { error } = await sbClient.from('push_suscripciones').insert({ usuario_id:user.id, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth });
     if(error) throw error;
-    glToast('🔔 ¡Listo! Si a las 23:00 todavía no hiciste el diario, te aviso.');
+    glToast('🔔 ¡Listo! Te vamos a avisar en este dispositivo.');
   }catch(e){
     glToast('No se pudo activar el aviso: ' + (e.message || e));
   }finally{
-    btn.disabled = false;
+    btns.forEach(b => b.disabled = false);
     ddRenderAviso();
   }
 }
 document.getElementById('dd-aviso-btn').addEventListener('click', ddToggleAviso);
+document.getElementById('notif-push-btn').addEventListener('click', ddToggleAviso);
+document.getElementById('notif-campana-btn').addEventListener('click', () => setTimeout(ddRenderAviso, 50));
 document.getElementById('dd-aviso-prueba').addEventListener('click', async ()=>{
   const { data, error } = await sbClient.functions.invoke('recordatorio-racha', { body:{ prueba:true } });
   glToast(error ? 'Falló la prueba: ' + error.message : `📨 Aviso de prueba enviado a ${data && data.enviados || 0} dispositivo(s)`);
@@ -19628,6 +19654,81 @@ function jpDatosPersonalesHtml(nombre){
   if(apodos.length) html += `<div class="jp-apodos">También conocido como: ${apodos.map(a => `<b>${glEsc(a)}</b>`).join(' · ')}</div>`;
   return html;
 }
+/* ---------- EL GRILLO DICE: una frase por día con humor, armada con las estadísticas reales ----------
+   Cada día sale una distinta (misma para todos ese día). "Otra" muestra la siguiente. */
+function gdRachasActuales(nombre){
+  const m = playerMatches(nombre);
+  const contar = f => { let n = 0; for(let i = m.length - 1; i >= 0 && f(m[i]); i--) n++; return n; };
+  return { gana: contar(x => x.resultado === 'win'), pierde: contar(x => x.resultado === 'loss'), gol: contar(x => (x.goles || 0) > 0), ast: contar(x => (x.asistencias || 0) > 0) };
+}
+function gdElegir(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function gdFrases(){
+  const est = (DATA.estadisticas || []).filter(r => r['Jugador']);
+  const partidos = (DATA.partidos || []).slice().sort((a, b) => a.numero - b.numero);
+  const b = n => `<b>${glEsc(n)}</b>`;
+  const top = (campo, min = 0) => est.filter(r => (r['PJ'] || 0) >= min).slice().sort((x, y) => (y[campo] || 0) - (x[campo] || 0))[0];
+  const gens = [];
+  const ult = partidos[partidos.length - 1];
+  if(ult){
+    const o = ult.oscuro.goles, c = ult.claro.goles, dif = Math.abs(o - c);
+    const gano = o > c ? 'Oscuro' : 'Claro', perdio = o > c ? 'Claro' : 'Oscuro';
+    gens.push(() => o === c
+      ? gdElegir([`El partido #${ult.numero} terminó ${o} a ${c}. Nadie ganó, pero todos se fueron convencidos de que merecían ganar.`, `Empate ${o}-${c} en el #${ult.numero}. Paz y amor... hasta el próximo jueves.`])
+      : dif >= 5
+        ? gdElegir([`${gano} le metió ${Math.max(o, c)} a ${perdio} en el #${ult.numero}. A ${perdio} le están buscando el arquero todavía.`, `#${ult.numero}: ${gano} ${Math.max(o, c)}, ${perdio} ${Math.min(o, c)}. Hubo más goles que excusas, y eso que hubo muchas excusas.`])
+        : dif <= 1
+          ? gdElegir([`El #${ult.numero} se definió por un gol: ${gano} ${Math.max(o, c)}-${Math.min(o, c)}. Partido para infartados.`, `${gano} ganó el #${ult.numero} por la mínima. ${perdio} ya está pidiendo el VAR.`])
+          : gdElegir([`${gano} ganó el #${ult.numero} ${Math.max(o, c)} a ${Math.min(o, c)}. ${perdio}, a entrenar (o a cambiar de equipo).`]));
+    const figura = [...ult.oscuro.jugadores, ...ult.claro.jugadores].filter(j => j.jugador).sort((x, y) => (y.goles || 0) - (x.goles || 0))[0];
+    if(figura && figura.goles >= 3) gens.push(() => gdElegir([`${b(figura.jugador)} hizo ${figura.goles} goles en el #${ult.numero}. Dicen que el arco todavía tiembla.`, `${figura.goles} goles de ${b(figura.jugador)} en el último partido. Que alguien le revise los botines.`]));
+  }
+  const rachas = est.filter(r => (r['PJ'] || 0) >= 5).map(r => ({ n: r['Jugador'], ...gdRachasActuales(r['Jugador']) }));
+  const rg = rachas.sort((x, y) => y.gana - x.gana)[0];
+  if(rg && rg.gana >= 3) gens.push(() => gdElegir([`${b(rg.n)} lleva ${rg.gana} partidos seguidos ganando. Alguien que lo frene, por favor.`, `${rg.gana} victorias al hilo para ${b(rg.n)}. En el sorteo de equipos ya lo eligen primero.`]));
+  const rp = rachas.slice().sort((x, y) => y.pierde - x.pierde)[0];
+  if(rp && rp.pierde >= 3) gens.push(() => gdElegir([`${b(rp.n)} perdió los últimos ${rp.pierde}. Tranquilo, la camiseta no tiene la culpa.`, `${rp.pierde} derrotas seguidas para ${b(rp.n)}. La racha se corta... en algún momento.`]));
+  const rgol = rachas.slice().sort((x, y) => y.gol - x.gol)[0];
+  if(rgol && rgol.gol >= 3) gens.push(() => gdElegir([`${b(rgol.n)} metió gol en los últimos ${rgol.gol} partidos. Los arqueros ya lo tienen en las pesadillas.`, `${rgol.gol} partidos seguidos convirtiendo: ${b(rgol.n)} está en modo goleador.`]));
+  const gol = top('Goles');
+  if(gol) gens.push(() => gdElegir([`${b(gol['Jugador'])} es el máximo goleador de la Grillo Liga con ${gol['Goles']} goles. El resto, mirando de afuera.`, `${gol['Goles']} goles lleva ${b(gol['Jugador'])}. Si no la mete, se enoja.`]));
+  const ast = top('Ast');
+  if(ast) gens.push(() => gdElegir([`${b(ast['Jugador'])} lleva ${ast['Ast']} asistencias: reparte más pases que el cartero.`, `El que más asiste es ${b(ast['Jugador'])} (${ast['Ast']}). Generoso adentro de la cancha, de afuera no sabemos.`]));
+  const ht = top('Hat-tricks');
+  if(ht && ht['Hat-tricks'] >= 2) gens.push(() => `${b(ht['Jugador'])} ya hizo ${ht['Hat-tricks']} hat-tricks. Las pelotas del partido se las lleva a la casa.`);
+  const fiel = top('PJ');
+  if(fiel) gens.push(() => gdElegir([`${b(fiel['Jugador'])} jugó ${fiel['PJ']} partidos. No falta ni con fiebre.`, `${fiel['PJ']} partidos para ${b(fiel['Jugador'])}: el más fiel a la cancha.`]));
+  const pct = est.filter(r => (r['PJ'] || 0) >= 10).slice().sort((x, y) => (y['%PG'] || 0) - (x['%PG'] || 0));
+  if(pct.length){ const m = pct[0]; gens.push(() => `Con ${b(m['Jugador'])} el equipo gana el ${m['%PG']}% de las veces. Tenelo de tu lado en el sorteo.`); }
+  const maxG = est.slice().sort((x, y) => (y['Máx Goles'] || 0) - (x['Máx Goles'] || 0))[0];
+  if(maxG && maxG['Máx Goles'] >= 4) gens.push(() => `El récord de goles en un solo partido es de ${b(maxG['Jugador'])}: ${maxG['Máx Goles']}. ¿Quién se anima a romperlo?`);
+  est.forEach(r => {
+    const g = r['Goles'] || 0, meta = Math.ceil((g + 1) / 50) * 50, falta = meta - g;
+    if(g >= 30 && falta <= 4) gens.push(() => `A ${b(r['Jugador'])} le ${falta === 1 ? 'falta 1 gol' : `faltan ${falta} goles`} para llegar a ${meta}. Se viene el festejo.`);
+  });
+  if(partidos.length){
+    const tot = partidos.reduce((a, p) => a + (p.oscuro.goles || 0) + (p.claro.goles || 0), 0);
+    gens.push(() => `Ya van ${tot} goles en ${partidos.length} partidos de la Grillo Liga: ${(tot / partidos.length).toFixed(1).replace('.', ',')} por partido. Defensas, ¿están ahí?`);
+  }
+  return gens;
+}
+let gdIndice = 0, gdOrden = null;
+function renderGrilloDice(){
+  const cont = document.getElementById('grillo-dice');
+  if(!cont || !DATA || !DATA.estadisticas) return;
+  const gens = gdFrases();
+  if(!gens.length){ cont.style.display = 'none'; return; }
+  const hoy = cgFechaHoy();
+  if(!gdOrden){
+    // mismo orden para todos ese día (semilla = fecha)
+    gdOrden = cgConSeed('grillo-dice-' + hoy, () => gens.map((_, i) => i).sort(() => Math.random() - .5));
+  }
+  const i = gdOrden[gdIndice % gdOrden.length];
+  const frase = cgConSeed('grillo-dice-frase-' + hoy + '-' + i, () => gens[i % gens.length]());
+  cont.style.display = '';
+  cont.innerHTML = `<span class="gd-ico" aria-hidden="true">🦗</span><div class="gd-tit">El Grillo dice<small>${gdIndice ? 'otra más' : 'frase del día'}</small></div><div class="gd-frase">${frase}</div><button class="gd-otra" id="gd-otra">Otra frase</button>`;
+  document.getElementById('gd-otra').onclick = () => { gdIndice++; renderGrilloDice(); };
+}
+
 // tarjeta de Inicio: quién cumple hoy, o el próximo cumpleaños
 function renderCumples(){
   const cont = document.getElementById('cumples-caja');
@@ -19669,6 +19770,7 @@ function renderCumples(){
 }
 
 renderCumples();
+renderGrilloDice();
 
 let jpUltimoFestejado = null;
 function renderJugadorProfile(){
