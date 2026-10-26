@@ -2784,6 +2784,8 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
       <label class="pa-ancho">Título <small>(se le agrega la fecha adelante, como siempre)</small><input type="text" id="pa-titulo-txt" placeholder="CIRO IS BACK // CAMBIAR LA PELOTA POR UN GLOBO SALE MAL"></label>
       <div class="pa-ancho pa-preview" id="pa-preview"></div>
       <label class="pa-ancho">Link de YouTube <small>(opcional)</small><input type="url" id="pa-youtube" placeholder="https://www.youtube.com/watch?v=…"></label>
+      <label>Camiseta especial de Oscuro <small>(vacío = Oscuro normal)</small><input type="text" id="pa-color-oscuro" placeholder="ej: amarillo"></label>
+      <label>Camiseta especial de Claro <small>(vacío = Claro normal)</small><input type="text" id="pa-color-claro" placeholder="ej: amarillo"></label>
       <label class="pa-ancho">Nota para Históricos <small>(opcional: si la completás, el partido aparece en Históricos)</small><input type="text" id="pa-nota"></label>
     </div>
     <div class="pa-equipos">
@@ -3069,7 +3071,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
     </div>
     <div class="bot-intro">
       Preguntame por historiales, rachas, o por lo mejor y peor del torneo. Ejemplos:<br>
-      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "racha de Chiappe" · "tirame un dato curioso"
+      "¿Cómo es el historial de Leon vs Ciro?" · "¿Quién es el mejor jugador del torneo?" · "racha de Chiappe" · "¿cuántas veces jugó Valen en Claro?" · "tirame un dato curioso"
     </div>
     <div class="bot-chat" id="bot-chat"></div>
     <div class="bot-input-row">
@@ -4587,6 +4589,7 @@ async function cargarDatosDesdeSupabase(){
 
   const partidos = partR.data.map(p => ({
     numero: p.numero, titulo: p.titulo, nota: p.nota, youtube_url: p.youtube_url, fecha: p.fecha || null, id: p.id,
+    color_oscuro: p.color_oscuro || null, color_claro: p.color_claro || null,
     oscuro: { nombre:'OSCURO', goles: p.oscuro.goles, jugadores: p.oscuro.jugadores },
     claro: { nombre:'CLARO', goles: p.claro.goles, jugadores: p.claro.jugadores }
   }));
@@ -6262,6 +6265,8 @@ async function paAbrir(partido){
     document.getElementById('pa-titulo-txt').value = paSepararTitulo(partido.titulo);
     document.getElementById('pa-youtube').value = partido.youtube_url || '';
     document.getElementById('pa-nota').value = partido.nota || '';
+    document.getElementById('pa-color-oscuro').value = partido.color_oscuro || '';
+    document.getElementById('pa-color-claro').value = partido.color_claro || '';
     const { data } = await sbClient.from('participaciones').select('id, jugador_id, equipo, goles, asistencias, goles_en_contra_propios').eq('partido_id', partido.id);
     pa.existentes = data || [];
     pa.existentes.forEach(x => {
@@ -6279,7 +6284,7 @@ async function paAbrir(partido){
     document.getElementById('pa-titulo').textContent = 'Cargar partido nuevo';
     document.getElementById('pa-numero').value = Math.max(0, ...DATA.partidos.map(p => p.numero)) + 1;
     document.getElementById('pa-fecha').value = cgFechaHoy();
-    ['pa-titulo-txt','pa-youtube','pa-nota'].forEach(id => document.getElementById(id).value = '');
+    ['pa-titulo-txt','pa-youtube','pa-nota','pa-color-oscuro','pa-color-claro'].forEach(id => document.getElementById(id).value = '');
     for(let i = 0; i < 6; i++){ paAgregarFila('oscuro'); paAgregarFila('claro'); }
   }
   ['oscuro','claro'].forEach(eq => { if(!document.querySelector('#pa-filas-' + eq + ' .pa-fila')) paAgregarFila(eq); });
@@ -6316,7 +6321,8 @@ async function paGuardar(){
   err.textContent = '';
   btn.disabled = true; btn.textContent = '⏳ Guardando…';
   const datosPartido = { numero, titulo: paTituloCompleto(fecha, txt), fecha, nota: document.getElementById('pa-nota').value.trim() || null,
-    goles_oscuro: gO, goles_claro: gC, youtube_url: document.getElementById('pa-youtube').value.trim() || null };
+    goles_oscuro: gO, goles_claro: gC, youtube_url: document.getElementById('pa-youtube').value.trim() || null,
+    color_oscuro: document.getElementById('pa-color-oscuro').value.trim().toLowerCase() || null, color_claro: document.getElementById('pa-color-claro').value.trim().toLowerCase() || null };
   const filas = todos.map(x => ({ jugador_id: paIdDe(x.nombre), equipo: x.eq, goles: x.goles, asistencias: x.ast, goles_en_contra_propios: x.gc }));
   try{
     let pid;
@@ -7373,6 +7379,35 @@ function botDatoCurioso(){
 
 let botUltimoFueDatoCurioso = false;
 
+// Cuenta en qué equipo (Claro/Oscuro) jugó cada partido un jugador, separando las veces con camiseta de otro color
+function botColoresDeJugador(nombre){
+  const base = { oscuro:{pj:0,g:0,e:0,p:0}, claro:{pj:0,g:0,e:0,p:0} };
+  const especiales = {};
+  (DATA.partidos || []).forEach(pt => {
+    ['oscuro','claro'].forEach(lado => {
+      if(!(pt[lado].jugadores || []).some(j => j.jugador === nombre)) return;
+      const otro = lado === 'oscuro' ? 'claro' : 'oscuro';
+      const res = pt[lado].goles > pt[otro].goles ? 'g' : pt[lado].goles < pt[otro].goles ? 'p' : 'e';
+      base[lado].pj++; base[lado][res]++;
+      const color = pt['color_' + lado];
+      if(color){
+        const c = color.trim().toLowerCase();
+        (especiales[c] = especiales[c] || { lado, partidos:[] }).partidos.push(pt.numero);
+      }
+    });
+  });
+  const total = base.oscuro.pj + base.claro.pj;
+  if(!total) return `${nombre} todavía no jugó ningún partido en la GrilloLiga.`;
+  const det = b => `${b.pj} (${b.g}G ${b.e}E ${b.p}P)`;
+  let r = `${nombre} jugó ${total} partido${total===1?'':'s'}: ${det(base.oscuro)} en Oscuro y ${det(base.claro)} en Claro.`;
+  const esp = Object.entries(especiales);
+  if(esp.length){
+    r += ' Camisetas especiales: ' + esp.map(([c, x]) => `${x.partidos.length} vez${x.partidos.length===1?'':'es'} de ${c} (en lugar de ${x.lado === 'oscuro' ? 'Oscuro' : 'Claro'}; partido${x.partidos.length===1?'':'s'} ${x.partidos.map(n => '#' + n).join(', ')})`).join(' y ') + '.';
+  }
+  const pref = base.oscuro.pj === base.claro.pj ? '' : base.oscuro.pj > base.claro.pj ? ' Le tira más el Oscuro 🖤' : ' Le tira más el Claro 🤍';
+  return r + pref;
+}
+
 function responderPreguntaBot(texto){
   const normTexto = normalizarTexto(texto);
   const eraDatoCurioso = botUltimoFueDatoCurioso;
@@ -7393,6 +7428,12 @@ function responderPreguntaBot(texto){
       const r = jpCalcularRachas(matches);
       return `Rachas de ${jug[0]}: mejor racha ganando ${r.mejorRachaGan} partido${r.mejorRachaGan===1?'':'s'} seguido${r.mejorRachaGan===1?'':'s'}, peor racha perdiendo ${r.peorRachaPer} seguido${r.peorRachaPer===1?'':'s'}, racha marcando gol en ${r.mejorRachaGol} partido${r.mejorRachaGol===1?'':'s'} seguido${r.mejorRachaGol===1?'':'s'}, y dando asistencia en ${r.mejorRachaAst} seguido${r.mejorRachaAst===1?'':'s'}.`;
     }
+  }
+
+  // Caso -0.5c: cuántas veces jugó un jugador en Claro / Oscuro (y con camisetas especiales, ej. amarillo)
+  if((/\b(claro|oscuro|amarill\w*|camiseta\w*|colores?)\b/.test(normTexto) && /jug|veces|equipo|camiseta|color/.test(normTexto)) || /(en )?que equipo (jugo|juega) mas|en que equipos? jugo/.test(normTexto)){
+    const jug = extraerJugadoresDeTexto(texto);
+    if(jug.length >= 1) return botColoresDeJugador(jug[0]);
   }
 
   // Caso -0.5b: compañero o rival más frecuente de un jugador
