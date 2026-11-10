@@ -5425,11 +5425,21 @@ function renderRankingList(){
     nota.textContent = `${peores ? '💔' : '🤝'} Parejas que jugaron juntas en el mismo equipo al menos ${DUPLAS_MIN_PJ} partidos, ordenadas por ${peores ? 'MENOR' : 'mayor'} % de victorias.`;
     list.appendChild(nota);
   }
+  let descensoDesde = Infinity;
+  if(activeRanking === 'TABLA DE DESCENSOS' && block.rows.length){
+    const n = block.rows.length;
+    descensoDesde = n - 1;
+    if(n >= 2 && block.rows[n-1].PROMEDIO === block.rows[n-2].PROMEDIO) descensoDesde = n - 2;
+    const nota = document.createElement('div');
+    nota.className = 'rank-nota';
+    nota.textContent = '🔻 Desciende el último puesto (o los dos últimos si empatan en promedio). Promedio = (3×PG + PE) ÷ PJ, mínimo 5 PJ. Si dos jugadores empatan en promedio, ambos quedan en rojo; en la tabla se ubica más abajo quien jugó menos partidos (PJ).';
+    list.appendChild(nota);
+  }
   block.rows.forEach((row,i)=>{
     const div = document.createElement('div');
     let cls = 'rank-row';
     if(i===0) cls += ' top1'; else if(i===1) cls += ' top2'; else if(i===2) cls += ' top3';
-    if(activeRanking === 'TABLA DE DESCENSOS' && i >= block.rows.length - 3) cls += ' descenso';
+    if(i >= descensoDesde) cls += ' descenso';
     div.className = cls;
 
     let medal = (i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1));
