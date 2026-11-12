@@ -2584,7 +2584,10 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
 .fa-item .fa-acc .alb-btn{ padding:6px 9px; font-size:12px; flex:1; }
 @media (min-width:700px){ .fa-admin{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
 /* ===== ESTADÍSTICAS PÚBLICAS (sin cuenta) ===== */
-.auth-overlay{ flex-direction:column; gap:14px; overflow-y:auto; }
+.auth-overlay{ flex-direction:column; gap:14px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; justify-content:flex-start; align-items:center; padding:max(20px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px)); }
+/* margin:auto centra cuando sobra lugar y apoya arriba cuando no entra (evita que se corte el título en celulares chicos / con teclado) */
+.auth-overlay > .auth-card{ margin-top:auto; flex-shrink:0; }
+.auth-overlay > .pub-invita{ margin-bottom:auto; flex-shrink:0; }
 .pub-invita{ width:100%; max-width:360px; box-sizing:border-box; background:var(--card); border:1px dashed var(--line-strong); border-radius:var(--radius); padding:14px 16px; text-align:center; font-size:13.5px; line-height:1.45; color:var(--text-dim); }
 .pub-invita b{ color:var(--text); }
 .pub-invita .auth-btn{ margin:10px 0 6px; }
