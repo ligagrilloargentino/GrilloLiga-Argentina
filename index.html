@@ -1317,6 +1317,15 @@ tbody tr:hover td:first-child{background:rgba(169,122,42,0.13);}
 .pr-cabecera{ text-align:center; margin:4px 0 10px; }
 .pr-partido-num{ font-family:'Special Elite',monospace; font-size:18px; color:var(--red); }
 .pr-partido-titulo{ font-size:13px; color:var(--text-dim); font-style:italic; min-height:17px; }
+.pj-filtro{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 12px; }
+.pj-filtro-et{ font-size:12.5px; color:var(--text-dim); font-weight:700; margin-right:2px; }
+.pj-filtro button{ font-family:'Alegreya Sans',sans-serif; font-size:13px; font-weight:700; padding:6px 12px; border-radius:999px;
+  border:1px solid var(--line-strong); background:var(--card); color:var(--text-dim); cursor:pointer; min-height:34px; }
+.pj-filtro button.activo{ background:var(--red); border-color:var(--red); color:#fff; }
+@media (max-width:600px){ .pj-filtro{ flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; } .pj-filtro button{ flex:0 0 auto; } }
+.pr-nota-metrica{ text-align:center; font-size:12.5px; color:var(--text-dim); margin:0 0 10px; }
+.pr-nota-metrica:empty{ display:none; }
+.pr-vacio{ color:#B9B09A; text-align:center; padding:40px 12px; font-family:'Barlow Condensed',sans-serif; font-size:17px; letter-spacing:.5px; }
 .pr-tablero{ background:#10140D; border-radius:14px; padding:14px 14px 12px; box-shadow:inset 0 0 0 5px #1d2418, inset 0 0 0 7px #2e3a26; }
 .pr-cabecera{ text-align:center; margin:2px 0 12px; }
 .pr-marcador{ display:inline-flex; align-items:center; gap:10px; background:#070906; border:2px solid #2e3a26; border-radius:8px; padding:5px 14px; }
@@ -2666,6 +2675,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
     <div class="section-head"><h2>📊 Estadísticas generales</h2></div>
     <p class="pub-intro">Tabla de la Grillo Liga Argentina, torneo amateur de fútbol 2026: partidos jugados, ganados, goles, asistencias, hat-tricks y más de cada jugador. Tocá un título para ordenar.</p>
     <input type="search" class="pub-buscar" id="pub-buscar" placeholder="Buscar jugador…" aria-label="Buscar jugador">
+    <div class="pj-filtro" id="pub-minpj" role="group" aria-label="Mínimo de partidos jugados"></div>
     <div class="pub-tabla-wrap"><table class="pub-tabla" id="pub-tabla"><thead></thead><tbody><tr><td colspan="18">Cargando estadísticas…</td></tr></tbody></table></div>
     <p class="pub-pie">Con tu cuenta tenés rankings, partidos con video, perfiles de cada jugador, minijuegos, el Foro y el Álbum de figuritas. <a href="#" id="pub-crear2">Hacete la cuenta acá</a>.</p>
   </div>
@@ -2973,6 +2983,7 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="stats-search" placeholder="Buscar jugador…">
     </div>
+    <div class="pj-filtro" id="stats-minpj" role="group" aria-label="Mínimo de partidos jugados"></div>
     <div class="table-wrap">
       <table id="stats-table">
         <thead><tr id="stats-head"></tr></thead>
@@ -4641,6 +4652,16 @@ const RANKING_MIN_PJ = {
   'MENOS GOLES RECIBIDOS POR PARTIDO': 10,
   'TABLA DE DESCENSOS': 10
 };
+// Filtro de mínimo de partidos (Estadísticas): opciones Todos, 5+, 10+, ... hasta el máximo de PJ
+function pjFiltroOpciones(maxPj){
+  const ops = [0];
+  for(let n = 5; n <= maxPj; n += 5) ops.push(n);
+  return ops;
+}
+function pjFiltroHtml(maxPj, actual){
+  return '<span class="pj-filtro-et">Mínimo de partidos:</span>' + pjFiltroOpciones(maxPj).map(n =>
+    `<button type="button" data-minpj="${n}" class="${n === actual ? 'activo' : ''}" aria-pressed="${n === actual}">${n === 0 ? 'Todos' : n + '+'}</button>`).join('');
+}
 // Texto corto del mínimo para las tarjetas de Inicio
 function rankingMinTexto(k){
   if(RANKING_MIN_PJ[k]) return `Mín. ${RANKING_MIN_PJ[k]} PJ`;
@@ -5305,6 +5326,7 @@ const statHeaders = Object.keys(DATA.estadisticas[0]).filter(h => h !== 'N°');
 let statSortCol = 'PJ';
 let statSortDir = -1;
 let statSearch = '';
+let statMinPj = 0; // filtro de mínimo de partidos jugados (0 = todos)
 
 const statHeaderLabels = {
   'Goles Recibidos': 'Goles<br>Recibidos',
@@ -5344,13 +5366,17 @@ function renderStatsHead(){
 function renderStatsBody(){
   const tbody = document.getElementById('stats-body');
   tbody.innerHTML = '';
-  let rows = DATA.estadisticas.filter(r => r.Jugador.toLowerCase().includes(statSearch.toLowerCase()));
+  let rows = DATA.estadisticas.filter(r => r.Jugador.toLowerCase().includes(statSearch.toLowerCase()) && (r.PJ || 0) >= statMinPj);
   rows.sort((a,b)=>{
     let va = a[statSortCol], vb = b[statSortCol];
     if(typeof va === 'string') return va.localeCompare(vb) * statSortDir * -1;
     return ((va||0) - (vb||0)) * statSortDir;
   });
-  document.getElementById('stats-count').textContent = rows.length + ' jugadores';
+  document.getElementById('stats-count').textContent = rows.length + ' jugadores' + (statMinPj ? ` · ${statMinPj}+ PJ` : '');
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="${statHeaders.length}" style="text-align:center;">Ningún jugador cumple con ese filtro.</td></tr>`;
+    return;
+  }
   rows.forEach((r,i)=>{
     const tr = document.createElement('tr');
     let cells = '<td>'+r.Jugador+'</td>';
@@ -5371,6 +5397,18 @@ document.getElementById('stats-search').addEventListener('input', (e)=>{
   statSearch = e.target.value;
   renderStatsBody();
 });
+
+function renderStatsMinPj(){
+  const cont = document.getElementById('stats-minpj');
+  const maxPj = Math.max(0, ...DATA.estadisticas.map(r => r.PJ || 0));
+  cont.innerHTML = pjFiltroHtml(maxPj, statMinPj);
+  cont.querySelectorAll('[data-minpj]').forEach(b => b.addEventListener('click', ()=>{
+    statMinPj = Number(b.dataset.minpj);
+    renderStatsMinPj();
+    renderStatsBody();
+  }));
+}
+renderStatsMinPj();
 
 renderStatsHead();
 renderStatsBody();
@@ -5516,8 +5554,11 @@ const PR_METRICAS = {
   goles:{ label:'⚽ Goles', corto:'goles' },
   ast:{ label:'🧠 Asistencias', corto:'asist.' },
   pts:{ label:'🏆 Puntos', corto:'pts' },
-  pj:{ label:'👟 Partidos jugados', corto:'PJ' }
+  pj:{ label:'👟 Partidos jugados', corto:'PJ' },
+  def:{ label:'🛡️ Defensa', corto:'GR x P' }
 };
+// Defensa = promedio de goles recibidos por partido (menos es mejor), solo con un mínimo de PJ
+const PR_DEF_MIN_PJ = RANKING_MIN_PJ['MENOS GOLES RECIBIDOS POR PARTIDO'] || 10;
 const PR_TOP = 15, PR_ALTO_FILA = 38;
 const PR_COLOR_PODIO = ['#F2C14E', '#BFC3CA', '#C98A55'];
 let prMetrica = 'goles', prIdx = 0, prTimer = null, prFrames = null, prVelocidadMs = 1100;
@@ -5534,10 +5575,10 @@ function prCalcularFrames(){
       const vistos = new Set();
       (p[mio].jugadores || []).forEach(j=>{
         if(!j.jugador) return;
-        const a = acumulado[j.jugador] || (acumulado[j.jugador] = { goles:0, ast:0, pts:0, pj:0 });
+        const a = acumulado[j.jugador] || (acumulado[j.jugador] = { goles:0, ast:0, pts:0, pj:0, gr:0 });
         a.goles += j.goles || 0;
         a.ast += j.asistencias || 0;
-        if(!vistos.has(j.jugador)){ vistos.add(j.jugador); a.pj += 1; a.pts += pts; }
+        if(!vistos.has(j.jugador)){ vistos.add(j.jugador); a.pj += 1; a.pts += pts; a.gr += gc || 0; }
       });
     });
     const foto = {};
@@ -5556,8 +5597,9 @@ function prRenderizar(list){
     <div class="pr-wrap">
       <div class="rank-nota">🏁 Mirá cómo se fue armando cada tabla, partido a partido.</div>
       <div class="mg-toggle-row pr-metricas">
-        ${Object.entries(PR_METRICAS).map(([k,m])=>`<button class="mg-toggle ${k===prMetrica?'activo':''}" data-pr-metrica="${k}">${m.label}</button>`).join('')}
+        ${Object.entries(PR_METRICAS).map(([k,m])=>`<button class="mg-toggle ${k===prMetrica?'active':''}" data-pr-metrica="${k}">${m.label}</button>`).join('')}
       </div>
+      <div class="pr-nota-metrica" id="pr-nota-metrica"></div>
       <div class="pr-tablero">
         <div class="pr-cabecera">
           <div class="pr-marcador"><span class="pr-marcador-et">Partido</span><span class="pr-marcador-dig" id="pr-partido-num"></span></div>
@@ -5573,7 +5615,7 @@ function prRenderizar(list){
     </div>`;
   list.querySelectorAll('[data-pr-metrica]').forEach(b=> b.addEventListener('click', ()=>{
     prMetrica = b.dataset.prMetrica;
-    list.querySelectorAll('[data-pr-metrica]').forEach(x=> x.classList.toggle('activo', x === b));
+    list.querySelectorAll('[data-pr-metrica]').forEach(x=> x.classList.toggle('active', x === b));
     prPosAnterior = {};
     prDibujarFrame(true);
   }));
@@ -5609,10 +5651,11 @@ function prPausar(){
 }
 
 // número que "corre" desde el valor anterior hasta el nuevo, como un tablero
-function prContar(el, desde, hasta, sinAnimar){
-  if(sinAnimar || desde === null || desde === hasta || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent = hasta; return; }
+function prContar(el, desde, hasta, sinAnimar, decimales){
+  const fmt = v => decimales ? v.toFixed(decimales) : String(Math.round(v));
+  if(sinAnimar || desde === null || desde === hasta || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent = fmt(hasta); return; }
   const t0 = performance.now();
-  const paso = (t)=>{ const k = Math.min(1, (t - t0) / 500); el.textContent = Math.round(desde + (hasta - desde) * k); if(k < 1) requestAnimationFrame(paso); };
+  const paso = (t)=>{ const k = Math.min(1, (t - t0) / 500); el.textContent = fmt(desde + (hasta - desde) * k); if(k < 1) requestAnimationFrame(paso); };
   requestAnimationFrame(paso);
 }
 
@@ -5629,15 +5672,35 @@ function prDibujarFrame(sinAnimar){
   }
   const slider = document.getElementById('pr-slider');
   if(slider) slider.value = prIdx;
-  const orden = Object.entries(frame.datos)
-    .map(([nombre, v]) => ({ nombre, valor: v[prMetrica] }))
-    .filter(x => x.valor > 0)
-    .sort((a,b)=> b.valor - a.valor || a.nombre.localeCompare(b.nombre))
-    .slice(0, PR_TOP);
+  const esDef = prMetrica === 'def';
+  const nota = document.getElementById('pr-nota-metrica');
+  if(nota) nota.textContent = esDef ? `🛡️ Promedio de goles recibidos por partido: gana el que recibe MENOS. Solo entran jugadores con ${PR_DEF_MIN_PJ} partidos jugados (PJ) o más.` : '';
+  const orden = (esDef
+    ? Object.entries(frame.datos)
+        .filter(([, v]) => v.pj >= PR_DEF_MIN_PJ)
+        .map(([nombre, v]) => ({ nombre, valor: Math.round(v.gr / v.pj * 100) / 100, pj: v.pj }))
+        .sort((a,b)=> a.valor - b.valor || b.pj - a.pj || a.nombre.localeCompare(b.nombre))
+    : Object.entries(frame.datos)
+        .map(([nombre, v]) => ({ nombre, valor: v[prMetrica] }))
+        .filter(x => x.valor > 0)
+        .sort((a,b)=> b.valor - a.valor || a.nombre.localeCompare(b.nombre))
+  ).slice(0, PR_TOP);
   const max = orden.length ? orden[0].valor : 1;
+  // en Defensa la barra más larga es la del que MENOS recibe
+  // (escala entre el mejor y el peor del top, para que las diferencias chicas de promedio se noten)
+  const defMejor = orden.length ? orden[0].valor : 0, defPeor = orden.length ? orden[orden.length-1].valor : 0;
+  const ancho = x => esDef
+    ? (defPeor > defMejor ? 25 + 75 * (defPeor - x.valor) / (defPeor - defMejor) : 100)
+    : (x.valor / max) * 100;
+  let vacio = cont.querySelector('.pr-vacio');
+  if(!orden.length){
+    if(!vacio){ vacio = document.createElement('div'); vacio.className = 'pr-vacio'; cont.appendChild(vacio); }
+    vacio.textContent = esDef ? `Todavía nadie llegó a ${PR_DEF_MIN_PJ} partidos jugados. Seguí avanzando…` : 'Todavía no hay datos en este partido.';
+  } else if(vacio){ vacio.remove(); }
   const enTop = new Set(orden.map(x => x.nombre));
   // las barras que salen del top se desvanecen
   cont.querySelectorAll('.pr-barra').forEach(el=>{
+    if(sinAnimar) el.dataset.valor = ''; // al cambiar de métrica, el contador no arranca desde el valor de otra tabla
     if(!enTop.has(el.dataset.nombre)){ el.style.opacity = '0'; el.dataset.valor = ''; setTimeout(()=>{ if(el.style.opacity === '0') el.remove(); }, 500); }
   });
   const posNueva = {};
@@ -5670,10 +5733,10 @@ function prDibujarFrame(sinAnimar){
     el.classList.toggle('pr-lider', pos === 0);
     el.querySelector('.pr-barra-tag').style.background = PR_COLOR_PODIO[pos] || '#2e3a26';
     el.querySelector('.pr-barra-pos').textContent = pos + 1;
-    el.querySelector('.pr-barra-relleno').style.width = Math.max(2, (x.valor / max) * 100) + '%';
+    el.querySelector('.pr-barra-relleno').style.width = Math.max(2, ancho(x)) + '%';
     const anterior = el.dataset.valor === '' ? null : Number(el.dataset.valor);
     el.dataset.valor = x.valor;
-    prContar(el.querySelector('.pr-barra-valor'), anterior, x.valor, sinAnimar);
+    prContar(el.querySelector('.pr-barra-valor'), anterior, x.valor, sinAnimar, esDef ? 2 : 0);
     // destello cuando sube de puesto
     if(!sinAnimar && prPosAnterior[x.nombre] !== undefined && pos < prPosAnterior[x.nombre]){
       el.classList.remove('pr-destello'); void el.offsetWidth; el.classList.add('pr-destello');
@@ -20049,7 +20112,7 @@ renderJugadorProfile();
 const PUB_COLS = [['jugador','Jugador'],['pj','PJ'],['pg','PG'],['pe','PE'],['pp','PP'],['porcentaje_pg','%PG'],['goles','Goles'],['asistencias','Ast'],['goles_mas_asistencias','G+A'],
   ['goles_por_partido','Goles x P'],['asistencias_por_partido','Ast x P'],['goles_mas_asistencias_por_partido','G+A x P'],['hat_tricks','Hat tricks'],['max_goles','Máx goles'],['max_asistencias','Máx ast'],
   ['goles_recibidos','Goles recibidos'],['goles_recibidos_por_partido','Recibidos x P'],['debut','Debut']];
-const PUB = { datos:null, col:'pj', dir:-1, buscar:'' };
+const PUB = { datos:null, col:'pj', dir:-1, buscar:'', minpj:0 };
 const pubEsc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function pubCargar(){
   if(PUB.datos) return;
@@ -20062,7 +20125,10 @@ function pubRender(){
   if(!PUB.datos){ return; }
   t.querySelector('thead').innerHTML = '<tr>' + PUB_COLS.map(([k, n]) => `<th data-col="${k}" class="${PUB.col === k ? 'act' : ''}" scope="col">${n}${PUB.col === k ? (PUB.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`).join('') + '</tr>';
   const q = PUB.buscar.trim().toLowerCase();
-  const filas = PUB.datos.filter(r => !q || String(r.jugador).toLowerCase().includes(q)).slice().sort((a, b) => {
+  const fil = document.getElementById('pub-minpj');
+  fil.innerHTML = pjFiltroHtml(Math.max(0, ...PUB.datos.map(r => r.pj || 0)), PUB.minpj);
+  fil.querySelectorAll('[data-minpj]').forEach(b => b.onclick = () => { PUB.minpj = Number(b.dataset.minpj); pubRender(); });
+  const filas = PUB.datos.filter(r => (!q || String(r.jugador).toLowerCase().includes(q)) && (r.pj || 0) >= PUB.minpj).slice().sort((a, b) => {
     const x = a[PUB.col], y = b[PUB.col];
     if(typeof x === 'number' || typeof y === 'number') return ((Number(x) || 0) - (Number(y) || 0)) * PUB.dir;
     return String(x || '').localeCompare(String(y || ''), 'es') * PUB.dir;
@@ -20074,7 +20140,7 @@ function pubRender(){
       return `<td><span class="pub-jug">${foto}${pubEsc(r.jugador)}</span></td>`;
     }
     return `<td class="${k === 'debut' ? 'deb' : ''}">${pubEsc(r[k] == null ? '–' : r[k])}</td>`;
-  }).join('') + '</tr>').join('') : `<tr><td colspan="${PUB_COLS.length}">No hay jugadores con ese nombre.</td></tr>`;
+  }).join('') + '</tr>').join('') : `<tr><td colspan="${PUB_COLS.length}">Ningún jugador cumple con esa búsqueda o filtro.</td></tr>`;
   t.querySelectorAll('th[data-col]').forEach(th => th.onclick = () => {
     if(PUB.col === th.dataset.col) PUB.dir *= -1; else { PUB.col = th.dataset.col; PUB.dir = th.dataset.col === 'jugador' || th.dataset.col === 'debut' ? 1 : -1; }
     pubRender();
