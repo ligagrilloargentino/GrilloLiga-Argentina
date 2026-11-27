@@ -2148,8 +2148,76 @@ body.cg-teclado-on #cg-pista-btn, body.cg-teclado-on #cg-saltar-btn{ display:non
 .sg-ranking-tabs{ display:flex; gap:6px; margin-top:8px; }
 .sg-ranking-tabs .cg-opcion.activo{ border-color:var(--red); color:var(--red); font-weight:700; }
 /* comunicados: acciones de grillo */
-.com-acciones{ display:flex; gap:8px; margin-top:10px; }
+.com-acciones{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
 .com-acciones .com-borrar{ color:#B33B22; }
+/* ===== COMUNICADO OFICIAL (documento) ===== */
+.com-doc{ background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:var(--card-sombra); margin-bottom:18px; }
+.com-doc-cab{ position:relative; background:linear-gradient(180deg,#1C3526,#0F2018); color:#F0E7D2; padding:16px 20px 14px; border-top:6px solid #B33B22; }
+.com-doc-cab::after{ content:''; position:absolute; inset:0; background:repeating-linear-gradient(180deg, rgba(255,255,255,.025) 0 22px, transparent 22px 44px); pointer-events:none; }
+.com-doc-liga{ font-family:'Special Elite',monospace; font-size:17px; letter-spacing:1px; }
+.com-doc-liga b{ color:#D4AF37; font-weight:400; }
+.com-doc-meta{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:4px;
+  font-family:'Barlow Condensed','Alegreya Sans',sans-serif; font-weight:600; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(240,231,210,.72); }
+.com-doc-meta .com-doc-num{ color:#D4AF37; }
+.com-doc-cuerpo{ padding:18px 20px 6px; }
+.com-doc-tipo{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase;
+  color:var(--red); border:1.5px solid var(--red); border-radius:999px; padding:3px 11px; }
+.com-doc-titulo{ font-family:'Special Elite',Georgia,serif; font-weight:400; font-size:26px; line-height:1.15; color:var(--text); margin:10px 0 4px; text-wrap:balance; }
+.com-doc-bajada{ font-size:16px; font-style:italic; color:var(--text-dim); line-height:1.45; margin:0 0 12px; }
+.com-ficha{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin:12px 0 14px; }
+.com-ficha-item{ background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:8px 12px; }
+.com-ficha-item small{ display:block; font-size:10.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--text-dimmer); }
+.com-ficha-item span{ font-family:'Barlow Condensed','Alegreya Sans',sans-serif; font-weight:600; font-size:17px; color:var(--text); }
+.com-img{ margin:6px 0 14px; }
+.com-img img{ display:block; width:100%; max-height:420px; object-fit:contain; background:var(--card2); border-radius:10px; border:1px solid var(--line); }
+.com-img figcaption{ font-size:12.5px; color:var(--text-dimmer); text-align:center; margin-top:5px; font-style:italic; }
+.com-texto{ font-size:15.5px; line-height:1.55; color:var(--text); }
+.com-texto h4{ font-family:'Barlow Condensed','Alegreya Sans',sans-serif; font-weight:700; font-size:15px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--grass); margin:16px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--line); }
+.com-texto p{ margin:0 0 10px; }
+.com-texto ul{ margin:0 0 10px; padding:0; list-style:none; }
+.com-texto li{ position:relative; padding-left:20px; margin:4px 0; }
+.com-texto li::before{ content:''; position:absolute; left:4px; top:.62em; width:7px; height:7px; background:var(--red); transform:rotate(45deg); }
+.com-destacado{ display:flex; gap:10px; align-items:flex-start; margin:14px 0; padding:11px 14px; border-radius:10px;
+  background:color-mix(in srgb, #D4AF37 14%, var(--card)); border:1px solid color-mix(in srgb, #D4AF37 55%, transparent); font-weight:700; font-size:14.5px; color:var(--text); }
+.com-equipos-tit{ font-family:'Barlow Condensed','Alegreya Sans',sans-serif; font-weight:700; font-size:15px; letter-spacing:1.5px; text-transform:uppercase; color:var(--grass); margin:18px 0 8px; }
+.com-equipos{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin-bottom:12px; }
+.com-equipo{ border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--card); }
+.com-equipo-cab{ display:flex; align-items:center; gap:9px; padding:9px 12px; font-weight:800; font-size:15px; letter-spacing:.5px; text-transform:uppercase; }
+.com-equipo-punto{ width:16px; height:16px; border-radius:50%; flex:0 0 auto; box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25); }
+.com-equipo ul{ list-style:none; margin:0; padding:6px 12px 10px; }
+.com-equipo li{ display:flex; align-items:center; gap:8px; padding:4px 0; font-weight:600; font-size:14.5px; border-bottom:1px dashed var(--line); }
+.com-equipo li:last-child{ border-bottom:0; }
+.com-av{ width:26px; height:26px; border-radius:50%; object-fit:cover; flex:0 0 auto; background:var(--card2); display:inline-grid; place-items:center; font-size:10.5px; font-weight:800; color:var(--text-dim); border:1px solid var(--line); }
+.com-doc-pie{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 20px 16px; margin-top:6px; border-top:1px solid var(--line); flex-wrap:wrap; }
+.com-firma{ font-family:'Special Elite',Georgia,serif; font-size:15px; color:var(--text); line-height:1.3; }
+.com-firma small{ display:block; font-family:'Alegreya Sans',sans-serif; font-size:12px; color:var(--text-dimmer); }
+.com-sello{ width:74px; height:74px; flex:0 0 auto; color:var(--red); opacity:.88; transform:rotate(-8deg); }
+.com-doc-botones{ padding:0 20px 16px; display:flex; gap:8px; flex-wrap:wrap; }
+/* formulario de grillo */
+.com-form{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:20px; }
+.com-form h3{ margin:0 0 10px; font-family:'Special Elite',Georgia,serif; font-weight:400; color:var(--red); font-size:18px; }
+.com-form .auth-field{ margin-bottom:10px; }
+.com-form input[type=text], .com-form select, .com-form textarea{ width:100%; box-sizing:border-box; padding:9px 12px; border-radius:8px; border:1px solid var(--line-strong);
+  background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:16px; }
+.com-form textarea{ resize:vertical; }
+.com-form-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:0 10px; }
+.com-ayuda{ font-size:12px; color:var(--text-dimmer); margin:-4px 0 10px; line-height:1.4; }
+.com-ayuda code{ background:var(--card2); padding:0 4px; border-radius:4px; }
+.com-form-sec{ font-weight:800; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); margin:14px 0 8px; padding-top:10px; border-top:1px dashed var(--line); }
+.com-eq-edit{ border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px; background:var(--card2); }
+.com-eq-edit-fila{ display:flex; gap:8px; margin-bottom:8px; }
+.com-eq-edit-fila select{ flex:0 0 140px; }
+.com-img-prev{ display:flex; align-items:center; gap:10px; margin:-2px 0 10px; font-size:13px; color:var(--text-dim); }
+.com-img-prev img{ width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+.com-preview-tit{ font-weight:800; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dimmer); margin:16px 0 8px; }
+.com-preview{ pointer-events:none; }
+@media (max-width:600px){
+  .com-doc-cab, .com-doc-cuerpo{ padding-left:14px; padding-right:14px; }
+  .com-doc-titulo{ font-size:22px; }
+  .com-doc-pie, .com-doc-botones{ padding-left:14px; padding-right:14px; }
+  .com-sello{ width:60px; height:60px; }
+}
 /* aviso visible para vincular con Google (solo cuentas sin Google) */
 .gl-aviso-google{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:0 0 18px; padding:14px 16px;
   background:var(--card); border:1px solid var(--line); border-left:4px solid #4285F4; border-radius:10px; box-shadow:var(--card-sombra); }
@@ -3086,12 +3154,36 @@ body.tema-oscuro #panel-album{ --hoja:#2a231b; --hoja-dorso:#231d16; --hoja-bord
     </div>
     <div class="gd-intro">Anuncios de la organización de la Grillo Liga.</div>
 
-    <div id="com-publicar-wrap" style="display:none; margin-bottom:20px;">
-      <div class="auth-field"><label>Título</label><input type="text" id="com-titulo-input" placeholder="Título del comunicado"></div>
-      <div class="auth-field"><label>Contenido</label><textarea id="com-contenido-input" rows="4" style="width:100%; box-sizing:border-box; padding:9px 12px; border-radius:8px; border:1px solid var(--line-strong); background:var(--card); color:var(--text); font-family:'Alegreya Sans',sans-serif; font-size:13px;" placeholder="Escribí el comunicado…"></textarea></div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <button class="auth-btn" id="com-publicar-btn" style="max-width:200px; margin:0;">Publicar comunicado</button>
-        <button class="gag-despues" id="com-cancelar-edicion" style="display:none;">Cancelar edición</button>
+    <div id="com-publicar-wrap" class="com-form" style="display:none;">
+      <h3 id="com-form-titulo">📢 Nuevo comunicado oficial</h3>
+      <div class="com-form-grid">
+        <div class="auth-field"><label>Tipo</label><select id="com-tipo"></select></div>
+        <div class="auth-field" style="grid-column:span 2;"><label>Título</label><input type="text" id="com-titulo-input" placeholder="Ej: Copa Triangular Grillo"></div>
+      </div>
+      <div class="auth-field"><label>Bajada (opcional)</label><input type="text" id="com-bajada" placeholder="Una línea que resuma el comunicado"></div>
+      <div class="com-form-sec">Ficha (opcional)</div>
+      <div class="com-form-grid">
+        <div class="auth-field"><label>📅 Fecha</label><input type="text" id="com-f-fecha" placeholder="Jueves 3 de diciembre"></div>
+        <div class="auth-field"><label>🕙 Horario</label><input type="text" id="com-f-hora" placeholder="22 a 00 h"></div>
+        <div class="auth-field"><label>📍 Lugar</label><input type="text" id="com-f-lugar" placeholder="Cancha"></div>
+        <div class="auth-field"><label>💵 Precio</label><input type="text" id="com-f-precio" placeholder="$10.000 c/u"></div>
+      </div>
+      <div class="com-form-sec">Texto</div>
+      <div class="auth-field"><textarea id="com-contenido-input" rows="9" placeholder="## Formato&#10;• Partidos de 10 minutos o 2 goles&#10;• …"></textarea></div>
+      <div class="com-ayuda">Escribí <code>## Subtítulo</code> para abrir una sección, empezá la línea con <code>•</code> o <code>-</code> para una viñeta, y usá <code>**texto**</code> para negrita.</div>
+      <div class="auth-field"><label>⭐ Destacado (opcional)</label><input type="text" id="com-destacado" placeholder="Ej: No cuenta para las estadísticas generales"></div>
+      <div class="com-form-sec">Imagen (opcional)</div>
+      <div class="auth-field"><input type="file" id="com-img-input" accept="image/*"></div>
+      <div class="com-img-prev" id="com-img-prev" style="display:none;"><img alt=""><button type="button" class="gag-despues" id="com-img-quitar">Quitar imagen</button></div>
+      <div class="auth-field"><label>Epígrafe de la imagen (opcional)</label><input type="text" id="com-epigrafe" placeholder="Ej: El short que se lleva el goleador"></div>
+      <div class="com-form-sec">Equipos (opcional)</div>
+      <div id="com-eq-lista"></div>
+      <button type="button" class="gl-share-btn" id="com-eq-agregar">➕ Agregar equipo</button>
+      <div class="com-preview-tit">Vista previa</div>
+      <div class="com-preview" id="com-preview"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:6px;">
+        <button class="auth-btn" id="com-publicar-btn" style="max-width:220px; margin:0;">Publicar comunicado</button>
+        <button class="gag-despues" id="com-cancelar-edicion" style="display:none;">Cancelar</button>
       </div>
     </div>
 
@@ -19245,10 +19337,117 @@ sgInstalarPuntero();
 setTimeout(ddActualizar, 2500);
 
 
-/* ---------- COMUNICADOS OFICIALES (solo "grillo" publica, edita y borra; la base lo controla también) ---------- */
+/* ---------- COMUNICADOS OFICIALES (solo "grillo" publica, edita y borra; la base lo controla también) ----------
+   Formato oficial: el comunicado se guarda en la misma columna "contenido" de siempre. Arriba va el texto plano
+   (legible en cualquier lado) y, después de la marca COM_MARCA, los datos estructurados en JSON (tipo, ficha, imagen,
+   equipos…). Así no hizo falta cambiar la base y los comunicados viejos (solo texto) se siguen viendo bien. */
+const COM_MARCA = '\n\n[[GLCOM]]';
+const COM_TIPOS = {
+  anuncio:{ label:'Anuncio', ico:'📢' },
+  torneo:{ label:'Torneo', ico:'🏆' },
+  equipos:{ label:'Equipos confirmados', ico:'👥' },
+  reglamento:{ label:'Reglamento', ico:'📜' },
+  aviso:{ label:'Aviso', ico:'⚠️' }
+};
+const COM_COLORES = {
+  blanco:{ n:'Blanco', hex:'#F4F1EA', txt:'#161310' }, negro:{ n:'Negro', hex:'#1E1B17', txt:'#F0E7D2' },
+  rojo:{ n:'Rojo', hex:'#B33B22', txt:'#fff' }, azul:{ n:'Azul', hex:'#2B5BA8', txt:'#fff' },
+  verde:{ n:'Verde', hex:'#3E7A45', txt:'#fff' }, amarillo:{ n:'Amarillo', hex:'#E3B23C', txt:'#161310' },
+  naranja:{ n:'Naranja', hex:'#E07A2E', txt:'#161310' }, celeste:{ n:'Celeste', hex:'#6CB4E4', txt:'#161310' },
+  violeta:{ n:'Violeta', hex:'#6E4A9E', txt:'#fff' }, gris:{ n:'Gris', hex:'#8A8A8A', txt:'#161310' }
+};
+const COM_FIRMA = 'La Organización · Grillo Liga';
 let comEditandoId = null;
 let comCache = [];
+let comImagenActual = '';   // dataURL de la imagen del formulario
+let comEquiposForm = [];    // [{ color, nombre, jugadores:'texto' }]
 function comEsc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function comParsear(c){
+  const txt = String(c.contenido || '');
+  const k = txt.indexOf(COM_MARCA);
+  if(k >= 0){
+    try{ const d = JSON.parse(txt.slice(k + COM_MARCA.length)); return Object.assign({ tipo:'anuncio', ficha:{}, equipos:[] }, d, { titulo:c.titulo }); }catch(e){}
+  }
+  return { v:0, tipo:'anuncio', titulo:c.titulo, cuerpo:txt, ficha:{}, equipos:[] };
+}
+function comTextoPlano(d){
+  const f = d.ficha || {};
+  const partes = [];
+  if(d.bajada) partes.push(d.bajada);
+  const ficha = [f.fecha && '📅 ' + f.fecha, f.hora && '🕙 ' + f.hora, f.lugar && '📍 ' + f.lugar, f.precio && '💵 ' + f.precio].filter(Boolean);
+  if(ficha.length) partes.push(ficha.join(' · '));
+  if(d.cuerpo) partes.push(d.cuerpo.replace(/^##\s*/gm, '').replace(/\*\*/g, ''));
+  if(d.destacado) partes.push('⭐ ' + d.destacado);
+  (d.equipos || []).forEach(e => partes.push(`${(COM_COLORES[e.color]||{}).n || ''}${e.nombre ? ' — ' + e.nombre : ''}: ${(e.jugadores||[]).join(', ')}`));
+  return partes.join('\n\n');
+}
+function comSerializar(d){
+  const datos = { v:1, tipo:d.tipo, bajada:d.bajada, ficha:d.ficha, cuerpo:d.cuerpo, destacado:d.destacado, imagen:d.imagen, epigrafe:d.epigrafe, equipos:d.equipos };
+  return comTextoPlano(d) + COM_MARCA + JSON.stringify(datos);
+}
+function comInline(t){ return comEsc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+function comCuerpoHtml(cuerpo){
+  const lineas = String(cuerpo || '').split('\n');
+  let html = '', enLista = false, parrafo = [];
+  const cerrarP = ()=>{ if(parrafo.length){ html += `<p>${parrafo.map(comInline).join('<br>')}</p>`; parrafo = []; } };
+  const cerrarL = ()=>{ if(enLista){ html += '</ul>'; enLista = false; } };
+  lineas.forEach(l => {
+    const t = l.trim();
+    if(!t){ cerrarP(); cerrarL(); return; }
+    if(/^##\s*/.test(t)){ cerrarP(); cerrarL(); html += `<h4>${comInline(t.replace(/^##\s*/, ''))}</h4>`; return; }
+    if(/^[•\-\*·]\s+/.test(t)){ cerrarP(); if(!enLista){ html += '<ul>'; enLista = true; } html += `<li>${comInline(t.replace(/^[•\-\*·]\s+/, ''))}</li>`; return; }
+    cerrarL(); parrafo.push(t);
+  });
+  cerrarP(); cerrarL();
+  return html;
+}
+function comFotoJugador(nombre){
+  const fotos = (typeof FOTOS_JUGADORES_REMOTAS !== 'undefined' && FOTOS_JUGADORES_REMOTAS) || {};
+  const ini = comEsc(String(nombre).split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase());
+  return fotos[nombre] ? `<img class="com-av" src="${comEsc(fotos[nombre])}" alt="" loading="lazy">` : `<span class="com-av">${ini}</span>`;
+}
+const COM_SELLO = `<svg class="com-sello" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="com-sello-c" d="M50,50 m-36,0 a36,36 0 1,1 72,0 a36,36 0 1,1 -72,0"/></defs>
+  <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="50" cy="50" r="27" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text font-family="'Special Elite',monospace" font-size="9.6" fill="currentColor" letter-spacing="1"><textPath href="#com-sello-c" textLength="222" lengthAdjust="spacingAndGlyphs">★ GRILLO LIGA ★ COMUNICADO OFICIAL </textPath></text>
+  <text x="50" y="49" text-anchor="middle" font-family="'Special Elite',monospace" font-size="17" fill="currentColor">GL</text>
+  <text x="50" y="63" text-anchor="middle" font-family="'Special Elite',monospace" font-size="9" fill="currentColor">2026</text></svg>`;
+function comFechaLarga(iso){
+  try{ return new Date(iso).toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' }); }catch(e){ return ''; }
+}
+function comDocHtml(d, meta){
+  const tipo = COM_TIPOS[d.tipo] || COM_TIPOS.anuncio;
+  const f = d.ficha || {};
+  const ficha = [['📅 Fecha', f.fecha], ['🕙 Horario', f.hora], ['📍 Lugar', f.lugar], ['💵 Precio', f.precio]].filter(x => x[1]);
+  const equipos = (d.equipos || []).filter(e => e && (e.jugadores || []).length);
+  return `
+    <article class="com-doc">
+      <header class="com-doc-cab">
+        <div class="com-doc-liga">GRILLOLIGA <b>ARGENTINA</b></div>
+        <div class="com-doc-meta"><span class="com-doc-num">Comunicado oficial N° ${String(meta.numero || 0).padStart(3, '0')}</span><span>${comEsc(meta.fecha || '')}</span></div>
+      </header>
+      <div class="com-doc-cuerpo">
+        <span class="com-doc-tipo">${tipo.ico} ${comEsc(tipo.label)}</span>
+        <h3 class="com-doc-titulo">${comEsc(d.titulo || 'Sin título')}</h3>
+        ${d.bajada ? `<p class="com-doc-bajada">${comEsc(d.bajada)}</p>` : ''}
+        ${ficha.length ? `<div class="com-ficha">${ficha.map(([k, v]) => `<div class="com-ficha-item"><small>${k}</small><span>${comEsc(v)}</span></div>`).join('')}</div>` : ''}
+        ${d.imagen ? `<figure class="com-img"><img src="${comEsc(d.imagen)}" alt="${comEsc(d.epigrafe || 'Imagen del comunicado')}">${d.epigrafe ? `<figcaption>${comEsc(d.epigrafe)}</figcaption>` : ''}</figure>` : ''}
+        <div class="com-texto">${comCuerpoHtml(d.cuerpo)}</div>
+        ${d.destacado ? `<div class="com-destacado"><span>⭐</span><span>${comEsc(d.destacado)}</span></div>` : ''}
+        ${equipos.length ? `<div class="com-equipos-tit">Equipos</div><div class="com-equipos">${equipos.map(e => {
+          const col = COM_COLORES[e.color] || COM_COLORES.gris;
+          return `<div class="com-equipo"><div class="com-equipo-cab" style="background:${col.hex}; color:${col.txt};"><span class="com-equipo-punto" style="background:${col.hex};"></span>Equipo ${comEsc(col.n)}${e.nombre ? ' · ' + comEsc(e.nombre) : ''}</div>
+            <ul>${e.jugadores.map(n => `<li>${comFotoJugador(n)}${comEsc(n)}</li>`).join('')}</ul></div>`;
+        }).join('')}</div>` : ''}
+      </div>
+      <footer class="com-doc-pie">
+        <div class="com-firma">${COM_FIRMA}<small>${meta.editado ? 'Actualizado el ' + comEsc(meta.editado) : 'Comunicado oficial de la liga'}</small></div>
+        ${COM_SELLO}
+      </footer>
+      ${meta.botones || ''}
+    </article>`;
+}
+
 async function cargarComunicados(){
   const cont = document.getElementById('com-lista');
   cont.innerHTML = '<div class="cz-online-esperando">Cargando…</div>';
@@ -19258,19 +19457,28 @@ async function cargarComunicados(){
   ]);
   const esGrillo = !!(user && glUsernameDe(user) === 'grillo');
   comCache = data || [];
-  cont.innerHTML = comCache.length
-    ? comCache.map(c => `
-      <div class="cg-pistas-col" style="margin-bottom:12px;">
-        <div class="gd-pista-titulo">${comEsc(c.titulo)}</div>
-        <div class="gd-intro" style="margin-top:6px; white-space:pre-wrap;">${comEsc(c.contenido)}</div>
-        <div style="font-size:11px; color:var(--text-dimmer); margin-top:8px;">${formatearFechaForo(c.creado_en)}${(esGrillo && c.editado_en) ? ' · editado ' + formatearFechaForo(c.editado_en) : ''}</div>
-        ${esGrillo ? `<div class="com-acciones">
-          <button class="gl-share-btn" data-com-editar="${c.id}">✏️ Editar</button>
-          <button class="gl-share-btn com-borrar" data-com-borrar="${c.id}">🗑️ Eliminar</button>
-        </div>` : ''}
-      </div>`).join('')
+  const total = comCache.length;
+  cont.innerHTML = total
+    ? comCache.map((c, i) => comDocHtml(comParsear(c), {
+        numero: total - i,
+        fecha: comFechaLarga(c.creado_en),
+        editado: (esGrillo && c.editado_en) ? comFechaLarga(c.editado_en) : '',
+        botones: `<div class="com-doc-botones">
+            <button class="gl-share-btn" data-com-placa="${c.id}" data-formato="cuadrada">🖼️ Placa para el grupo</button>
+            <button class="gl-share-btn" data-com-placa="${c.id}" data-formato="historia">📱 Placa para historia</button>
+            ${esGrillo ? `<button class="gl-share-btn" data-com-editar="${c.id}">✏️ Editar</button>
+            <button class="gl-share-btn" data-com-duplicar="${c.id}">📄 Duplicar</button>
+            <button class="gl-share-btn com-borrar" data-com-borrar="${c.id}">🗑️ Eliminar</button>` : ''}
+          </div>`
+      })).join('')
     : '<div class="cz-online-esperando gl-vacio">Todavía no hay comunicados publicados.</div>';
-  cont.querySelectorAll('[data-com-editar]').forEach(b => b.addEventListener('click', ()=> comEmpezarEdicion(Number(b.dataset.comEditar))));
+  cont.querySelectorAll('[data-com-editar]').forEach(b => b.addEventListener('click', ()=> comEmpezarEdicion(Number(b.dataset.comEditar), false)));
+  cont.querySelectorAll('[data-com-duplicar]').forEach(b => b.addEventListener('click', ()=> comEmpezarEdicion(Number(b.dataset.comDuplicar), true)));
+  cont.querySelectorAll('[data-com-placa]').forEach(b => b.addEventListener('click', ()=>{
+    const idx = comCache.findIndex(x => x.id === Number(b.dataset.comPlaca));
+    if(idx < 0) return;
+    comPlacaCompartir(comParsear(comCache[idx]), { numero: total - idx, fecha: comFechaLarga(comCache[idx].creado_en) }, b.dataset.formato, b);
+  }));
   cont.querySelectorAll('[data-com-borrar]').forEach(b => b.addEventListener('click', async ()=>{
     const c = comCache.find(x => x.id === Number(b.dataset.comBorrar));
     if(!c || !confirm(`¿Eliminar el comunicado "${c.titulo}"? No se puede deshacer.`)) return;
@@ -19281,29 +19489,122 @@ async function cargarComunicados(){
     cargarComunicados();
   }));
 }
-function comEmpezarEdicion(id){
+
+/* --- formulario --- */
+function comLeerForm(){
+  const v = id => document.getElementById(id).value.trim();
+  return {
+    tipo: v('com-tipo') || 'anuncio', titulo: v('com-titulo-input'), bajada: v('com-bajada'),
+    ficha: { fecha: v('com-f-fecha'), hora: v('com-f-hora'), lugar: v('com-f-lugar'), precio: v('com-f-precio') },
+    cuerpo: document.getElementById('com-contenido-input').value.replace(/\s+$/, ''),
+    destacado: v('com-destacado'), imagen: comImagenActual || '', epigrafe: v('com-epigrafe'),
+    equipos: comEquiposForm.map(e => ({ color:e.color, nombre:(e.nombre||'').trim(), jugadores:String(e.jugadores||'').split('\n').map(x => x.trim()).filter(Boolean) }))
+                           .filter(e => e.jugadores.length)
+  };
+}
+function comPrevisualizar(){
+  const d = comLeerForm();
+  const numero = comEditandoId ? comCache.length - comCache.findIndex(x => x.id === comEditandoId) : comCache.length + 1;
+  document.getElementById('com-preview').innerHTML = comDocHtml(d, { numero, fecha: comFechaLarga(new Date().toISOString()) });
+}
+function comRenderEquiposForm(){
+  const cont = document.getElementById('com-eq-lista');
+  const opciones = sel => Object.entries(COM_COLORES).map(([k, c]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${c.n}</option>`).join('');
+  cont.innerHTML = comEquiposForm.map((e, i) => `
+    <div class="com-eq-edit">
+      <div class="com-eq-edit-fila">
+        <select data-eq-color="${i}" aria-label="Color del equipo">${opciones(e.color)}</select>
+        <input type="text" data-eq-nombre="${i}" placeholder="Nombre (opcional)" value="${comEsc(e.nombre || '')}">
+      </div>
+      <textarea data-eq-jug="${i}" rows="4" placeholder="Un jugador por línea">${comEsc(e.jugadores || '')}</textarea>
+      <button type="button" class="gag-despues" data-eq-quitar="${i}" style="margin-top:6px;">Quitar equipo</button>
+    </div>`).join('');
+  cont.querySelectorAll('[data-eq-color]').forEach(el => el.addEventListener('change', ()=>{ comEquiposForm[+el.dataset.eqColor].color = el.value; comPrevisualizar(); }));
+  cont.querySelectorAll('[data-eq-nombre]').forEach(el => el.addEventListener('input', ()=>{ comEquiposForm[+el.dataset.eqNombre].nombre = el.value; comPrevisualizar(); }));
+  cont.querySelectorAll('[data-eq-jug]').forEach(el => el.addEventListener('input', ()=>{ comEquiposForm[+el.dataset.eqJug].jugadores = el.value; comPrevisualizar(); }));
+  cont.querySelectorAll('[data-eq-quitar]').forEach(el => el.addEventListener('click', ()=>{ comEquiposForm.splice(+el.dataset.eqQuitar, 1); comRenderEquiposForm(); comPrevisualizar(); }));
+}
+function comSetImagen(dataUrl){
+  comImagenActual = dataUrl || '';
+  const prev = document.getElementById('com-img-prev');
+  prev.style.display = comImagenActual ? '' : 'none';
+  prev.querySelector('img').src = comImagenActual || '';
+  if(!comImagenActual) document.getElementById('com-img-input').value = '';
+  comPrevisualizar();
+}
+// achica la foto (máx. 1000 px, JPEG) para guardarla dentro del comunicado sin que pese de más
+function comAchicarImagen(file){
+  return new Promise((resolve, reject)=>{
+    const lector = new FileReader();
+    lector.onerror = reject;
+    lector.onload = ()=>{
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = ()=>{
+        const escala = Math.min(1, 1000 / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * escala); cv.height = Math.round(img.height * escala);
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        let calidad = 0.82, url = cv.toDataURL('image/jpeg', calidad);
+        while(url.length > 450000 && calidad > 0.4){ calidad -= 0.1; url = cv.toDataURL('image/jpeg', calidad); }
+        resolve(url);
+      };
+      img.src = lector.result;
+    };
+    lector.readAsDataURL(file);
+  });
+}
+function comLlenarForm(d){
+  const set = (id, val) => { document.getElementById(id).value = val || ''; };
+  set('com-tipo', d.tipo || 'anuncio'); set('com-titulo-input', d.titulo); set('com-bajada', d.bajada);
+  const f = d.ficha || {};
+  set('com-f-fecha', f.fecha); set('com-f-hora', f.hora); set('com-f-lugar', f.lugar); set('com-f-precio', f.precio);
+  set('com-contenido-input', d.cuerpo); set('com-destacado', d.destacado); set('com-epigrafe', d.epigrafe);
+  comEquiposForm = (d.equipos || []).map(e => ({ color:e.color || 'blanco', nombre:e.nombre || '', jugadores:(e.jugadores || []).join('\n') }));
+  comRenderEquiposForm();
+  comSetImagen(d.imagen || '');
+}
+function comEmpezarEdicion(id, duplicar){
   const c = comCache.find(x => x.id === id);
   if(!c) return;
-  comEditandoId = id;
-  document.getElementById('com-titulo-input').value = c.titulo;
-  document.getElementById('com-contenido-input').value = c.contenido;
-  document.getElementById('com-publicar-btn').textContent = 'Guardar cambios';
+  const d = comParsear(c);
+  comEditandoId = duplicar ? null : id;
+  comLlenarForm(duplicar ? Object.assign({}, d, { titulo: d.titulo }) : d);
+  document.getElementById('com-form-titulo').textContent = duplicar ? '📄 Nuevo comunicado (copiado)' : '✏️ Editando comunicado';
+  document.getElementById('com-publicar-btn').textContent = duplicar ? 'Publicar comunicado' : 'Guardar cambios';
   document.getElementById('com-cancelar-edicion').style.display = '';
   document.getElementById('com-publicar-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
   document.getElementById('com-titulo-input').focus();
 }
 function comCancelarEdicion(){
   comEditandoId = null;
-  document.getElementById('com-titulo-input').value = '';
-  document.getElementById('com-contenido-input').value = '';
+  comLlenarForm({ tipo:'anuncio' });
+  document.getElementById('com-form-titulo').textContent = '📢 Nuevo comunicado oficial';
   document.getElementById('com-publicar-btn').textContent = 'Publicar comunicado';
   document.getElementById('com-cancelar-edicion').style.display = 'none';
 }
+document.getElementById('com-tipo').innerHTML = Object.entries(COM_TIPOS).map(([k, t]) => `<option value="${k}">${t.ico} ${t.label}</option>`).join('');
+['com-tipo','com-titulo-input','com-bajada','com-f-fecha','com-f-hora','com-f-lugar','com-f-precio','com-contenido-input','com-destacado','com-epigrafe']
+  .forEach(id => document.getElementById(id).addEventListener('input', comPrevisualizar));
+document.getElementById('com-eq-agregar').addEventListener('click', ()=>{
+  const usados = new Set(comEquiposForm.map(e => e.color));
+  const libre = Object.keys(COM_COLORES).find(k => !usados.has(k)) || 'blanco';
+  comEquiposForm.push({ color:libre, nombre:'', jugadores:'' });
+  comRenderEquiposForm(); comPrevisualizar();
+});
+document.getElementById('com-img-input').addEventListener('change', async (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  try{ comSetImagen(await comAchicarImagen(f)); }catch(_){ glToast('No se pudo leer esa imagen.'); }
+});
+document.getElementById('com-img-quitar').addEventListener('click', ()=> comSetImagen(''));
 document.getElementById('com-cancelar-edicion').addEventListener('click', comCancelarEdicion);
 document.getElementById('com-publicar-btn').addEventListener('click', async (e)=>{
-  const titulo = document.getElementById('com-titulo-input').value.trim();
-  const contenido = document.getElementById('com-contenido-input').value.trim();
-  if(!titulo || !contenido){ glToast('Completá título y contenido.'); return; }
+  const d = comLeerForm();
+  if(!d.titulo || (!d.cuerpo && !d.equipos.length && !d.bajada)){ glToast('Completá el título y el texto (o los equipos).'); return; }
+  const titulo = d.titulo, contenido = comSerializar(d);
   const btn = e.currentTarget;
   delete btn.dataset.glTextoOriginal; // el texto cambia entre "Publicar" y "Guardar cambios"
   glBotonCargando(btn, true);
@@ -19320,6 +19621,182 @@ document.getElementById('com-publicar-btn').addEventListener('click', async (e)=
   comCancelarEdicion();
   await cargarComunicados();
 });
+comCancelarEdicion();
+
+/* --- placa del comunicado para compartir (canvas, misma estética que la placa del partido) --- */
+function comPlacaLineas(ctx, texto, anchoMax){
+  const out = [];
+  String(texto || '').split('\n').forEach(par => {
+    const palabras = par.split(/\s+/).filter(Boolean);
+    let linea = '';
+    palabras.forEach(p => {
+      const prueba = linea ? linea + ' ' + p : p;
+      if(ctx.measureText(prueba).width > anchoMax && linea){ out.push(linea); linea = p; } else linea = prueba;
+    });
+    if(linea) out.push(linea);
+  });
+  return out;
+}
+async function comPlacaDibujar(d, meta, formato){
+  const W = 1080, H = formato === 'historia' ? 1920 : 1350, esH = formato === 'historia';
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  try{ await Promise.all([document.fonts.load("400 60px 'Special Elite'"), document.fonts.load("700 40px 'Alegreya Sans'"), document.fonts.load("italic 400 40px 'Alegreya Sans'"), document.fonts.load("600 40px 'Barlow Condensed'")]); }catch(e){}
+  const C = { fondo1:'#1C3526', fondo2:'#0F2018', crema:'#F0E7D2', crema2:'rgba(240,231,210,0.74)', linea:'rgba(240,231,210,0.10)', rojo:'#B33B22', oro:'#D4AF37' };
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, C.fondo1); g.addColorStop(1, C.fondo2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  for(let i = 0; i < 10; i++){ if(i % 2){ ctx.fillStyle = 'rgba(255,255,255,0.025)'; ctx.fillRect(0, i*H/10, W, H/10); } }
+  ctx.strokeStyle = C.linea; ctx.lineWidth = 4; ctx.strokeRect(40, 40, W-80, H-80);
+  ctx.fillStyle = C.rojo; ctx.fillRect(40, 40, W-80, 12);
+  const X = 100, ANCHO = W - 200;
+  let y = esH ? 200 : 140;
+  ctx.textAlign = 'center'; ctx.fillStyle = C.crema; ctx.font = `400 ${esH?60:50}px 'Special Elite', monospace`;
+  ctx.fillText('GRILLOLIGA ARGENTINA', W/2, y);
+  y += esH ? 62 : 52;
+  ctx.fillStyle = C.oro;
+  const meta1 = `COMUNICADO OFICIAL N° ${String(meta.numero || 0).padStart(3,'0')}   ·   ${String(meta.fecha || '').toUpperCase()}`;
+  let tm = esH ? 36 : 30;
+  do{ ctx.font = `600 ${tm}px 'Barlow Condensed', sans-serif`; tm -= 2; }while(ctx.measureText(meta1).width > ANCHO && tm > 18);
+  ctx.fillText(meta1, W/2, y);
+  y += esH ? 70 : 56;
+  // etiqueta de tipo
+  const tipo = COM_TIPOS[d.tipo] || COM_TIPOS.anuncio;
+  ctx.font = `800 ${esH?28:24}px 'Alegreya Sans', sans-serif`;
+  const et = (tipo.ico + ' ' + tipo.label).toUpperCase(), etW = ctx.measureText(et).width + 44;
+  ctx.strokeStyle = C.rojo; ctx.lineWidth = 3; ctx.fillStyle = 'rgba(179,59,34,0.18)';
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(W/2 - etW/2, y - (esH?34:30), etW, esH?48:42, 24) : ctx.rect(W/2 - etW/2, y - 30, etW, 42); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = C.crema; ctx.fillText(et, W/2, y);
+  y += esH ? 96 : 80;
+  // título
+  ctx.font = `400 ${esH?70:58}px 'Special Elite', monospace`; ctx.fillStyle = C.crema;
+  comPlacaLineas(ctx, d.titulo, ANCHO).slice(0, 3).forEach(l => { ctx.fillText(l, W/2, y); y += esH ? 80 : 66; });
+  if(d.bajada){
+    y += 4; ctx.font = `italic 400 ${esH?38:32}px 'Alegreya Sans', sans-serif`; ctx.fillStyle = C.crema2;
+    comPlacaLineas(ctx, d.bajada, ANCHO).slice(0, 3).forEach(l => { ctx.fillText(l, W/2, y); y += esH ? 48 : 40; });
+  }
+  // ficha
+  const f = d.ficha || {};
+  const ficha = [f.fecha && '📅 ' + f.fecha, f.hora && '🕙 ' + f.hora, f.lugar && '📍 ' + f.lugar, f.precio && '💵 ' + f.precio].filter(Boolean);
+  if(ficha.length){
+    y += esH ? 24 : 16;
+    ctx.font = `600 ${esH?36:30}px 'Barlow Condensed', sans-serif`; ctx.fillStyle = C.oro;
+    comPlacaLineas(ctx, ficha.join('    '), ANCHO).slice(0, 2).forEach(l => { ctx.fillText(l, W/2, y); y += esH ? 46 : 40; });
+  }
+  y += esH ? 30 : 20;
+  ctx.fillStyle = C.rojo; ctx.fillRect(W/2 - 60, y - 10, 120, 4);
+  y += esH ? 50 : 40;
+  const pieTop = H - 200;
+  // el destacado va fijo arriba del pie (hasta 2 líneas); el resto del contenido usa lo que queda
+  let destLineas = [], destH = 0, destTop = pieTop;
+  if(d.destacado){
+    ctx.font = `700 ${esH?32:27}px 'Alegreya Sans', sans-serif`;
+    destLineas = comPlacaLineas(ctx, '⭐ ' + d.destacado, W - 240).slice(0, 2);
+    destH = (esH ? 40 : 34) * destLineas.length + (esH ? 40 : 32);
+    destTop = pieTop - destH - 26;
+  }
+  const equipos = (d.equipos || []).filter(e => (e.jugadores || []).length);
+  ctx.textAlign = 'left';
+  if(equipos.length){
+    const fotos = (typeof FOTOS_JUGADORES_REMOTAS !== 'undefined' && FOTOS_JUGADORES_REMOTAS) || {};
+    const nombres = [...new Set(equipos.flatMap(e => e.jugadores))];
+    const imgs = {};
+    await Promise.all(nombres.map(async n => { imgs[n] = await placaCargarImagen(fotos[n]); }));
+    const n = equipos.length, gap = 24, colW = (W - 160 - gap*(n-1)) / n;
+    const maxJug = Math.max(...equipos.map(e => e.jugadores.length));
+    const filaH = Math.min(esH ? 92 : 70, (destTop - y - 100) / Math.max(1, maxJug));
+    const r = Math.max(14, Math.min(esH ? 34 : 26, filaH/2 - 6));
+    equipos.forEach((e, i) => {
+      const col = COM_COLORES[e.color] || COM_COLORES.gris, x0 = 80 + i*(colW + gap);
+      ctx.fillStyle = col.hex; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y, colW, esH?64:54, 14) : ctx.rect(x0, y, colW, 54); ctx.fill();
+      ctx.fillStyle = col.txt; ctx.textAlign = 'center'; ctx.font = `800 ${esH?32:26}px 'Alegreya Sans', sans-serif`;
+      ctx.fillText(placaRecortarTexto(ctx, ('Equipo ' + col.n + (e.nombre ? ' · ' + e.nombre : '')).toUpperCase(), colW - 20), x0 + colW/2, y + (esH?43:36));
+      ctx.textAlign = 'left';
+      e.jugadores.forEach((nombre, k) => {
+        const cy = y + (esH?64:54) + 18 + k*filaH + r;
+        if(cy + r > destTop - 10) return;
+        placaCirculoFoto(ctx, imgs[nombre], nombre, x0 + 10 + r, cy, r, col.hex);
+        ctx.fillStyle = C.crema; ctx.font = `700 ${Math.round(r*1.05)}px 'Alegreya Sans', sans-serif`; ctx.textBaseline = 'middle';
+        ctx.fillText(placaRecortarTexto(ctx, nombre, colW - r*2 - 30), x0 + 24 + r*2, cy + 2);
+        ctx.textBaseline = 'alphabetic';
+      });
+    });
+    y += (esH?64:54) + 18 + maxJug*filaH + 20;
+  } else {
+    // cuerpo: subtítulos y viñetas. Primero busca el tamaño de letra más grande con el que entra todo.
+    const lineasCuerpo = String(d.cuerpo || '').split('\n').map(l => l.trim().replace(/\*\*/g, ''));
+    const recorrer = (tam, alto, yIni, dibujar) => {
+      let yy = yIni;
+      for(const t of lineasCuerpo){
+        if(!t){ yy += alto * 0.35; continue; }
+        if(/^##\s*/.test(t)){
+          yy += alto * 0.3;
+          ctx.font = `600 ${tam+2}px 'Barlow Condensed', sans-serif`;
+          if(dibujar){ ctx.fillStyle = C.oro; ctx.fillText(t.replace(/^##\s*/, '').toUpperCase(), X, yy); }
+          yy += alto; continue;
+        }
+        const esVi = /^[•\-\*·]\s+/.test(t), txt = t.replace(/^[•\-\*·]\s+/, '');
+        ctx.font = `400 ${tam}px 'Alegreya Sans', sans-serif`;
+        comPlacaLineas(ctx, txt, ANCHO - (esVi ? 40 : 0)).forEach((l, k) => {
+          if(dibujar){
+            if(esVi && k === 0){ ctx.save(); ctx.translate(X + 10, yy - tam*0.32); ctx.rotate(Math.PI/4); ctx.fillStyle = C.rojo; ctx.fillRect(-6, -6, 12, 12); ctx.restore(); }
+            ctx.fillStyle = C.crema; ctx.fillText(l, X + (esVi ? 40 : 0), yy);
+          }
+          yy += alto;
+        });
+      }
+      return yy;
+    };
+    const limite = destTop - 10;
+    let tam = esH ? 36 : 28;
+    const minimo = esH ? 22 : 17;
+    while(tam > minimo && recorrer(tam, Math.round(tam * 1.36), y, false) - Math.round(tam * 1.36) * 0.7 > limite) tam -= 1;
+    const alto = Math.round(tam * 1.36);
+    if(recorrer(tam, alto, y, false) - alto * 0.7 <= limite){
+      y = recorrer(tam, alto, y, true);
+    } else {
+      // ni con la letra mínima entra todo: se dibuja lo que entra y se avisa
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, limite - alto); ctx.clip();
+      recorrer(tam, alto, y, true); ctx.restore();
+      ctx.fillStyle = C.crema2; ctx.font = `italic 400 ${tam}px 'Alegreya Sans', sans-serif`;
+      ctx.fillText('… seguí leyendo en la app', X, limite - 4);
+      y = limite;
+    }
+  }
+  if(destLineas.length){
+    ctx.fillStyle = 'rgba(212,175,55,0.16)'; ctx.strokeStyle = C.oro; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(80, destTop, W-160, destH, 18) : ctx.rect(80, destTop, W-160, destH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.crema; ctx.textAlign = 'center'; ctx.font = `700 ${esH?32:27}px 'Alegreya Sans', sans-serif`;
+    destLineas.forEach((l, k) => ctx.fillText(l, W/2, destTop + (esH ? 20 : 16) + (k + 1) * (esH ? 40 : 34) - 8));
+  }
+  // pie: firma + sello + link
+  ctx.textAlign = 'center';
+  ctx.fillStyle = C.rojo; ctx.fillRect(40, H - 170, W - 80, 4);
+  ctx.fillStyle = C.crema; ctx.font = `400 ${esH?36:30}px 'Special Elite', monospace`;
+  ctx.fillText(COM_FIRMA, W/2, H - 112);
+  ctx.fillStyle = C.oro; ctx.font = `400 ${esH?28:24}px 'Special Elite', monospace`;
+  ctx.fillText(PLACA_LINK, W/2, H - 68);
+  return cv;
+}
+async function comPlacaCompartir(d, meta, formato, boton){
+  const original = boton.textContent;
+  boton.disabled = true; boton.textContent = '⏳ Armando la placa…';
+  try{
+    const cv = await comPlacaDibujar(d, meta, formato);
+    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    if(!blob) throw new Error('sin imagen');
+    const nombre = `grilloliga-comunicado-${meta.numero}-${formato}.png`;
+    const archivo = new File([blob], nombre, { type:'image/png' });
+    if(navigator.canShare && navigator.canShare({ files:[archivo] })){
+      try{ await navigator.share({ files:[archivo], title:`Comunicado oficial — Grillo Liga`, text:`📢 ${d.titulo} · https://${PLACA_LINK}/` }); }catch(e){}
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 4000);
+      glToast('🖼️ Placa descargada');
+    }
+  }catch(e){ glToast('No se pudo armar la placa. Probá de nuevo.'); }
+  finally{ boton.disabled = false; boton.textContent = original; }
+}
 
 renderMatchChips();
 renderScoreboard();
